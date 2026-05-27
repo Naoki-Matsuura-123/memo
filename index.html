@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AetherNotes - DB-Driven & Cloudflare Tunnel Demo</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    /* CSS変数によるデザインシステム */
+    :root {
+      --bg: #0f1115;
+      --sidebar-bg: #16181d;
+      --panel-border: #242731;
+      --text-main: #e3e6eb;
+      --text-sub: #8b949e;
+      --text-muted: #484f58;
+      --accent: #8b5cf6;
+      --accent-hover: #a78bfa;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --font-family: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --sidebar-width: 300px;
+    }
+    /* プリセットテーマ */
+    body.theme-light {
+      --bg: #ffffff;
+      --sidebar-bg: #f6f8fa;
+      --panel-border: #d0d7de;
+      --text-main: #24292f;
+      --text-sub: #57606a;
+      --text-muted: #8c959f;
+      --accent: #0969da;
+      --accent-hover: #0550ae;
+    }
+    body.theme-sepia {
+      --bg: #f4ecd8;
+      --sidebar-bg: #eaddc3;
+      --panel-border: #d2c0a5;
+      --text-main: #433422;
+      --text-sub: #6c5a49;
+      --text-muted: #96836f;
+      --accent: #a0522d;
+      --accent-hover: #8b4513;
+    }
+    body.theme-nord {
+      --bg: #2e3440;
+      --sidebar-bg: #242933;
+      --panel-border: #3b4252;
+      --text-main: #d8dee9;
+      --text-sub: #e5e9f0;
+      --text-muted: #4c566a;
+      --accent: #88c0d0;
+      --accent-hover: #8fbcbb;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .app-layout {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    /* サイドバー */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--sidebar-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .sidebar-header {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .logo-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .logo-icon {
+      color: var(--accent);
+    }
+    /* 接続設定ギアイコンボタン */
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .btn-icon:hover {
+      background-color: rgba(128, 128, 128, 0.1);
+      color: var(--text-main);
+    }
+    .db-badge {
+      font-size: 0.7rem;
+      background: rgba(128, 128, 128, 0.1);
+      border: 1px solid var(--panel-border);
+      color: var(--text-sub);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-weight: 500;
+    }
+    /* 接続ステータス */
+    .status-area {
+      padding: 0.4rem 1.25rem;
+      font-size: 0.75rem;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      color: var(--text-sub);
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .status-url {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-left: 0.8rem;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .status-dot.online { background-color: var(--success); }
+    .status-dot.offline { background-color: var(--warning); }
+    .status-dot.syncing { background-color: var(--accent); animation: pulse 1s infinite alternate; }
+    @keyframes pulse { 0% { opacity: 0.4; } 100% { opacity: 1; } }
+    /* サイドバーアクション */
+    .sidebar-actions {
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .btn-primary {
+      width: 100%;
+      background-color: var(--accent);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: background-color 0.2s;
+    }
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+    .search-input {
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+    /* メモカード */
+    .memo-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem 0.75rem;
+    }
+    .memo-card {
+      padding: 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 0.4rem;
+      border: 1px solid transparent;
+      transition: background-color 0.15s;
+    }
+    .memo-card:hover {
+      background-color: rgba(128, 128, 128, 0.08);
+    }
+    .memo-card.active {
+      background-color: rgba(128, 128, 128, 0.12);
+      border-color: var(--panel-border);
+    }
+    .memo-card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .memo-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.4rem;
+    }
+    .memo-card-db-id {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .badge {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .badge.local-only {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+    }
+    .badge.pending {
+      background-color: rgba(139, 92, 246, 0.15);
+      color: var(--accent);
+    }
+    .empty-list-text {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+    /* エディタ */
+    .editor-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .editor-header {
+      padding: 0.75rem 1.5rem;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .save-indicator-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .save-indicator {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .active-db-badge {
+      font-size: 0.7rem;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      display: none;
+    }
+    .editor-controls {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      padding: 0.4rem 0.7rem;
+      font-size: 0.8rem;
+      font-family: inherit;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .btn-secondary:hover {
+      background-color: rgba(128, 128, 128, 0.08);
+    }
+    .theme-select {
+      background-color: var(--bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      font-size: 0.8rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      outline: none;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    /* エディタ表示領域 */
+    .editor-viewport {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+    }
+    .title-input {
+      font-family: inherit;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-main);
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+    }
+    .content-textarea {
+      flex: 1;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      width: 100%;
+      line-height: 1.6;
+    }
+    .preview-container {
+      display: none;
+      flex: 1;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      overflow-y: auto;
+    }
+    .preview-container.active {
+      display: block;
+    }
+    /* プレビューマークダウン */
+    .preview-container h1 { font-size: 1.6rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 0.2rem; }
+    .preview-container h2 { font-size: 1.3rem; margin-top: 1.2rem; margin-bottom: 0.6rem; }
+    .preview-container h3 { font-size: 1.1rem; margin-top: 1rem; margin-bottom: 0.4rem; }
+    .preview-container p { margin-bottom: 0.8rem; }
+    .preview-container code { font-family: var(--font-mono); background: rgba(128, 128, 128, 0.15); padding: 0.15rem 0.3rem; border-radius: 4px; font-size: 0.9em; }
+    .preview-container pre { background: rgba(0, 0, 0, 0.2); border: 1px solid var(--panel-border); border-radius: 6px; padding: 0.85rem; overflow-x: auto; margin-bottom: 0.8rem; }
+    .preview-container pre code { background: transparent; padding: 0; }
+    .preview-container ul, .preview-container ol { margin-left: 1.25rem; margin-bottom: 0.8rem; }
+    .preview-container blockquote { border-left: 3px solid var(--accent); padding-left: 0.75rem; color: var(--text-sub); margin-bottom: 0.8rem; }
+    .editor-empty-state {
+      position: absolute;
+      inset: 0;
+      background-color: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      z-index: 2;
+    }
+    /* モーダル共通 */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active { display: flex; }
+    
+    .modal-content {
+      background: var(--bg);
+      border: 1px solid var(--panel-border);
+      padding: 1.5rem;
+      border-radius: 8px;
+      width: 420px;
+      max-width: 90%;
+    }
+    /* トースト */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    .toast {
+      background-color: #1f2937;
+      color: #f3f4f6;
+      border: 1px solid #374151;
+      padding: 0.75rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+    }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    /* 設定用フォーム */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-bottom: 0.35rem;
+      font-weight: 500;
+    }
+    .form-input {
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      padding: 0.6rem;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .form-input:focus {
+      border-color: var(--accent);
+    }
+    .form-help {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="app-layout">
+    <!-- サイドバー -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-row">
+          <div class="logo">
+            <i data-lucide="database" class="logo-icon"></i>
+            <span>AetherNotes</span>
+          </div>
+          <!-- 接続設定ボタン -->
+          <button class="btn-icon" id="settingsBtn" title="接続設定">
+            <i data-lucide="settings" style="width:16px; height:16px;"></i>
+          </button>
+        </div>
+        <div class="db-badge">
+          <i data-lucide="server" style="width:12px; height:12px;"></i>
+          <span>memos.db (SQLite)</span>
+        </div>
+      </div>
+      <!-- 接続ステータス -->
+      <div class="status-area">
+        <div class="status-row">
+          <span class="status-dot online" id="statusDot"></span>
+          <span id="statusText">オンライン</span>
+        </div>
+        <span class="status-url" id="statusUrl">http://localhost:8000</span>
+      </div>
+      <!-- アクション・検索 -->
+      <div class="sidebar-actions">
+        <button class="btn-primary" id="createBtn">
+          <i data-lucide="plus" style="width:16px; height:16px;"></i>新規作成
+        </button>
+        <input type="text" class="search-input" id="searchBar" placeholder="メモを検索...">
+      </div>
+      <!-- メモカード一覧 -->
+      <div class="memo-list" id="memoList">
+        <div class="empty-list-text">読み込み中...</div>
+      </div>
+    </aside>
+    <!-- エディタ領域 -->
+    <main class="editor-area">
+      <!-- ヘッダー -->
+      <div class="editor-header">
+        <div class="save-indicator-group">
+          <div class="save-indicator" id="saveIndicator">
+            <i data-lucide="check" style="width:14px; height:14px;"></i>
+            <span>保存済み</span>
+          </div>
+          <!-- データベースID表示バッジ -->
+          <div class="active-db-badge" id="activeDbBadge">
+            SQLite ID: -
+          </div>
+        </div>
+        
+        <div class="editor-controls">
+          <!-- テーマ選択 -->
+          <select class="theme-select" id="themeSelect">
+            <option value="theme-dark">🌌 モダンダーク</option>
+            <option value="theme-light">☀️ クリーンライト</option>
+            <option value="theme-sepia">☕ セピアブラウン</option>
+            <option value="theme-nord">❄️ ノルディック</option>
+          </select>
+          <button class="btn-secondary" id="previewBtn">
+            <i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー
+          </button>
+          <button class="btn-secondary" id="deleteBtn" style="color:var(--danger); border-color:rgba(239, 68, 68, 0.2);">
+            <i data-lucide="trash-2" style="width:14px; height:14px;"></i>削除
+          </button>
+        </div>
+      </div>
+      <!-- 入力 / プレビュー表示 -->
+      <div class="editor-viewport">
+        <input type="text" class="title-input" id="memoTitle" placeholder="無題のメモ" disabled>
+        
+        <textarea class="content-textarea" id="memoContent" placeholder="内容を入力してください... (マークダウン対応)" disabled></textarea>
+        
+        <!-- プレビュー -->
+        <div class="preview-container" id="markdownPreview"></div>
+        <!-- プレースホルダー -->
+        <div class="editor-empty-state" id="emptyState">
+          <p>メモを選択するか、新しく作成してください。</p>
+        </div>
+      </div>
+    </main>
+  </div>
+  <!-- 削除モーダル -->
+  <div class="modal" id="deleteModal">
+    <div class="modal-content">
+      <div class="modal-title">メモを削除しますか？</div>
+      <div class="modal-body">この操作は取り消せません。データベースから完全に削除されます。</div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="cancelDeleteBtn">キャンセル</button>
+        <button class="btn-primary" id="confirmDeleteBtn" style="background-color:var(--danger);">削除</button>
+      </div>
+    </div>
+  </div>
+  <!-- 接続設定モーダル -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem;">
+        <i data-lucide="settings" style="color:var(--accent); width:20px; height:20px;"></i>
+        <span>接続設定 (Cloudflare Tunnel デモ対応)</span>
+      </div>
+      <div style="margin:1rem 0;">
+        <div class="form-group">
+          <label class="form-label" for="apiUrlInput">APIサーバーベースURL</label>
+          <input type="text" class="form-input" id="apiUrlInput" placeholder="http://localhost:8000">
+          <div class="form-help">
+            ローカル稼働時は <strong>http://localhost:8000</strong> を指定します。<br>
+            GitHub PagesからCloudflare Tunnelで自宅PCのDBを操作する場合は、発行されたトンネルURL（例: <strong>https://your-tunnel.trycloudflare.com</strong>）を入力します。
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="cancelSettingsBtn">キャンセル</button>
+        <button class="btn-primary" id="saveSettingsBtn">保存して接続テスト</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // デフォルトURLと永続化された接続URLの読み込み
+    let API_URL = localStorage.getItem('aether_api_url') || "http://localhost:8000";
+    // アプリ状態
+    let state = {
+      memos: [],
+      activeMemoId: null,
+      searchQuery: '',
+      isOnline: true,
+      isPreviewActive: false,
+      syncQueue: [],
+      syncing: false
+    };
+    // DOM要素
+    const el = {
+      themeSelect: document.getElementById('themeSelect'),
+      statusDot: document.getElementById('statusDot'),
+      statusText: document.getElementById('statusText'),
+      statusUrl: document.getElementById('statusUrl'),
+      createBtn: document.getElementById('createBtn'),
+      searchBar: document.getElementById('searchBar'),
+      memoList: document.getElementById('memoList'),
+      saveIndicator: document.getElementById('saveIndicator'),
+      activeDbBadge: document.getElementById('activeDbBadge'),
+      previewBtn: document.getElementById('previewBtn'),
+      deleteBtn: document.getElementById('deleteBtn'),
+      memoTitle: document.getElementById('memoTitle'),
+      memoContent: document.getElementById('memoContent'),
+      markdownPreview: document.getElementById('markdownPreview'),
+      emptyState: document.getElementById('emptyState'),
+      deleteModal: document.getElementById('deleteModal'),
+      cancelDeleteBtn: document.getElementById('cancelDeleteBtn'),
+      confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
+      settingsBtn: document.getElementById('settingsBtn'),
+      settingsModal: document.getElementById('settingsModal'),
+      apiUrlInput: document.getElementById('apiUrlInput'),
+      cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
+      saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+      toastContainer: document.getElementById('toastContainer')
+    };
+    let autosaveTimer = null;
+    // トースト表示
+    function showToast(message, iconName = 'database') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<i data-lucide="${iconName}" style="width:16px; height:16px; color:var(--success);"></i><span>${message}</span>`;
+      el.toastContainer.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => toast.remove(), 3000);
+    }
+    // --- 初期化 ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      // テーマ復元
+      const savedTheme = localStorage.getItem('app-theme') || 'theme-dark';
+      applyTheme(savedTheme);
+      el.themeSelect.value = savedTheme;
+      // 接続URL表示を同期
+      el.statusUrl.textContent = API_URL;
+      // ローカルキャッシュ読込
+      loadCache();
+      renderList();
+      // リスナー登録
+      setupEvents();
+      // 初回接続確認と同期開始
+      await checkStatus();
+      setInterval(checkStatus, 8000);
+    });
+    // --- テーマ適用 ---
+    function applyTheme(themeName) {
+      document.body.className = '';
+      if (themeName !== 'theme-dark') {
+        document.body.classList.add(themeName);
+      }
+      localStorage.setItem('app-theme', themeName);
+    }
+    // --- キャッシュ管理 ---
+    function loadCache() {
+      try {
+        state.memos = JSON.parse(localStorage.getItem('memos_cache') || '[]');
+        state.syncQueue = JSON.parse(localStorage.getItem('sync_queue') || '[]');
+      } catch (e) {
+        console.error("キャッシュ読込エラー", e);
+      }
+    }
+    function saveCache() {
+      try {
+        localStorage.setItem('memos_cache', JSON.stringify(state.memos));
+        localStorage.setItem('sync_queue', JSON.stringify(state.syncQueue));
+      } catch (e) {
+        console.error("キャッシュ保存エラー", e);
+      }
+    }
+    // --- 同期エンジン ---
+    async function checkStatus() {
+      try {
+        const response = await fetch(`${API_URL}/memos`, { method: 'GET', signal: AbortSignal.timeout(2500) });
+        if (response.ok) {
+          state.isOnline = true;
+          updateStatusUI('online');
+          if (state.syncQueue.length > 0 && !state.syncing) {
+            await processSyncQueue();
+          } else if (state.syncQueue.length === 0) {
+            const serverMemos = await response.json();
+            mergeMemos(serverMemos);
+          }
+        } else {
+          throw new Error();
+        }
+      } catch (err) {
+        state.isOnline = false;
+        updateStatusUI('offline');
+      }
+    }
+    function mergeMemos(serverMemos) {
+      state.memos = serverMemos;
+      saveCache();
+      renderList();
+      if (state.activeMemoId) {
+        const active = state.memos.find(m => m.id === state.activeMemoId);
+        if (active) {
+          updateActiveDbBadge(active.id);
+          if (document.activeElement !== el.memoTitle && document.activeElement !== el.memoContent) {
+            el.memoTitle.value = active.title;
+            el.memoContent.value = active.content;
+            if (state.isPreviewActive) compileMarkdown();
+          }
+        } else {
+          closeWorkspace();
+        }
+      }
+    }
+    async function processSyncQueue() {
+      state.syncing = true;
+      updateStatusUI('syncing');
+      const mapping = {};
+      const failed = [];
+      let hadCreate = false;
+      for (const item of state.syncQueue) {
+        let actualId = item.id;
+        if (typeof actualId === 'string' && actualId.startsWith('offline_')) {
+          if (mapping[actualId]) actualId = mapping[actualId];
+        }
+        try {
+          if (item.type === 'CREATE') {
+            const res = await fetch(`${API_URL}/memos`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title: item.title, content: item.content })
+            });
+            if (res.ok) {
+              const resData = await res.json();
+              hadCreate = true;
+              if (typeof item.id === 'string' && item.id.startsWith('offline_')) {
+                mapping[item.id] = resData.id;
+                state.memos = state.memos.map(m => m.id === item.id ? resData : m);
+                if (state.activeMemoId === item.id) {
+                  state.activeMemoId = resData.id;
+                  updateActiveDbBadge(resData.id);
+                }
+              }
+            } else {
+              failed.push(item);
+            }
+          }
+          else if (item.type === 'UPDATE') {
+            if (typeof actualId === 'string' && actualId.startsWith('offline_')) {
+              failed.push(item);
+              continue;
+            }
+            const res = await fetch(`${API_URL}/memos/${actualId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title: item.title, content: item.content })
+            });
+            if (!res.ok) failed.push(item);
+          }
+          else if (item.type === 'DELETE') {
+            if (typeof actualId === 'string' && actualId.startsWith('offline_')) continue;
+            const res = await fetch(`${API_URL}/memos/${actualId}`, { method: 'DELETE' });
+            if (!res.ok && res.status !== 404) failed.push(item);
+          }
+        } catch (e) {
+          failed.push(item);
+        }
+      }
+      state.syncQueue = failed;
+      saveCache();
+      try {
+        const res = await fetch(`${API_URL}/memos`);
+        if (res.ok) {
+          state.memos = await res.json();
+          saveCache();
+        }
+      } catch (e) {}
+      state.syncing = false;
+      updateStatusUI('online');
+      renderList();
+      
+      if (hadCreate) {
+        showToast("未同期データをリモートSQLiteデータベースに反映しました！");
+      }
+    }
+    function addQueue(type, id, title = '', content = '') {
+      if (type === 'UPDATE') {
+        const idx = state.syncQueue.findIndex(q => q.id === id && q.type === 'UPDATE');
+        if (idx !== -1) {
+          state.syncQueue[idx].title = title;
+          state.syncQueue[idx].content = content;
+          saveCache();
+          return;
+        }
+      }
+      state.syncQueue.push({ type, id, title, content });
+      saveCache();
+    }
+    // --- UI更新 ---
+    function updateStatusUI(status) {
+      el.statusDot.className = 'status-dot';
+      el.statusUrl.textContent = API_URL;
+      
+      if (status === 'online') {
+        el.statusDot.classList.add('online');
+        el.statusText.textContent = '同期完了 (SQLite)';
+        setSaveMessage('saved', 'SQLiteに保存済み');
+      } else if (status === 'offline') {
+        el.statusDot.classList.add('offline');
+        el.statusText.textContent = 'オフライン（ローカル保存中）';
+        setSaveMessage('saved', 'ローカル保存済み');
+      } else if (status === 'syncing') {
+        el.statusDot.classList.add('syncing');
+        el.statusText.textContent = '同期処理中...';
+        setSaveMessage('saving', 'SQLiteに保存中...');
+      }
+    }
+    function setSaveMessage(status, text) {
+      el.saveIndicator.querySelector('span').textContent = text;
+      const icon = el.saveIndicator.querySelector('i');
+      if (status === 'saving') {
+        icon.setAttribute('data-lucide', 'refresh-cw');
+      } else {
+        icon.setAttribute('data-lucide', 'check');
+      }
+      lucide.createIcons();
+    }
+    function updateActiveDbBadge(id) {
+      if (!id) {
+        el.activeDbBadge.style.display = 'none';
+        return;
+      }
+      el.activeDbBadge.style.display = 'inline-block';
+      if (typeof id === 'string' && id.startsWith('offline_')) {
+        el.activeDbBadge.innerHTML = `<i data-lucide="cloud-off" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>未同期下書き`;
+        el.activeDbBadge.style.background = 'rgba(245, 158, 11, 0.1)';
+        el.activeDbBadge.style.color = 'var(--warning)';
+        el.activeDbBadge.style.borderColor = 'rgba(245, 158, 11, 0.2)';
+      } else {
+        el.activeDbBadge.innerHTML = `<i data-lucide="database" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>SQLite ID: ${id}`;
+        el.activeDbBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+        el.activeDbBadge.style.color = 'var(--success)';
+        el.activeDbBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+      }
+      lucide.createIcons();
+    }
+    // --- レンダリング ---
+    function renderList() {
+      el.memoList.innerHTML = '';
+      const query = state.searchQuery.toLowerCase();
+      
+      const filtered = state.memos.filter(m => 
+        m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query)
+      );
+      if (filtered.length === 0) {
+        el.memoList.innerHTML = `<div class="empty-list-text">${state.searchQuery ? '見つかりませんでした' : 'メモがありません'}</div>`;
+        return;
+      }
+      filtered.forEach(memo => {
+        const isOffline = typeof memo.id === 'string' && memo.id.startsWith('offline_');
+        const card = document.createElement('div');
+        card.className = `memo-card ${memo.id === state.activeMemoId ? 'active' : ''}`;
+        card.dataset.id = memo.id;
+        card.innerHTML = `
+          <div class="memo-card-title">${escape(memo.title || '無題のメモ')}</div>
+          <div class="memo-card-preview">${escape(memo.content || 'テキストがありません')}</div>
+          <div class="memo-card-meta">
+            <span class="memo-card-db-id">${isOffline ? 'ローカル' : `SQLite ID: ${memo.id}`}</span>
+            ${isOffline ? '<span class="badge local-only">未同期</span>' : ''}
+          </div>
+        `;
+        card.addEventListener('click', () => selectMemo(memo.id));
+        el.memoList.appendChild(card);
+      });
+    }
+    function selectMemo(id) {
+      state.activeMemoId = id;
+      const memo = state.memos.find(m => m.id === id);
+      if (!memo) return;
+      el.memoTitle.value = memo.title || '';
+      el.memoContent.value = memo.content || '';
+      
+      el.memoTitle.removeAttribute('disabled');
+      el.memoContent.removeAttribute('disabled');
+      el.emptyState.style.display = 'none';
+      updateActiveDbBadge(memo.id);
+      if (state.isPreviewActive) compileMarkdown();
+      renderList();
+    }
+    function closeWorkspace() {
+      state.activeMemoId = null;
+      el.memoTitle.value = '';
+      el.memoContent.value = '';
+      el.memoTitle.setAttribute('disabled', true);
+      el.memoContent.setAttribute('disabled', true);
+      el.emptyState.style.display = 'flex';
+      updateActiveDbBadge(null);
+      renderList();
+    }
+    // --- メモ操作 ---
+    function createMemo() {
+      const tempId = `offline_${Date.now()}`;
+      const newMemo = { id: tempId, title: '', content: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      state.memos.unshift(newMemo);
+      addQueue('CREATE', tempId, '', '');
+      saveCache();
+      renderList();
+      selectMemo(tempId);
+      el.memoTitle.focus();
+      checkStatus();
+      
+      showToast("新しいメモを作成しました (保存先: SQLite)", 'database');
+    }
+    function triggerAutosave() {
+      if (!state.activeMemoId) return;
+      const title = el.memoTitle.value;
+      const content = el.memoContent.value;
+      const now = new Date().toISOString();
+      state.memos = state.memos.map(m => m.id === state.activeMemoId ? { ...m, title, content, updated_at: now } : m);
+      saveCache();
+      renderList();
+      setSaveMessage('saving', '自動保存中...');
+      clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(async () => {
+        addQueue('UPDATE', state.activeMemoId, title, content);
+        saveCache();
+        
+        if (state.isOnline) {
+          await processSyncQueue();
+          showToast("変更をSQLiteに自動保存しました！", 'check');
+        } else {
+          updateStatusUI('offline');
+        }
+      }, 750);
+    }
+    async function confirmDelete() {
+      const targetId = state.activeMemoId;
+      el.deleteModal.classList.remove('active');
+      state.memos = state.memos.filter(m => m.id !== targetId);
+      state.syncQueue = state.syncQueue.filter(q => q.id !== targetId);
+      
+      addQueue('DELETE', targetId);
+      saveCache();
+      closeWorkspace();
+      
+      if (state.isOnline) {
+        await processSyncQueue();
+        showToast("データベースから削除しました", 'trash-2');
+      } else {
+        updateStatusUI('offline');
+      }
+    }
+    // --- 各種イベント設定 ---
+    function setupEvents() {
+      el.themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
+      el.createBtn.addEventListener('click', createMemo);
+      el.deleteBtn.addEventListener('click', () => { if (state.activeMemoId) el.deleteModal.classList.add('active'); });
+      el.cancelDeleteBtn.addEventListener('click', () => el.deleteModal.classList.remove('active'));
+      el.confirmDeleteBtn.addEventListener('click', confirmDelete);
+      el.searchBar.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        renderList();
+      });
+      el.memoTitle.addEventListener('input', triggerAutosave);
+      el.memoContent.addEventListener('input', () => {
+        triggerAutosave();
+        if (state.isPreviewActive) compileMarkdown();
+      });
+      el.previewBtn.addEventListener('click', togglePreview);
+      // 設定モーダル関連
+      el.settingsBtn.addEventListener('click', () => {
+        el.apiUrlInput.value = API_URL;
+        el.settingsModal.classList.add('active');
+      });
+      el.cancelSettingsBtn.addEventListener('click', () => el.settingsModal.classList.remove('active'));
+      el.saveSettingsBtn.addEventListener('click', async () => {
+        let inputUrl = el.apiUrlInput.value.trim();
+        // 末尾のスラッシュを削除
+        if (inputUrl.endsWith('/')) {
+          inputUrl = inputUrl.slice(0, -1);
+        }
+        if (!inputUrl) {
+          inputUrl = "http://localhost:8000";
+        }
+        
+        API_URL = inputUrl;
+        localStorage.setItem('aether_api_url', API_URL);
+        el.settingsModal.classList.remove('active');
+        
+        showToast("APIサーバーアドレスを設定しました！接続確認中...", 'refresh-cw');
+        await checkStatus();
+      });
+    }
+    // --- プレビュー ---
+    function togglePreview() {
+      state.isPreviewActive = !state.isPreviewActive;
+      
+      if (state.isPreviewActive) {
+        el.previewBtn.innerHTML = '<i data-lucide="edit-3" style="width:14px; height:14px;"></i>編集に戻る';
+        el.memoContent.style.display = 'none';
+        el.markdownPreview.classList.add('active');
+        compileMarkdown();
+      } else {
+        el.previewBtn.innerHTML = '<i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー';
+        el.memoContent.style.display = 'block';
+        el.markdownPreview.classList.remove('active');
+      }
+      lucide.createIcons();
+    }
+    function compileMarkdown() {
+      const raw = el.memoContent.value || '';
+      let html = escape(raw);
+      html = html.replace(/```([\s\S]*?)```/gm, (m, c) => `<pre><code>${c.trim()}</code></pre>`);
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+      html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+      html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+      html = html.replace(/^\&gt\; (.*$)/gim, '<blockquote>$1</blockquote>');
+      html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      html = html.replace(/^\s*\-\s+(.*$)/gim, '<li>$1</li>');
+      html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+      html = html.replace(/<\/ul>\s*<ul>/g, '');
+      const blocks = html.split(/\n{2,}/g).map(b => {
+        if (b.trim().startsWith('<h') || b.trim().startsWith('<pre') || b.trim().startsWith('<ul') || b.trim().startsWith('<blockquote')) {
+          return b;
+        }
+        return `<p>${b.replace(/\n/g, '<br>')}</p>`;
+      });
+      el.markdownPreview.innerHTML = blocks.join('');
+    }
+    function escape(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
