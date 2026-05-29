@@ -563,12 +563,19 @@
         <span class="status-url" id="statusUrl">http://localhost:8000</span>
       </div>
 
-      <!-- アクション・検索 -->
+      <!-- アクション・検索・並び替え -->
       <div class="sidebar-actions">
         <button class="btn-primary" id="createBtn">
           <i data-lucide="plus" style="width:16px; height:16px;"></i>新規作成
         </button>
-        <input type="text" class="search-input" id="searchBar" placeholder="メモを検索...">
+        <div style="display:flex; gap:0.5rem; width:100%;">
+          <input type="text" class="search-input" id="searchBar" placeholder="メモを検索..." style="flex: 1;">
+          <select class="theme-select" id="sortSelect" style="width: auto; padding: 0.35rem 0.5rem;" title="並び替え">
+            <option value="updated">🕒 更新順</option>
+            <option value="created">📅 作成順</option>
+            <option value="title">🔤 題名順</option>
+          </select>
+        </div>
       </div>
 
       <!-- メモカード一覧 -->
@@ -601,6 +608,9 @@
             <option value="theme-nord">❄️ ノルディック</option>
           </select>
 
+          <button class="btn-secondary" id="voiceBtn" title="音声入力">
+            <i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力
+          </button>
           <button class="btn-secondary" id="previewBtn">
             <i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー
           </button>
@@ -683,6 +693,7 @@
       memos: [],
       activeMemoId: null,
       searchQuery: '',
+      sortBy: 'updated', // 'updated' | 'created' | 'title'
       isOnline: true,
       isPreviewActive: false,
       syncQueue: [],
@@ -716,7 +727,9 @@
       saveSettingsBtn: document.getElementById('saveSettingsBtn'),
       toastContainer: document.getElementById('toastContainer'),
       ngrokWarningBanner: document.getElementById('ngrokWarningBanner'),
-      ngrokBypassBtn: document.getElementById('ngrokBypassBtn')
+      ngrokBypassBtn: document.getElementById('ngrokBypassBtn'),
+      sortSelect: document.getElementById('sortSelect'),
+      voiceBtn: document.getElementById('voiceBtn')
     };
 
     let autosaveTimer = null;
@@ -736,7 +749,7 @@
       lucide.createIcons();
 
       // テーマ復元
-      const savedTheme = localStorage.getItem('app-theme') || 'theme-dark';
+      const savedTheme = localStorage.getItem('app-theme') || 'theme-light';
       applyTheme(savedTheme);
       el.themeSelect.value = savedTheme;
 
@@ -1000,6 +1013,17 @@
         m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query)
       );
 
+      // クライアントサイドでの並び替え処理
+      filtered.sort((a, b) => {
+        if (state.sortBy === 'created') {
+          return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+        } else if (state.sortBy === 'title') {
+          return (a.title || '').localeCompare(b.title || '', 'ja');
+        } else { // 'updated'
+          return new Date(b.updated_at || 0) - new Date(a.updated_at || 0);
+        }
+      });
+
       if (filtered.length === 0) {
         el.memoList.innerHTML = `<div class="empty-list-text">${state.searchQuery ? '見つかりませんでした' : 'メモがありません'}</div>`;
         return;
@@ -1169,6 +1193,15 @@
       el.ngrokBypassBtn.addEventListener('click', () => {
         window.open(`${API_URL}/memos`, '_blank');
       });
+
+      // 並び替えの変更イベント
+      el.sortSelect.addEventListener('change', (e) => {
+        state.sortBy = e.target.value;
+        renderList();
+      });
+
+      // 音声入力ボタンの処理
+      el.voiceBtn.addEventListener('click', toggleListening);
     }
 
     // --- プレビュー ---
@@ -1212,6 +1245,84 @@
       });
 
       el.markdownPreview.innerHTML = blocks.join('');
+    }
+
+    // --- 音声入力機能 (Web Speech API) ---
+    let recognition = null;
+    let isListening = false;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ja-JP';
+      recognition.continuous = true;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event) => {
+        const resultIndex = event.resultIndex;
+        const transcript = event.results[resultIndex][0].transcript;
+        
+        const textarea = el.memoContent;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        
+        textarea.value = text.substring(0, start) + transcript + text.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + transcript.length;
+        
+        triggerAutosave();
+        if (state.isPreviewActive) compileMarkdown();
+        
+        showToast("音声をテキストに変換しました！", 'mic');
+      };
+
+      recognition.onerror = (event) => {
+        console.error("音声認識エラー", event.error);
+        stopListening();
+      };
+
+      recognition.onend = () => {
+        if (isListening) stopListening();
+      };
+    }
+
+    function toggleListening() {
+      if (!recognition) {
+        showToast("音声入力はこのブラウザに対応していません", 'shield-alert');
+        return;
+      }
+      if (!state.activeMemoId) {
+        showToast("音声入力を開始するにはメモを選択してください", 'shield-alert');
+        return;
+      }
+
+      if (isListening) {
+        stopListening();
+      } else {
+        startListening();
+      }
+    }
+
+    function startListening() {
+      isListening = true;
+      recognition.start();
+      el.voiceBtn.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+      el.voiceBtn.style.color = 'var(--danger)';
+      el.voiceBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      el.voiceBtn.innerHTML = '<i data-lucide="mic-off" style="width:14px; height:14px; color:var(--danger);"></i>音声入力中...';
+      lucide.createIcons();
+      showToast("音声入力を開始しました。マイクに向かってお話しください...", 'mic');
+    }
+
+    function stopListening() {
+      isListening = false;
+      recognition.stop();
+      el.voiceBtn.style.backgroundColor = 'transparent';
+      el.voiceBtn.style.color = 'var(--text-main)';
+      el.voiceBtn.style.borderColor = 'var(--panel-border)';
+      el.voiceBtn.innerHTML = '<i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力';
+      lucide.createIcons();
+      showToast("音声入力を終了しました", 'mic');
     }
 
     function escape(str) {
