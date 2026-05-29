@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AetherNotes - DB-Driven & Cloudflare Tunnel Demo</title>
+  <title>nao-memo - DB-Driven Custom Memo App</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -541,7 +541,7 @@
         <div class="logo-row">
           <div class="logo">
             <i data-lucide="database" class="logo-icon"></i>
-            <span>AetherNotes</span>
+            <span>nao-memo</span>
           </div>
           <!-- 接続設定ボタン -->
           <button class="btn-icon" id="settingsBtn" title="接続設定">
@@ -583,7 +583,7 @@
       <div class="editor-header">
         <div class="save-indicator-group">
           <div class="save-indicator" id="saveIndicator">
-            <i data-lucide="check" style="width:14px; height:14px;"></i>
+            <span id="saveIconContainer"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
             <span>保存済み</span>
           </div>
           <!-- データベースID表示バッジ -->
@@ -608,6 +608,17 @@
             <i data-lucide="trash-2" style="width:14px; height:14px;"></i>削除
           </button>
         </div>
+      </div>
+
+      <!-- ngrokの認証/警告スキップ許可を促すバナー -->
+      <div id="ngrokWarningBanner" style="display:none; background:rgba(245,158,11,0.1); border-bottom:1px solid rgba(245,158,11,0.25); color:var(--warning); padding:0.85rem 1.5rem; font-size:0.85rem; align-items:center; justify-content:space-between; gap:1rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <i data-lucide="shield-alert" style="width:16px; height:16px; flex-shrink:0;"></i>
+          <span><strong>ngrok接続の初期許可が必要です：</strong> 自宅PCのデータベースと安全に通信するため、一度だけアクセス許可を有効にしてください。</span>
+        </div>
+        <button class="btn-primary" id="ngrokBypassBtn" style="width:auto; padding:0.35rem 0.75rem; font-size:0.75rem; background-color:var(--warning); color:#000; border:none; border-radius:4px; font-weight:600; cursor:pointer;">
+          アクセス許可を有効にする
+        </button>
       </div>
 
       <!-- 入力 / プレビュー表示 -->
@@ -664,8 +675,8 @@
   </div>
 
   <script>
-    // デフォルトURLと永続化された接続URLの読み込み
-    let API_URL = localStorage.getItem('aether_api_url') || "http://localhost:8000";
+    // デフォルトURLと永続化された接続URLの読み込み（デフォルトでngrokのサブドメインを指定）
+    let API_URL = localStorage.getItem('naomemo_api_url') || "https://snubby-arlette-denunciatory.ngrok-free.dev";
 
     // アプリ状態
     let state = {
@@ -703,7 +714,9 @@
       apiUrlInput: document.getElementById('apiUrlInput'),
       cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
       saveSettingsBtn: document.getElementById('saveSettingsBtn'),
-      toastContainer: document.getElementById('toastContainer')
+      toastContainer: document.getElementById('toastContainer'),
+      ngrokWarningBanner: document.getElementById('ngrokWarningBanner'),
+      ngrokBypassBtn: document.getElementById('ngrokBypassBtn')
     };
 
     let autosaveTimer = null;
@@ -740,6 +753,11 @@
       // 初回接続確認と同期開始
       await checkStatus();
       setInterval(checkStatus, 8000);
+
+      // ウインドウフォーカス時に自動再疎通確認（別タブで警告スキップを許可して戻ってきたときのため）
+      window.addEventListener('focus', async () => {
+        await checkStatus();
+      });
     });
 
     // --- テーマ適用 ---
@@ -929,10 +947,16 @@
         el.statusDot.classList.add('online');
         el.statusText.textContent = '同期完了 (SQLite)';
         setSaveMessage('saved', 'SQLiteに保存済み');
+        el.ngrokWarningBanner.style.display = 'none';
       } else if (status === 'offline') {
         el.statusDot.classList.add('offline');
         el.statusText.textContent = 'オフライン（ローカル保存中）';
         setSaveMessage('saved', 'ローカル保存済み');
+        if (API_URL.includes('ngrok-free.dev')) {
+          el.ngrokWarningBanner.style.display = 'flex';
+        } else {
+          el.ngrokWarningBanner.style.display = 'none';
+        }
       } else if (status === 'syncing') {
         el.statusDot.classList.add('syncing');
         el.statusText.textContent = '同期処理中...';
@@ -941,13 +965,9 @@
     }
 
     function setSaveMessage(status, text) {
-      el.saveIndicator.querySelector('span').textContent = text;
-      const icon = el.saveIndicator.querySelector('i');
-      if (status === 'saving') {
-        icon.setAttribute('data-lucide', 'refresh-cw');
-      } else {
-        icon.setAttribute('data-lucide', 'check');
-      }
+      el.saveIndicator.querySelector('span:last-child').textContent = text;
+      const iconName = status === 'saving' ? 'refresh-cw' : 'check';
+      document.getElementById('saveIconContainer').innerHTML = `<i data-lucide="${iconName}" style="width:14px; height:14px;"></i>`;
       lucide.createIcons();
     }
 
@@ -1138,11 +1158,16 @@
         }
         
         API_URL = inputUrl;
-        localStorage.setItem('aether_api_url', API_URL);
+        localStorage.setItem('naomemo_api_url', API_URL);
         el.settingsModal.classList.remove('active');
         
         showToast("APIサーバーアドレスを設定しました！接続確認中...", 'refresh-cw');
         await checkStatus();
+      });
+
+      // ngrokアクセス許可ボタンの処理
+      el.ngrokBypassBtn.addEventListener('click', () => {
+        window.open(`${API_URL}/memos`, '_blank');
       });
     }
 
