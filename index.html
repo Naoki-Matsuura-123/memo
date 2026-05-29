@@ -1259,10 +1259,16 @@
       recognition.interimResults = false;
 
       recognition.onresult = (event) => {
-        const resultIndex = event.resultIndex;
-        const transcript = event.results[resultIndex][0].transcript;
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+
+        if (!transcript.trim()) return;
         
         const textarea = el.memoContent;
+        textarea.focus();
+        
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const text = textarea.value;
@@ -1270,8 +1276,12 @@
         textarea.value = text.substring(0, start) + transcript + text.substring(end);
         textarea.selectionStart = textarea.selectionEnd = start + transcript.length;
         
-        triggerAutosave();
-        if (state.isPreviewActive) compileMarkdown();
+        // メモリ状態を直接更新
+        state.memos = state.memos.map(m => m.id === state.activeMemoId ? { ...m, content: textarea.value, updated_at: new Date().toISOString() } : m);
+        saveCache();
+        
+        // inputイベントを発火させて自動保存とプレビュー更新をトリガーする
+        textarea.dispatchEvent(new Event('input'));
         
         showToast("音声をテキストに変換しました！", 'mic');
       };
@@ -1311,7 +1321,12 @@
       el.voiceBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
       el.voiceBtn.innerHTML = '<i data-lucide="mic-off" style="width:14px; height:14px; color:var(--danger);"></i>音声入力中...';
       lucide.createIcons();
-      showToast("音声入力を開始しました。マイクに向かってお話しください...", 'mic');
+      
+      if (window.location.protocol === 'file:') {
+        showToast("音声入力開始（※ローカル実行のため毎回許可が必要です。GitHub Pages上では一度のみで記憶されます）", 'mic');
+      } else {
+        showToast("音声入力を開始しました。マイクに向かってお話しください...", 'mic');
+      }
     }
 
     function stopListening() {
