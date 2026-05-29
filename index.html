@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AetherNotes - DB-Driven & Cloudflare Tunnel Demo</title>
+  <title>nao-memo - DB-Driven Custom Memo App</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,6 +29,7 @@
       --font-mono: 'JetBrains Mono', monospace;
       --sidebar-width: 300px;
     }
+
     /* プリセットテーマ */
     body.theme-light {
       --bg: #ffffff;
@@ -40,6 +41,7 @@
       --accent: #0969da;
       --accent-hover: #0550ae;
     }
+
     body.theme-sepia {
       --bg: #f4ecd8;
       --sidebar-bg: #eaddc3;
@@ -50,6 +52,7 @@
       --accent: #a0522d;
       --accent-hover: #8b4513;
     }
+
     body.theme-nord {
       --bg: #2e3440;
       --sidebar-bg: #242933;
@@ -60,11 +63,13 @@
       --accent: #88c0d0;
       --accent-hover: #8fbcbb;
     }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+
     body {
       font-family: var(--font-family);
       background-color: var(--bg);
@@ -74,11 +79,13 @@
       overflow: hidden;
       transition: background-color 0.2s, color 0.2s;
     }
+
     .app-layout {
       display: flex;
       width: 100%;
       height: 100%;
     }
+
     /* サイドバー */
     .sidebar {
       width: var(--sidebar-width);
@@ -88,16 +95,19 @@
       flex-direction: column;
       flex-shrink: 0;
     }
+
     .sidebar-header {
       padding: 1.25rem;
       border-bottom: 1px solid var(--panel-border);
     }
+
     .logo-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 0.5rem;
     }
+
     .logo {
       font-weight: 700;
       font-size: 1.1rem;
@@ -105,9 +115,11 @@
       align-items: center;
       gap: 0.5rem;
     }
+
     .logo-icon {
       color: var(--accent);
     }
+
     /* 接続設定ギアイコンボタン */
     .btn-icon {
       background: transparent;
@@ -125,6 +137,7 @@
       background-color: rgba(128, 128, 128, 0.1);
       color: var(--text-main);
     }
+
     .db-badge {
       font-size: 0.7rem;
       background: rgba(128, 128, 128, 0.1);
@@ -137,6 +150,7 @@
       gap: 0.3rem;
       font-weight: 500;
     }
+
     /* 接続ステータス */
     .status-area {
       padding: 0.4rem 1.25rem;
@@ -148,11 +162,13 @@
       color: var(--text-sub);
       background-color: rgba(0, 0, 0, 0.05);
     }
+
     .status-row {
       display: flex;
       align-items: center;
       gap: 0.4rem;
     }
+
     .status-url {
       font-size: 0.65rem;
       font-family: var(--font-mono);
@@ -162,6 +178,7 @@
       text-overflow: ellipsis;
       margin-left: 0.8rem;
     }
+
     .status-dot {
       width: 6px;
       height: 6px;
@@ -170,7 +187,9 @@
     .status-dot.online { background-color: var(--success); }
     .status-dot.offline { background-color: var(--warning); }
     .status-dot.syncing { background-color: var(--accent); animation: pulse 1s infinite alternate; }
+
     @keyframes pulse { 0% { opacity: 0.4; } 100% { opacity: 1; } }
+
     /* サイドバーアクション */
     .sidebar-actions {
       padding: 1rem 1.25rem;
@@ -178,6 +197,7 @@
       flex-direction: column;
       gap: 0.75rem;
     }
+
     .btn-primary {
       width: 100%;
       background-color: var(--accent);
@@ -195,9 +215,11 @@
       gap: 0.4rem;
       transition: background-color 0.2s;
     }
+
     .btn-primary:hover {
       background-color: var(--accent-hover);
     }
+
     .search-input {
       width: 100%;
       background-color: rgba(0, 0, 0, 0.1);
@@ -212,12 +234,14 @@
     .search-input:focus {
       border-color: var(--accent);
     }
+
     /* メモカード */
     .memo-list {
       flex: 1;
       overflow-y: auto;
       padding: 0.5rem 0.75rem;
     }
+
     .memo-card {
       padding: 0.85rem;
       border-radius: 6px;
@@ -226,13 +250,16 @@
       border: 1px solid transparent;
       transition: background-color 0.15s;
     }
+
     .memo-card:hover {
       background-color: rgba(128, 128, 128, 0.08);
     }
+
     .memo-card.active {
       background-color: rgba(128, 128, 128, 0.12);
       border-color: var(--panel-border);
     }
+
     .memo-card-title {
       font-size: 0.9rem;
       font-weight: 600;
@@ -241,17 +268,20 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
     .memo-card-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-top: 0.4rem;
     }
+
     .memo-card-db-id {
       font-size: 0.65rem;
       color: var(--text-muted);
       font-family: var(--font-mono);
     }
+
     .badge {
       font-size: 0.65rem;
       padding: 0.1rem 0.3rem;
@@ -266,12 +296,14 @@
       background-color: rgba(139, 92, 246, 0.15);
       color: var(--accent);
     }
+
     .empty-list-text {
       text-align: center;
       padding: 2rem 1rem;
       color: var(--text-muted);
       font-size: 0.8rem;
     }
+
     /* エディタ */
     .editor-area {
       flex: 1;
@@ -279,6 +311,7 @@
       flex-direction: column;
       height: 100%;
     }
+
     .editor-header {
       padding: 0.75rem 1.5rem;
       border-bottom: 1px solid var(--panel-border);
@@ -286,11 +319,13 @@
       justify-content: space-between;
       align-items: center;
     }
+
     .save-indicator-group {
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
+
     .save-indicator {
       font-size: 0.75rem;
       color: var(--text-sub);
@@ -298,6 +333,7 @@
       align-items: center;
       gap: 0.3rem;
     }
+
     .active-db-badge {
       font-size: 0.7rem;
       background: rgba(16, 185, 129, 0.1);
@@ -309,11 +345,13 @@
       font-weight: 600;
       display: none;
     }
+
     .editor-controls {
       display: flex;
       gap: 0.5rem;
       align-items: center;
     }
+
     .btn-secondary {
       background: transparent;
       border: 1px solid var(--panel-border);
@@ -330,6 +368,7 @@
     .btn-secondary:hover {
       background-color: rgba(128, 128, 128, 0.08);
     }
+
     .theme-select {
       background-color: var(--bg);
       border: 1px solid var(--panel-border);
@@ -341,6 +380,7 @@
       font-family: inherit;
       cursor: pointer;
     }
+
     /* エディタ表示領域 */
     .editor-viewport {
       flex: 1;
@@ -351,6 +391,7 @@
       gap: 1rem;
       position: relative;
     }
+
     .title-input {
       font-family: inherit;
       font-size: 1.75rem;
@@ -361,6 +402,7 @@
       outline: none;
       width: 100%;
     }
+
     .content-textarea {
       flex: 1;
       font-family: inherit;
@@ -373,6 +415,7 @@
       width: 100%;
       line-height: 1.6;
     }
+
     .preview-container {
       display: none;
       flex: 1;
@@ -383,6 +426,7 @@
     .preview-container.active {
       display: block;
     }
+
     /* プレビューマークダウン */
     .preview-container h1 { font-size: 1.6rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 0.2rem; }
     .preview-container h2 { font-size: 1.3rem; margin-top: 1.2rem; margin-bottom: 0.6rem; }
@@ -393,6 +437,7 @@
     .preview-container pre code { background: transparent; padding: 0; }
     .preview-container ul, .preview-container ol { margin-left: 1.25rem; margin-bottom: 0.8rem; }
     .preview-container blockquote { border-left: 3px solid var(--accent); padding-left: 0.75rem; color: var(--text-sub); margin-bottom: 0.8rem; }
+
     .editor-empty-state {
       position: absolute;
       inset: 0;
@@ -404,6 +449,7 @@
       color: var(--text-muted);
       z-index: 2;
     }
+
     /* モーダル共通 */
     .modal {
       position: fixed;
@@ -424,6 +470,7 @@
       width: 420px;
       max-width: 90%;
     }
+
     /* トースト */
     .toast-container {
       position: fixed;
@@ -431,6 +478,7 @@
       right: 20px;
       z-index: 1000;
     }
+
     .toast {
       background-color: #1f2937;
       color: #f3f4f6;
@@ -445,8 +493,10 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
     }
+
     @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
     /* 設定用フォーム */
     .form-group {
       margin-bottom: 1rem;
@@ -481,7 +531,9 @@
   </style>
 </head>
 <body>
+
   <div class="toast-container" id="toastContainer"></div>
+
   <div class="app-layout">
     <!-- サイドバー -->
     <aside class="sidebar">
@@ -489,7 +541,7 @@
         <div class="logo-row">
           <div class="logo">
             <i data-lucide="database" class="logo-icon"></i>
-            <span>AetherNotes</span>
+            <span>nao-memo</span>
           </div>
           <!-- 接続設定ボタン -->
           <button class="btn-icon" id="settingsBtn" title="接続設定">
@@ -501,6 +553,7 @@
           <span>memos.db (SQLite)</span>
         </div>
       </div>
+
       <!-- 接続ステータス -->
       <div class="status-area">
         <div class="status-row">
@@ -509,6 +562,7 @@
         </div>
         <span class="status-url" id="statusUrl">http://localhost:8000</span>
       </div>
+
       <!-- アクション・検索 -->
       <div class="sidebar-actions">
         <button class="btn-primary" id="createBtn">
@@ -516,18 +570,20 @@
         </button>
         <input type="text" class="search-input" id="searchBar" placeholder="メモを検索...">
       </div>
+
       <!-- メモカード一覧 -->
       <div class="memo-list" id="memoList">
         <div class="empty-list-text">読み込み中...</div>
       </div>
     </aside>
+
     <!-- エディタ領域 -->
     <main class="editor-area">
       <!-- ヘッダー -->
       <div class="editor-header">
         <div class="save-indicator-group">
           <div class="save-indicator" id="saveIndicator">
-            <i data-lucide="check" style="width:14px; height:14px;"></i>
+            <span id="saveIconContainer"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
             <span>保存済み</span>
           </div>
           <!-- データベースID表示バッジ -->
@@ -544,6 +600,7 @@
             <option value="theme-sepia">☕ セピアブラウン</option>
             <option value="theme-nord">❄️ ノルディック</option>
           </select>
+
           <button class="btn-secondary" id="previewBtn">
             <i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー
           </button>
@@ -552,6 +609,18 @@
           </button>
         </div>
       </div>
+
+      <!-- ngrokの認証/警告スキップ許可を促すバナー -->
+      <div id="ngrokWarningBanner" style="display:none; background:rgba(245,158,11,0.1); border-bottom:1px solid rgba(245,158,11,0.25); color:var(--warning); padding:0.85rem 1.5rem; font-size:0.85rem; align-items:center; justify-content:space-between; gap:1rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <i data-lucide="shield-alert" style="width:16px; height:16px; flex-shrink:0;"></i>
+          <span><strong>ngrok接続の初期許可が必要です：</strong> 自宅PCのデータベースと安全に通信するため、一度だけアクセス許可を有効にしてください。</span>
+        </div>
+        <button class="btn-primary" id="ngrokBypassBtn" style="width:auto; padding:0.35rem 0.75rem; font-size:0.75rem; background-color:var(--warning); color:#000; border:none; border-radius:4px; font-weight:600; cursor:pointer;">
+          アクセス許可を有効にする
+        </button>
+      </div>
+
       <!-- 入力 / プレビュー表示 -->
       <div class="editor-viewport">
         <input type="text" class="title-input" id="memoTitle" placeholder="無題のメモ" disabled>
@@ -560,6 +629,7 @@
         
         <!-- プレビュー -->
         <div class="preview-container" id="markdownPreview"></div>
+
         <!-- プレースホルダー -->
         <div class="editor-empty-state" id="emptyState">
           <p>メモを選択するか、新しく作成してください。</p>
@@ -567,6 +637,7 @@
       </div>
     </main>
   </div>
+
   <!-- 削除モーダル -->
   <div class="modal" id="deleteModal">
     <div class="modal-content">
@@ -578,6 +649,7 @@
       </div>
     </div>
   </div>
+
   <!-- 接続設定モーダル -->
   <div class="modal" id="settingsModal">
     <div class="modal-content">
@@ -601,9 +673,11 @@
       </div>
     </div>
   </div>
+
   <script>
-    // デフォルトURLと永続化された接続URLの読み込み
-    let API_URL = localStorage.getItem('aether_api_url') || "http://localhost:8000";
+    // デフォルトURLと永続化された接続URLの読み込み（デフォルトでngrokのサブドメインを指定）
+    let API_URL = localStorage.getItem('naomemo_api_url') || "https://snubby-arlette-denunciatory.ngrok-free.dev";
+
     // アプリ状態
     let state = {
       memos: [],
@@ -614,6 +688,7 @@
       syncQueue: [],
       syncing: false
     };
+
     // DOM要素
     const el = {
       themeSelect: document.getElementById('themeSelect'),
@@ -639,9 +714,13 @@
       apiUrlInput: document.getElementById('apiUrlInput'),
       cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
       saveSettingsBtn: document.getElementById('saveSettingsBtn'),
-      toastContainer: document.getElementById('toastContainer')
+      toastContainer: document.getElementById('toastContainer'),
+      ngrokWarningBanner: document.getElementById('ngrokWarningBanner'),
+      ngrokBypassBtn: document.getElementById('ngrokBypassBtn')
     };
+
     let autosaveTimer = null;
+
     // トースト表示
     function showToast(message, iconName = 'database') {
       const toast = document.createElement('div');
@@ -651,24 +730,36 @@
       lucide.createIcons();
       setTimeout(() => toast.remove(), 3000);
     }
+
     // --- 初期化 ---
     window.addEventListener('DOMContentLoaded', async () => {
       lucide.createIcons();
+
       // テーマ復元
       const savedTheme = localStorage.getItem('app-theme') || 'theme-dark';
       applyTheme(savedTheme);
       el.themeSelect.value = savedTheme;
+
       // 接続URL表示を同期
       el.statusUrl.textContent = API_URL;
+
       // ローカルキャッシュ読込
       loadCache();
       renderList();
+
       // リスナー登録
       setupEvents();
+
       // 初回接続確認と同期開始
       await checkStatus();
       setInterval(checkStatus, 8000);
+
+      // ウインドウフォーカス時に自動再疎通確認（別タブで警告スキップを許可して戻ってきたときのため）
+      window.addEventListener('focus', async () => {
+        await checkStatus();
+      });
     });
+
     // --- テーマ適用 ---
     function applyTheme(themeName) {
       document.body.className = '';
@@ -677,6 +768,7 @@
       }
       localStorage.setItem('app-theme', themeName);
     }
+
     // --- キャッシュ管理 ---
     function loadCache() {
       try {
@@ -686,6 +778,7 @@
         console.error("キャッシュ読込エラー", e);
       }
     }
+
     function saveCache() {
       try {
         localStorage.setItem('memos_cache', JSON.stringify(state.memos));
@@ -694,13 +787,19 @@
         console.error("キャッシュ保存エラー", e);
       }
     }
+
     // --- 同期エンジン ---
     async function checkStatus() {
       try {
-        const response = await fetch(`${API_URL}/memos`, { method: 'GET', signal: AbortSignal.timeout(2500) });
+        const response = await fetch(`${API_URL}/memos`, { 
+          method: 'GET', 
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+          signal: AbortSignal.timeout(2500) 
+        });
         if (response.ok) {
           state.isOnline = true;
           updateStatusUI('online');
+
           if (state.syncQueue.length > 0 && !state.syncing) {
             await processSyncQueue();
           } else if (state.syncQueue.length === 0) {
@@ -715,10 +814,12 @@
         updateStatusUI('offline');
       }
     }
+
     function mergeMemos(serverMemos) {
       state.memos = serverMemos;
       saveCache();
       renderList();
+
       if (state.activeMemoId) {
         const active = state.memos.find(m => m.id === state.activeMemoId);
         if (active) {
@@ -733,22 +834,29 @@
         }
       }
     }
+
     async function processSyncQueue() {
       state.syncing = true;
       updateStatusUI('syncing');
+
       const mapping = {};
       const failed = [];
       let hadCreate = false;
+
       for (const item of state.syncQueue) {
         let actualId = item.id;
         if (typeof actualId === 'string' && actualId.startsWith('offline_')) {
           if (mapping[actualId]) actualId = mapping[actualId];
         }
+
         try {
           if (item.type === 'CREATE') {
             const res = await fetch(`${API_URL}/memos`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+              },
               body: JSON.stringify({ title: item.title, content: item.content })
             });
             if (res.ok) {
@@ -773,29 +881,40 @@
             }
             const res = await fetch(`${API_URL}/memos/${actualId}`, {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+              },
               body: JSON.stringify({ title: item.title, content: item.content })
             });
             if (!res.ok) failed.push(item);
           }
           else if (item.type === 'DELETE') {
             if (typeof actualId === 'string' && actualId.startsWith('offline_')) continue;
-            const res = await fetch(`${API_URL}/memos/${actualId}`, { method: 'DELETE' });
+            const res = await fetch(`${API_URL}/memos/${actualId}`, { 
+              method: 'DELETE',
+              headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
             if (!res.ok && res.status !== 404) failed.push(item);
           }
         } catch (e) {
           failed.push(item);
         }
       }
+
       state.syncQueue = failed;
       saveCache();
+
       try {
-        const res = await fetch(`${API_URL}/memos`);
+        const res = await fetch(`${API_URL}/memos`, {
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
         if (res.ok) {
           state.memos = await res.json();
           saveCache();
         }
       } catch (e) {}
+
       state.syncing = false;
       updateStatusUI('online');
       renderList();
@@ -804,6 +923,7 @@
         showToast("未同期データをリモートSQLiteデータベースに反映しました！");
       }
     }
+
     function addQueue(type, id, title = '', content = '') {
       if (type === 'UPDATE') {
         const idx = state.syncQueue.findIndex(q => q.id === id && q.type === 'UPDATE');
@@ -817,6 +937,7 @@
       state.syncQueue.push({ type, id, title, content });
       saveCache();
     }
+
     // --- UI更新 ---
     function updateStatusUI(status) {
       el.statusDot.className = 'status-dot';
@@ -826,26 +947,30 @@
         el.statusDot.classList.add('online');
         el.statusText.textContent = '同期完了 (SQLite)';
         setSaveMessage('saved', 'SQLiteに保存済み');
+        el.ngrokWarningBanner.style.display = 'none';
       } else if (status === 'offline') {
         el.statusDot.classList.add('offline');
         el.statusText.textContent = 'オフライン（ローカル保存中）';
         setSaveMessage('saved', 'ローカル保存済み');
+        if (API_URL.includes('ngrok-free.dev')) {
+          el.ngrokWarningBanner.style.display = 'flex';
+        } else {
+          el.ngrokWarningBanner.style.display = 'none';
+        }
       } else if (status === 'syncing') {
         el.statusDot.classList.add('syncing');
         el.statusText.textContent = '同期処理中...';
         setSaveMessage('saving', 'SQLiteに保存中...');
       }
     }
+
     function setSaveMessage(status, text) {
-      el.saveIndicator.querySelector('span').textContent = text;
-      const icon = el.saveIndicator.querySelector('i');
-      if (status === 'saving') {
-        icon.setAttribute('data-lucide', 'refresh-cw');
-      } else {
-        icon.setAttribute('data-lucide', 'check');
-      }
+      el.saveIndicator.querySelector('span:last-child').textContent = text;
+      const iconName = status === 'saving' ? 'refresh-cw' : 'check';
+      document.getElementById('saveIconContainer').innerHTML = `<i data-lucide="${iconName}" style="width:14px; height:14px;"></i>`;
       lucide.createIcons();
     }
+
     function updateActiveDbBadge(id) {
       if (!id) {
         el.activeDbBadge.style.display = 'none';
@@ -865,6 +990,7 @@
       }
       lucide.createIcons();
     }
+
     // --- レンダリング ---
     function renderList() {
       el.memoList.innerHTML = '';
@@ -873,15 +999,18 @@
       const filtered = state.memos.filter(m => 
         m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query)
       );
+
       if (filtered.length === 0) {
         el.memoList.innerHTML = `<div class="empty-list-text">${state.searchQuery ? '見つかりませんでした' : 'メモがありません'}</div>`;
         return;
       }
+
       filtered.forEach(memo => {
         const isOffline = typeof memo.id === 'string' && memo.id.startsWith('offline_');
         const card = document.createElement('div');
         card.className = `memo-card ${memo.id === state.activeMemoId ? 'active' : ''}`;
         card.dataset.id = memo.id;
+
         card.innerHTML = `
           <div class="memo-card-title">${escape(memo.title || '無題のメモ')}</div>
           <div class="memo-card-preview">${escape(memo.content || 'テキストがありません')}</div>
@@ -890,24 +1019,30 @@
             ${isOffline ? '<span class="badge local-only">未同期</span>' : ''}
           </div>
         `;
+
         card.addEventListener('click', () => selectMemo(memo.id));
         el.memoList.appendChild(card);
       });
     }
+
     function selectMemo(id) {
       state.activeMemoId = id;
       const memo = state.memos.find(m => m.id === id);
       if (!memo) return;
+
       el.memoTitle.value = memo.title || '';
       el.memoContent.value = memo.content || '';
       
       el.memoTitle.removeAttribute('disabled');
       el.memoContent.removeAttribute('disabled');
       el.emptyState.style.display = 'none';
+
       updateActiveDbBadge(memo.id);
+
       if (state.isPreviewActive) compileMarkdown();
       renderList();
     }
+
     function closeWorkspace() {
       state.activeMemoId = null;
       el.memoTitle.value = '';
@@ -918,13 +1053,16 @@
       updateActiveDbBadge(null);
       renderList();
     }
+
     // --- メモ操作 ---
     function createMemo() {
       const tempId = `offline_${Date.now()}`;
       const newMemo = { id: tempId, title: '', content: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+
       state.memos.unshift(newMemo);
       addQueue('CREATE', tempId, '', '');
       saveCache();
+
       renderList();
       selectMemo(tempId);
       el.memoTitle.focus();
@@ -932,15 +1070,20 @@
       
       showToast("新しいメモを作成しました (保存先: SQLite)", 'database');
     }
+
     function triggerAutosave() {
       if (!state.activeMemoId) return;
+
       const title = el.memoTitle.value;
       const content = el.memoContent.value;
       const now = new Date().toISOString();
+
       state.memos = state.memos.map(m => m.id === state.activeMemoId ? { ...m, title, content, updated_at: now } : m);
       saveCache();
       renderList();
+
       setSaveMessage('saving', '自動保存中...');
+
       clearTimeout(autosaveTimer);
       autosaveTimer = setTimeout(async () => {
         addQueue('UPDATE', state.activeMemoId, title, content);
@@ -954,14 +1097,17 @@
         }
       }, 750);
     }
+
     async function confirmDelete() {
       const targetId = state.activeMemoId;
       el.deleteModal.classList.remove('active');
+
       state.memos = state.memos.filter(m => m.id !== targetId);
       state.syncQueue = state.syncQueue.filter(q => q.id !== targetId);
       
       addQueue('DELETE', targetId);
       saveCache();
+
       closeWorkspace();
       
       if (state.isOnline) {
@@ -971,6 +1117,7 @@
         updateStatusUI('offline');
       }
     }
+
     // --- 各種イベント設定 ---
     function setupEvents() {
       el.themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
@@ -978,22 +1125,28 @@
       el.deleteBtn.addEventListener('click', () => { if (state.activeMemoId) el.deleteModal.classList.add('active'); });
       el.cancelDeleteBtn.addEventListener('click', () => el.deleteModal.classList.remove('active'));
       el.confirmDeleteBtn.addEventListener('click', confirmDelete);
+
       el.searchBar.addEventListener('input', (e) => {
         state.searchQuery = e.target.value;
         renderList();
       });
+
       el.memoTitle.addEventListener('input', triggerAutosave);
       el.memoContent.addEventListener('input', () => {
         triggerAutosave();
         if (state.isPreviewActive) compileMarkdown();
       });
+
       el.previewBtn.addEventListener('click', togglePreview);
+
       // 設定モーダル関連
       el.settingsBtn.addEventListener('click', () => {
         el.apiUrlInput.value = API_URL;
         el.settingsModal.classList.add('active');
       });
+
       el.cancelSettingsBtn.addEventListener('click', () => el.settingsModal.classList.remove('active'));
+
       el.saveSettingsBtn.addEventListener('click', async () => {
         let inputUrl = el.apiUrlInput.value.trim();
         // 末尾のスラッシュを削除
@@ -1005,13 +1158,19 @@
         }
         
         API_URL = inputUrl;
-        localStorage.setItem('aether_api_url', API_URL);
+        localStorage.setItem('naomemo_api_url', API_URL);
         el.settingsModal.classList.remove('active');
         
         showToast("APIサーバーアドレスを設定しました！接続確認中...", 'refresh-cw');
         await checkStatus();
       });
+
+      // ngrokアクセス許可ボタンの処理
+      el.ngrokBypassBtn.addEventListener('click', () => {
+        window.open(`${API_URL}/memos`, '_blank');
+      });
     }
+
     // --- プレビュー ---
     function togglePreview() {
       state.isPreviewActive = !state.isPreviewActive;
@@ -1028,9 +1187,11 @@
       }
       lucide.createIcons();
     }
+
     function compileMarkdown() {
       const raw = el.memoContent.value || '';
       let html = escape(raw);
+
       html = html.replace(/```([\s\S]*?)```/gm, (m, c) => `<pre><code>${c.trim()}</code></pre>`);
       html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
       html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
@@ -1042,14 +1203,17 @@
       html = html.replace(/^\s*\-\s+(.*$)/gim, '<li>$1</li>');
       html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
       html = html.replace(/<\/ul>\s*<ul>/g, '');
+
       const blocks = html.split(/\n{2,}/g).map(b => {
         if (b.trim().startsWith('<h') || b.trim().startsWith('<pre') || b.trim().startsWith('<ul') || b.trim().startsWith('<blockquote')) {
           return b;
         }
         return `<p>${b.replace(/\n/g, '<br>')}</p>`;
       });
+
       el.markdownPreview.innerHTML = blocks.join('');
     }
+
     function escape(str) {
       return str
         .replace(/&/g, '&amp;')
