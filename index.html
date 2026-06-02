@@ -528,6 +528,699 @@
       margin-top: 0.25rem;
       line-height: 1.3;
     }
+
+    /* フォルダリストのスタイル */
+    .folder-section {
+      border-bottom: 1px solid var(--panel-border);
+      padding: 0.75rem 1.25rem;
+    }
+    
+    .folder-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4rem 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background-color 0.15s, color 0.15s;
+      color: var(--text-sub);
+      margin-bottom: 0.2rem;
+    }
+    
+    .folder-item:hover {
+      background-color: rgba(128, 128, 128, 0.08);
+      color: var(--text-main);
+    }
+    
+    .folder-item.active {
+      background-color: rgba(128, 128, 128, 0.12);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    .folder-item-left {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 0;
+    }
+    
+    .folder-item-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .folder-item-right {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    
+    .folder-count-badge {
+      font-size: 0.7rem;
+      background: rgba(128, 128, 128, 0.1);
+      color: var(--text-muted);
+      padding: 0.05rem 0.35rem;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    
+    .folder-actions {
+      display: none;
+      align-items: center;
+      gap: 0.2rem;
+    }
+    
+    .folder-item:hover .folder-actions {
+      display: flex;
+    }
+    
+    .folder-action-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.1rem;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, background-color 0.15s;
+    }
+    
+    .folder-action-btn:hover {
+      color: var(--text-main);
+      background-color: rgba(128, 128, 128, 0.15);
+    }
+    .folder-action-btn.delete:hover {
+      color: var(--danger);
+      background-color: rgba(239, 68, 68, 0.1);
+    }
+
+    /* モーダルスタイル拡張 */
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-main);
+    }
+    .modal-body {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-bottom: 1.25rem;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    /* ヘルプモーダル専用タブスタイル */
+    .help-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--panel-border);
+      margin-bottom: 1rem;
+      gap: 0.5rem;
+    }
+    .help-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .help-tab-btn:hover {
+      color: var(--text-main);
+    }
+    .help-tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      font-weight: 600;
+    }
+    .help-tab-content {
+      display: none;
+      max-height: 380px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .help-tab-content.active {
+      display: block;
+    }
+    .help-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.5rem 0;
+    }
+    .help-table th, .help-table td {
+      border-bottom: 1px solid var(--panel-border);
+      padding: 0.4rem 0.5rem;
+      text-align: left;
+    }
+    .help-table th {
+      font-weight: 600;
+      color: var(--text-sub);
+      font-size: 0.75rem;
+    }
+    .help-code-span {
+      font-family: var(--font-mono);
+      background: rgba(128,128,128,0.15);
+      padding: 0.15rem 0.25rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    /* コマンドパレットおよびコマンドヘルパーのスタイル */
+    .command-palette-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.15s;
+    }
+    .command-palette-item:hover, .command-palette-item.selected {
+      background-color: rgba(128, 128, 128, 0.12);
+    }
+    .command-palette-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      text-align: left;
+      min-width: 0;
+    }
+    .command-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .command-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .command-right {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .command-shortcut {
+      font-size: 0.7rem;
+      background: rgba(128, 128, 128, 0.15);
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      color: var(--text-sub);
+      font-family: var(--font-mono);
+    }
+    .command-run-btn {
+      background-color: var(--accent);
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.15s;
+    }
+    .command-run-btn:hover {
+      background-color: var(--accent-hover);
+    }
+
+    /* ===== 評価システム CSS ===== */
+    .rating-panel {
+      display: none;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 0.85rem;
+      margin-bottom: 0.75rem;
+      background: rgba(139, 92, 246, 0.03);
+      animation: fadeSlideIn 0.25s ease;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .rating-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+    }
+    .rating-panel-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .rating-panel-actions {
+      display: flex;
+      gap: 0.35rem;
+    }
+    .rating-axis-card {
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 0.6rem 0.75rem;
+      margin-bottom: 0.4rem;
+      background: rgba(0, 0, 0, 0.05);
+      transition: border-color 0.15s;
+    }
+    .rating-axis-card:hover {
+      border-color: var(--accent);
+    }
+    .rating-axis-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+    .rating-axis-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .rating-axis-method-badge {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .rating-axis-method-badge.star { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .rating-axis-method-badge.tier { background: rgba(139, 92, 246, 0.15); color: var(--accent); }
+    .rating-axis-method-badge.numeric { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+
+    /* 星評価 */
+    .star-rating {
+      display: flex;
+      gap: 0.2rem;
+      align-items: center;
+    }
+    .star-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1.3rem;
+      padding: 0;
+      line-height: 1;
+      color: var(--text-muted);
+      transition: color 0.1s, transform 0.15s;
+    }
+    .star-btn:hover { transform: scale(1.2); }
+    .star-btn.active { color: #f59e0b; }
+    .star-btn.half { color: #f59e0b; opacity: 0.6; }
+    .star-score-label {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      margin-left: 0.4rem;
+      font-family: var(--font-mono);
+    }
+
+    /* ティア評価 */
+    .tier-rating {
+      display: flex;
+      gap: 0.3rem;
+      align-items: center;
+    }
+    .tier-btn {
+      background: rgba(128, 128, 128, 0.08);
+      border: 1px solid var(--panel-border);
+      color: var(--text-sub);
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: inherit;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      transition: all 0.15s;
+      min-width: 2rem;
+      text-align: center;
+    }
+    .tier-btn:hover { border-color: var(--accent); color: var(--text-main); }
+    .tier-btn.active-S { background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; border-color: transparent; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3); }
+    .tier-btn.active-A { background: linear-gradient(135deg, #ef4444, #f97316); color: #fff; border-color: transparent; }
+    .tier-btn.active-B { background: linear-gradient(135deg, #f97316, #eab308); color: #fff; border-color: transparent; }
+    .tier-btn.active-C { background: linear-gradient(135deg, #22c55e, #10b981); color: #fff; border-color: transparent; }
+    .tier-btn.active-D { background: linear-gradient(135deg, #6b7280, #9ca3af); color: #fff; border-color: transparent; }
+
+    /* 数値評価 */
+    .numeric-rating {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .numeric-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--panel-border);
+      outline: none;
+    }
+    .numeric-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .numeric-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    .numeric-input {
+      width: 50px;
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      padding: 0.25rem 0.35rem;
+      border-radius: 4px;
+      text-align: center;
+      outline: none;
+    }
+    .numeric-input:focus { border-color: var(--accent); }
+
+    /* 集計バッジ */
+    .rating-summary-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--panel-border);
+    }
+    .rating-summary-badge {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      background: rgba(128, 128, 128, 0.08);
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* トグルグリッドモーダル */
+    .toggle-grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .toggle-grid-table th, .toggle-grid-table td {
+      border: 1px solid var(--panel-border);
+      padding: 0.4rem 0.5rem;
+      text-align: center;
+    }
+    .toggle-grid-table th {
+      background: rgba(128, 128, 128, 0.08);
+      font-weight: 600;
+      color: var(--text-sub);
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+    .toggle-grid-table th:first-child {
+      text-align: left;
+      min-width: 90px;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 18px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: var(--panel-border);
+      border-radius: 18px;
+      transition: 0.2s;
+    }
+    .toggle-slider:before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: 2px;
+      bottom: 2px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--accent);
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(14px);
+      background: #ffffff;
+    }
+    .toggle-bulk-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .toggle-bulk-btn {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      background: transparent;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .toggle-bulk-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .toggle-bulk-btn.on { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: var(--success); }
+    .toggle-bulk-btn.off { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); }
+
+    /* 軸追加ダイアログ */
+    .axis-form-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+      margin-bottom: 0.75rem;
+    }
+    .axis-form-row .form-group {
+      margin-bottom: 0;
+      flex: 1;
+    }
+    .axis-method-select {
+      background: var(--bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      font-size: 0.8rem;
+      padding: 0.5rem;
+      border-radius: 6px;
+      outline: none;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .axis-method-select:focus { border-color: var(--accent); }
+
+    .axis-delete-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.15rem;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+    }
+    .axis-delete-btn:hover {
+      color: var(--danger);
+    }
+
+    /* 一時フローティングメモ (Scratchpad) スタイル */
+    .scratchpad-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 320px;
+      height: 320px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+      display: flex;
+      flex-direction: column;
+      z-index: 9999;
+      overflow: hidden;
+      transition: opacity 0.2s, transform 0.2s;
+      backdrop-filter: blur(10px);
+    }
+    
+    .scratchpad-widget.minimized {
+      display: none;
+    }
+
+    .scratchpad-header {
+      padding: 0.6rem 0.8rem;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      user-select: none;
+    }
+
+    .scratchpad-title {
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-main);
+    }
+
+    .scratchpad-controls {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .scratchpad-controls button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.2rem;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .scratchpad-controls button:hover {
+      background: rgba(0,0,0,0.05);
+      color: var(--text-main);
+    }
+    
+    [data-theme="theme-dark"] .scratchpad-controls button:hover,
+    [data-theme="theme-nord"] .scratchpad-controls button:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .scratchpad-body {
+      flex: 1;
+      padding: 0.5rem;
+      display: flex;
+    }
+
+    .scratchpad-body textarea {
+      width: 100%;
+      height: 100%;
+      border: none;
+      resize: none;
+      background: transparent;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      outline: none;
+    }
+
+    .scratchpad-footer {
+      padding: 0.4rem;
+      border-top: 1px solid var(--panel-border);
+      display: flex;
+      gap: 0.4rem;
+      background: var(--panel-bg);
+    }
+
+    .scratchpad-btn {
+      flex: 1;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--panel-border);
+      background: transparent;
+      color: var(--text-main);
+      font-size: 0.7rem;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .scratchpad-btn:hover {
+      background: rgba(0,0,0,0.03);
+      border-color: var(--accent);
+    }
+    
+    [data-theme="theme-dark"] .scratchpad-btn:hover,
+    [data-theme="theme-nord"] .scratchpad-btn:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .scratchpad-restore-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .scratchpad-restore-btn:hover {
+      transform: scale(1.08);
+    }
+    
+    .scratchpad-restore-btn .badge {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      background: var(--danger);
+      border-radius: 50%;
+      width: 8px;
+      height: 8px;
+      border: 1.5px solid var(--panel-bg);
+    }
   </style>
 </head>
 <body>
@@ -578,6 +1271,21 @@
         </div>
       </div>
 
+      <!-- フォルダ一覧セクション -->
+      <div class="folder-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub); display: flex; align-items: center; gap: 0.3rem;">
+            <i data-lucide="folder" style="width: 14px; height: 14px;"></i> フォルダ
+          </span>
+          <button class="btn-icon" id="createFolderBtn" title="新規フォルダ作成" style="padding: 0.15rem;">
+            <i data-lucide="folder-plus" style="width: 14px; height: 14px;"></i>
+          </button>
+        </div>
+        <div id="folderList" style="display: flex; flex-direction: column; gap: 0.25rem; max-height: 180px; overflow-y: auto;">
+          <!-- 動的にフォルダが生成されます -->
+        </div>
+      </div>
+
       <!-- メモカード一覧 -->
       <div class="memo-list" id="memoList">
         <div class="empty-list-text">読み込み中...</div>
@@ -608,6 +1316,12 @@
             <option value="theme-nord">❄️ ノルディック</option>
           </select>
 
+          <button class="btn-secondary" id="linkCopyBtn" title="メモリンクをコピー" style="display: none;">
+            <i data-lucide="link" style="width:14px; height:14px;"></i>リンクをコピー
+          </button>
+          <button class="btn-secondary" id="helpBtn" title="操作ヘルプと記法ガイド">
+            <i data-lucide="help-circle" style="width:14px; height:14px;"></i>ヘルプ
+          </button>
           <button class="btn-secondary" id="voiceBtn" title="音声入力">
             <i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力
           </button>
@@ -633,6 +1347,50 @@
 
       <!-- 入力 / プレビュー表示 -->
       <div class="editor-viewport">
+        <!-- フォルダ移動セレクター -->
+        <div id="memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+          <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
+          <span>所属フォルダ:</span>
+          <select id="memoFolderSelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
+            <option value="">(分類なし / ルート)</option>
+          </select>
+        </div>
+
+        <!-- 画像貼り付け設定セレクター -->
+        <div id="imagePasteConfig" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+          <i data-lucide="image" style="width:14px; height:14px; color:var(--accent);"></i>
+          <span>画像貼り付け画質:</span>
+          <select id="imageQualitySelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
+            <option value="standard">軽量標準 (最大1000px / JPEG高圧縮)</option>
+            <option value="high">高画質 (最大2000px / JPEG中圧縮)</option>
+            <option value="original">オリジナル画質 (無圧縮・PNG等)</option>
+          </select>
+        </div>
+
+        <!-- 評価パネル -->
+        <div class="rating-panel" id="ratingPanel">
+          <div class="rating-panel-header">
+            <div class="rating-panel-title">
+              <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
+              <span>評価</span>
+            </div>
+            <div class="rating-panel-actions">
+              <button class="btn-icon" id="addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
+                <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
+              </button>
+              <button class="btn-icon" id="toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
+                <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
+              </button>
+            </div>
+          </div>
+          <div id="ratingAxesList">
+            <!-- 動的に評価軸カードが生成されます -->
+          </div>
+          <div class="rating-summary-row" id="ratingSummaryRow" style="display:none;">
+            <!-- 動的に集計バッジが生成されます -->
+          </div>
+        </div>
+
         <input type="text" class="title-input" id="memoTitle" placeholder="無題のメモ" disabled>
         
         <textarea class="content-textarea" id="memoContent" placeholder="内容を入力してください... (マークダウン対応)" disabled></textarea>
@@ -656,6 +1414,199 @@
       <div class="modal-actions">
         <button class="btn-secondary" id="cancelDeleteBtn">キャンセル</button>
         <button class="btn-primary" id="confirmDeleteBtn" style="background-color:var(--danger);">削除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- フォルダ作成・編集モーダル -->
+  <div class="modal" id="folderModal">
+    <div class="modal-content">
+      <div class="modal-title" id="folderModalTitle">新規フォルダ作成</div>
+      <div style="margin:1rem 0;">
+        <div class="form-group">
+          <label class="form-label" for="folderNameInput">フォルダ名</label>
+          <input type="text" class="form-input" id="folderNameInput" placeholder="フォルダの名前を入力...">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="cancelFolderBtn">キャンセル</button>
+        <button class="btn-primary" id="saveFolderBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- フォルダ削除モーダル（二者択一） -->
+  <div class="modal" id="deleteFolderModal">
+    <div class="modal-content" style="width: 460px;">
+      <div class="modal-title" style="color:var(--danger); display:flex; align-items:center; gap:0.5rem;">
+        <i data-lucide="alert-triangle" style="color:var(--danger); width:20px; height:20px;"></i>
+        <span>フォルダを削除しますか？</span>
+      </div>
+      <div class="modal-body" style="margin: 1rem 0; line-height: 1.5; font-size: 0.9rem; color:var(--text-sub);">
+        フォルダ「<span id="deleteFolderName" style="font-weight:600; color:var(--text-main);"></span>」を削除します。削除方法を選択してください。
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.5rem;">
+        <button class="btn-secondary" id="deleteFolderOnlyBtn" style="justify-content: flex-start; padding: 0.75rem; border-color: var(--panel-border); font-weight: 500; height: auto; text-align: left; display: flex; flex-direction: column;">
+          <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.15rem;">📁 フォルダのみ削除 (推奨)</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">中のメモは削除されず、ルート（未分類）に移動します。</div>
+        </button>
+        <button class="btn-primary" id="deleteFolderAllBtn" style="justify-content: flex-start; padding: 0.75rem; background-color: var(--danger); font-weight: 500; height: auto; text-align: left; display: flex; flex-direction: column;">
+          <div style="font-weight: 600; color: #ffffff; margin-bottom: 0.15rem;">💥 フォルダと中のメモをすべて削除</div>
+          <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.9);">フォルダ内のすべてのメモ（<span id="deleteFolderMemoCount">0</span>件）をデータベースから完全に消去します。この操作は取り消せません。</div>
+        </button>
+      </div>
+      <div class="modal-actions" style="justify-content: flex-end;">
+        <button class="btn-secondary" id="cancelDeleteFolderBtn">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作ヘルプ・記法ガイドモーダル -->
+  <div class="modal" id="helpModal">
+    <div class="modal-content" style="width: 550px; max-width: 95%;">
+      <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem; border-bottom:1px solid var(--panel-border); padding-bottom:0.75rem; margin-bottom:0.75rem;">
+        <i data-lucide="help-circle" style="color:var(--accent); width:20px; height:20px;"></i>
+        <span>nao-memo 操作ヘルプ & マークダウンガイド</span>
+      </div>
+      
+      <!-- タブ切り替えヘッダー -->
+      <div class="help-tabs">
+        <button class="help-tab-btn active" onclick="switchHelpTab('tab-shortcuts')">⌨️ 操作一覧</button>
+        <button class="help-tab-btn" onclick="switchHelpTab('tab-markdown')">📝 マークダウン記法</button>
+        <button class="help-tab-btn" onclick="switchHelpTab('tab-media')">🎥 メディア埋め込み</button>
+        <button class="help-tab-btn" onclick="switchHelpTab('tab-commands')">⚡ コマンド実行</button>
+      </div>
+
+      <!-- タブコンテンツ1: 操作一覧 -->
+      <div class="help-tab-content active" id="tab-shortcuts">
+        <p style="margin-bottom:0.5rem; color:var(--text-sub);">アプリをより効率的に操作するためのマウスおよび機能のガイドです。</p>
+        <table class="help-table">
+          <thead>
+            <tr>
+              <th>機能 / 操作</th>
+              <th>動作内容</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>📝 自動保存</strong></td>
+              <td>入力停止から約0.75秒後にバックグラウンドで自動的にSQLiteへ即時保存されます。</td>
+            </tr>
+            <tr>
+              <td><strong>🎙️ 音声入力</strong></td>
+              <td>「音声入力」ボタンを押してマイクに向かって話すと、現在の入力カーソル位置にテキストが自動挿入されます。</td>
+            </tr>
+            <tr>
+              <td><strong>🔗 メモ間リンク移動</strong></td>
+              <td>プレビュー内の青いリンクをマウスで左クリックするだけで、一瞬で対象のメモへ移動します。</td>
+            </tr>
+            <tr>
+              <td><strong>📁 フォルダ別絞り込み</strong></td>
+              <td>サイドバーのフォルダをクリックすると、そのフォルダに属するメモのみが一覧に抽出表示されます。</td>
+            </tr>
+            <tr>
+              <td><strong>💥 フォルダ安全削除</strong></td>
+              <td>フォルダ削除時、「フォルダのみ削除」を選ぶと中のメモはルート（未分類）に保護移動されます。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- タブコンテンツ2: マークダウン記法 -->
+      <div class="help-tab-content" id="tab-markdown">
+        <p style="margin-bottom:0.5rem; color:var(--text-sub);">編集欄に書くことで自動的に美しく装飾される基本的な記法一覧です。</p>
+        <table class="help-table">
+          <thead>
+            <tr>
+              <th>書き方（エディタ）</th>
+              <th>プレビューでの表示効果</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="help-code-span"># 見出し1</span></td>
+              <td><h1>見出し1 (特大タイトル)</h1></td>
+            </tr>
+            <tr>
+              <td><span class="help-code-span">## 見出し2</span></td>
+              <td><h2>見出し2 (大見出し)</h2></td>
+            </tr>
+            <tr>
+              <td><span class="help-code-span">**太字**</span></td>
+              <td><strong>太字 (強調表示)</strong></td>
+            </tr>
+            <tr>
+              <td><span class="help-code-span">`コード`</span></td>
+              <td><code>インラインコード表示</code></td>
+            </tr>
+            <tr>
+              <td><span class="help-code-span">&gt; 引用</span></td>
+              <td>左側に縦線が入る引用ブロック表現</td>
+            </tr>
+            <tr>
+              <td><span class="help-code-span">- 箇条書きリスト</span></td>
+              <td>文頭が点（・）になるリスト表現</td>
+            </tr>
+            <tr>
+              <td><span class="help-code-span">[リンク名](memo://メモID)</span></td>
+              <td><a href="#" class="memo-link" onclick="event.preventDefault();" style="color:var(--accent); text-decoration:underline;">メモ間を繋ぐジャンプリンク</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- タブコンテンツ3: メディア埋め込み -->
+      <div class="help-tab-content" id="tab-media">
+        <p style="margin-bottom:0.75rem; color:var(--text-sub);">YouTube動画の再生や、画像を貼り付けてSQLiteに保存する方法のガイドです。</p>
+        
+        <div style="margin-bottom:1rem; border-left:3px solid var(--accent); padding-left:0.5rem;">
+          <h4 style="font-weight:600; margin-bottom:0.25rem;">🎥 YouTubeの埋め込み</h4>
+          <p style="font-size:0.8rem; color:var(--text-sub); line-height:1.4;">
+            YouTubeのURLを<strong>エディタ上の単独行にそのまま貼り付けるだけ</strong>で、アスペクト比を保ったレスポンシブな動画プレイヤーが自動で埋め込まれます。<br>
+            <span class="help-code-span" style="display:inline-block; margin-top:0.25rem;">https://www.youtube.com/watch?v=VIDEO_ID</span>
+          </p>
+        </div>
+
+        <div style="border-left:3px solid var(--success); padding-left:0.5rem;">
+          <h4 style="font-weight:600; margin-bottom:0.25rem;">📷 画像のコピペ・埋め込み</h4>
+          <p style="font-size:0.8rem; color:var(--text-sub); line-height:1.4;">
+            1. スクリーンショットを撮影してクリップボードにコピーします。<br>
+            2. メモの入力エリア上で <strong>Ctrl + V (貼り付け)</strong> を押します。<br>
+            3. 画像が自動で軽量圧縮され、Base64文字列（SQLiteに保存可能）として自動埋め込みされます。<br>
+            ※ ドラッグ＆ドロップでのファイル挿入も可能です！
+          </p>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; background:rgba(0,0,0,0.1); padding:0.4rem; border-radius:4px;">
+            💡 <strong>プレビューサイズ調整:</strong> <span class="help-code-span">![Alt^width](data:...)</span> （※実際には縦線のパイプ記号を使用）のように指定すると、表示幅を300px等のカスタムサイズに制限できます！
+          </div>
+        </div>
+      </div>
+
+      <!-- タブコンテンツ4: コマンド実行 -->
+      <div class="help-tab-content" id="tab-commands">
+        <p style="margin-bottom:0.75rem; color:var(--text-sub);">
+          ここから各種コマンド（オプション機能）を直接クリックして呼び出す（実行する）ことができます。
+        </p>
+        <div id="helpCommandsList" style="display:flex; flex-direction:column; gap:0.4rem; max-height: 280px; overflow-y:auto; padding-right:0.25rem;">
+          <!-- ここに動的に呼び出しボタン付きのコマンド一覧が注入されます -->
+        </div>
+      </div>
+
+      <div class="modal-actions" style="border-top:1px solid var(--panel-border); padding-top:0.75rem; margin-top:1rem;">
+        <button class="btn-secondary" id="closeHelpBtn">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- コマンドパレットモーダル -->
+  <div class="modal" id="commandPaletteModal">
+    <div class="modal-content" style="width: 480px; max-width: 95%; max-height: 80vh; display: flex; flex-direction: column; padding: 1rem; border-radius: 8px;">
+      <div style="display:flex; align-items:center; gap:0.5rem; border-bottom:1px solid var(--panel-border); padding-bottom:0.6rem; margin-bottom:0.6rem;">
+        <i data-lucide="terminal" style="width:16px; height:16px; color:var(--accent);"></i>
+        <input type="text" id="commandPaletteInput" placeholder="コマンドを入力、または選択してください..." style="flex:1; background:transparent; border:none; outline:none; color:var(--text-main); font-family:inherit; font-size:0.9rem;">
+        <span style="font-size:0.7rem; color:var(--text-muted); background:rgba(128,128,128,0.1); padding:0.1rem 0.3rem; border-radius:4px; font-family:var(--font-mono); flex-shrink:0;">Escで閉じる</span>
+      </div>
+      <div id="commandPaletteList" style="display:flex; flex-direction:column; gap:0.25rem; overflow-y:auto; max-height: 280px; padding-right:0.25rem;">
+        <!-- コマンドのリストが動的に生成されます -->
       </div>
     </div>
   </div>
@@ -684,6 +1635,97 @@
     </div>
   </div>
 
+  <!-- 評価軸追加モーダル -->
+  <div class="modal" id="axisModal">
+    <div class="modal-content" style="width: 380px;">
+      <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem;">
+        <i data-lucide="bar-chart-3" style="color:var(--accent); width:20px; height:20px;"></i>
+        <span>評価軸を追加</span>
+      </div>
+      <div style="margin:1rem 0;">
+        <div class="axis-form-row">
+          <div class="form-group">
+            <label class="form-label" for="axisNameInput">軸名（例: 味、見た目、コスパ）</label>
+            <input type="text" class="form-input" id="axisNameInput" placeholder="評価軸の名前...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="axisMethodSelect">評価方法</label>
+          <select class="axis-method-select" id="axisMethodSelect" style="width:100%;">
+            <option value="star">⭐ 5つ星（★ 1〜5）</option>
+            <option value="tier">🏆 ティア（S / A / B / C / D）</option>
+            <option value="numeric">📊 数値（0〜100）</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="cancelAxisBtn">キャンセル</button>
+        <button class="btn-primary" id="saveAxisBtn">追加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 評価トグルグリッドモーダル -->
+  <div class="modal" id="toggleGridModal">
+    <div class="modal-content" style="width: 580px; max-width: 95%;">
+      <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem; border-bottom:1px solid var(--panel-border); padding-bottom:0.75rem; margin-bottom:0.75rem;">
+        <i data-lucide="sliders-horizontal" style="color:var(--accent); width:20px; height:20px;"></i>
+        <span>📊 評価の表示設定</span>
+      </div>
+      <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:0.75rem;">他のユーザーの評価を軸ごとに表示/非表示できます。集計値にも反映されます。</p>
+      <div class="toggle-bulk-actions" id="toggleBulkActions">
+        <button class="toggle-bulk-btn on" onclick="bulkToggle('all_on')"> ✅ すべてON</button>
+        <button class="toggle-bulk-btn off" onclick="bulkToggle('all_off')"> ❌ すべてOFF</button>
+      </div>
+      <div style="overflow-x:auto; max-height:320px; overflow-y:auto;">
+        <table class="toggle-grid-table" id="toggleGridTable">
+          <thead id="toggleGridHead"></thead>
+          <tbody id="toggleGridBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions" style="border-top:1px solid var(--panel-border); padding-top:0.75rem; margin-top:1rem;">
+        <button class="btn-secondary" id="closeToggleGridBtn">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 一時フローティングメモ (Scratchpad) -->
+  <div id="scratchpadWidget" class="scratchpad-widget">
+    <div id="scratchpadHeader" class="scratchpad-header">
+      <div class="scratchpad-title">
+        <i data-lucide="edit-3" style="width:14px; height:14px;"></i>
+        <span>一時メモ (Scratchpad)</span>
+      </div>
+      <div class="scratchpad-controls">
+        <button id="scratchpadMinimizeBtn" title="最小化">
+          <i data-lucide="minus" style="width:14px; height:14px;"></i>
+        </button>
+        <button id="scratchpadCloseBtn" title="非表示">
+          <i data-lucide="x" style="width:14px; height:14px;"></i>
+        </button>
+      </div>
+    </div>
+    <div id="scratchpadBody" class="scratchpad-body">
+      <textarea id="scratchpadContent" placeholder="一時的に保存したいテキストやリンクをここにペーストできます..."></textarea>
+    </div>
+    <div class="scratchpad-footer">
+      <button class="scratchpad-btn" id="scratchpadInsertLinkBtn" title="現在のメモのリンクを挿入">
+        <i data-lucide="link" style="width:12px; height:12px;"></i>
+        <span>リンク挿入</span>
+      </button>
+      <button class="scratchpad-btn" id="scratchpadExportBtn" title="通常の新しいメモとして保存">
+        <i data-lucide="save" style="width:12px; height:12px;"></i>
+        <span>通常メモへ変換</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 最小化復元ボタン -->
+  <button id="scratchpadRestoreBtn" class="scratchpad-restore-btn" style="display:none;" title="一時メモを開く">
+    <i data-lucide="edit-3" style="width:18px; height:18px;"></i>
+    <span class="badge" id="scratchpadBadge" style="display:none;"></span>
+  </button>
+
   <script>
     // デフォルトURLと永続化された接続URLの読み込み（デフォルトでngrokのサブドメインを指定）
     let API_URL = localStorage.getItem('naomemo_api_url') || "https://snubby-arlette-denunciatory.ngrok-free.dev";
@@ -691,14 +1733,25 @@
     // アプリ状態
     let state = {
       memos: [],
+      folders: [], // フォルダ一覧
       activeMemoId: null,
+      activeFolderId: 'all', // 'all' | 'uncategorized' | folder_id (number)
       searchQuery: '',
       sortBy: 'updated', // 'updated' | 'created' | 'title'
       isOnline: true,
       isPreviewActive: false,
       syncQueue: [],
-      syncing: false
+      syncing: false,
+      // 評価システム
+      currentAxes: [],      // 現在メモの評価軸一覧
+      currentRatings: [],   // 現在メモの評価データ
+      currentSummary: [],   // 現在メモの集計データ
+      currentUserId: null   // 現在のユーザーID (anonymous)
     };
+
+    // フォルダ操作用グローバル変数
+    let editingFolderId = null;
+    let deletingFolderId = null;
 
     // DOM要素
     const el = {
@@ -729,7 +1782,65 @@
       ngrokWarningBanner: document.getElementById('ngrokWarningBanner'),
       ngrokBypassBtn: document.getElementById('ngrokBypassBtn'),
       sortSelect: document.getElementById('sortSelect'),
-      voiceBtn: document.getElementById('voiceBtn')
+      voiceBtn: document.getElementById('voiceBtn'),
+      
+      // フォルダ操作用
+      createFolderBtn: document.getElementById('createFolderBtn'),
+      folderList: document.getElementById('folderList'),
+      folderModal: document.getElementById('folderModal'),
+      folderModalTitle: document.getElementById('folderModalTitle'),
+      folderNameInput: document.getElementById('folderNameInput'),
+      cancelFolderBtn: document.getElementById('cancelFolderBtn'),
+      saveFolderBtn: document.getElementById('saveFolderBtn'),
+      deleteFolderModal: document.getElementById('deleteFolderModal'),
+      deleteFolderOnlyBtn: document.getElementById('deleteFolderOnlyBtn'),
+      deleteFolderAllBtn: document.getElementById('deleteFolderAllBtn'),
+      cancelDeleteFolderBtn: document.getElementById('cancelDeleteFolderBtn'),
+      
+      // ワークスペース内のフォルダ連携・リンク用
+      memoFolderContainer: document.getElementById('memoFolderContainer'),
+      memoFolderSelect: document.getElementById('memoFolderSelect'),
+      linkCopyBtn: document.getElementById('linkCopyBtn'),
+
+      // ヘルプおよび画像貼り付け用
+      helpBtn: document.getElementById('helpBtn'),
+      helpModal: document.getElementById('helpModal'),
+      closeHelpBtn: document.getElementById('closeHelpBtn'),
+      imagePasteConfig: document.getElementById('imagePasteConfig'),
+      imageQualitySelect: document.getElementById('imageQualitySelect'),
+
+      // コマンドパレットおよびコマンド実行用
+      commandPaletteModal: document.getElementById('commandPaletteModal'),
+      commandPaletteInput: document.getElementById('commandPaletteInput'),
+      commandPaletteList: document.getElementById('commandPaletteList'),
+      helpCommandsList: document.getElementById('helpCommandsList'),
+
+      // 評価システム用
+      ratingPanel: document.getElementById('ratingPanel'),
+      ratingAxesList: document.getElementById('ratingAxesList'),
+      ratingSummaryRow: document.getElementById('ratingSummaryRow'),
+      addAxisBtn: document.getElementById('addAxisBtn'),
+      toggleGridBtn: document.getElementById('toggleGridBtn'),
+      axisModal: document.getElementById('axisModal'),
+      axisNameInput: document.getElementById('axisNameInput'),
+      axisMethodSelect: document.getElementById('axisMethodSelect'),
+      cancelAxisBtn: document.getElementById('cancelAxisBtn'),
+      saveAxisBtn: document.getElementById('saveAxisBtn'),
+      toggleGridModal: document.getElementById('toggleGridModal'),
+      toggleGridHead: document.getElementById('toggleGridHead'),
+      toggleGridBody: document.getElementById('toggleGridBody'),
+      closeToggleGridBtn: document.getElementById('closeToggleGridBtn'),
+      
+      // 一時フローティングメモ (Scratchpad)
+      scratchpadWidget: document.getElementById('scratchpadWidget'),
+      scratchpadHeader: document.getElementById('scratchpadHeader'),
+      scratchpadContent: document.getElementById('scratchpadContent'),
+      scratchpadMinimizeBtn: document.getElementById('scratchpadMinimizeBtn'),
+      scratchpadCloseBtn: document.getElementById('scratchpadCloseBtn'),
+      scratchpadRestoreBtn: document.getElementById('scratchpadRestoreBtn'),
+      scratchpadInsertLinkBtn: document.getElementById('scratchpadInsertLinkBtn'),
+      scratchpadExportBtn: document.getElementById('scratchpadExportBtn'),
+      scratchpadBadge: document.getElementById('scratchpadBadge')
     };
 
     let autosaveTimer = null;
@@ -758,10 +1869,15 @@
 
       // ローカルキャッシュ読込
       loadCache();
+      renderFolders();
       renderList();
+      renderHelpCommands();
 
       // リスナー登録
       setupEvents();
+
+      // ユーザーID取得（評価システム用）
+      fetchCurrentUser();
 
       // 初回接続確認と同期開始
       await checkStatus();
@@ -771,6 +1887,9 @@
       window.addEventListener('focus', async () => {
         await checkStatus();
       });
+
+      // 一時フローティングメモ (Scratchpad) の初期化
+      initScratchpad();
     });
 
     // --- テーマ適用 ---
@@ -782,10 +1901,11 @@
       localStorage.setItem('app-theme', themeName);
     }
 
-    // --- キャッシュ管理 ---
+     // --- キャッシュ管理 ---
     function loadCache() {
       try {
         state.memos = JSON.parse(localStorage.getItem('memos_cache') || '[]');
+        state.folders = JSON.parse(localStorage.getItem('folders_cache') || '[]');
         state.syncQueue = JSON.parse(localStorage.getItem('sync_queue') || '[]');
       } catch (e) {
         console.error("キャッシュ読込エラー", e);
@@ -795,6 +1915,7 @@
     function saveCache() {
       try {
         localStorage.setItem('memos_cache', JSON.stringify(state.memos));
+        localStorage.setItem('folders_cache', JSON.stringify(state.folders));
         localStorage.setItem('sync_queue', JSON.stringify(state.syncQueue));
       } catch (e) {
         console.error("キャッシュ保存エラー", e);
@@ -819,6 +1940,7 @@
             const serverMemos = await response.json();
             mergeMemos(serverMemos);
           }
+          await fetchFolders();
         } else {
           throw new Error();
         }
@@ -832,6 +1954,7 @@
       state.memos = serverMemos;
       saveCache();
       renderList();
+      renderFolders();
 
       if (state.activeMemoId) {
         const active = state.memos.find(m => m.id === state.activeMemoId);
@@ -870,7 +1993,7 @@
                 'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
               },
-              body: JSON.stringify({ title: item.title, content: item.content })
+              body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id })
             });
             if (res.ok) {
               const resData = await res.json();
@@ -898,7 +2021,7 @@
                 'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
               },
-              body: JSON.stringify({ title: item.title, content: item.content })
+              body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id })
             });
             if (!res.ok) failed.push(item);
           }
@@ -937,17 +2060,18 @@
       }
     }
 
-    function addQueue(type, id, title = '', content = '') {
+    function addQueue(type, id, title = '', content = '', folderId = null) {
       if (type === 'UPDATE') {
         const idx = state.syncQueue.findIndex(q => q.id === id && q.type === 'UPDATE');
         if (idx !== -1) {
           state.syncQueue[idx].title = title;
           state.syncQueue[idx].content = content;
+          state.syncQueue[idx].folder_id = folderId;
           saveCache();
           return;
         }
       }
-      state.syncQueue.push({ type, id, title, content });
+      state.syncQueue.push({ type, id, title, content, folder_id: folderId });
       saveCache();
     }
 
@@ -1009,9 +2133,16 @@
       el.memoList.innerHTML = '';
       const query = state.searchQuery.toLowerCase();
       
-      const filtered = state.memos.filter(m => 
+      let filtered = state.memos.filter(m => 
         m.title.toLowerCase().includes(query) || m.content.toLowerCase().includes(query)
       );
+
+      // フォルダによる絞り込み
+      if (state.activeFolderId === 'uncategorized') {
+        filtered = filtered.filter(m => !m.folder_id);
+      } else if (state.activeFolderId !== 'all') {
+        filtered = filtered.filter(m => m.folder_id === state.activeFolderId);
+      }
 
       // クライアントサイドでの並び替え処理
       filtered.sort((a, b) => {
@@ -1061,6 +2192,21 @@
       el.memoContent.removeAttribute('disabled');
       el.emptyState.style.display = 'none';
 
+      // フォルダ移動セレクターの連携
+      el.memoFolderContainer.style.display = 'flex';
+      updateFolderSelectOptions();
+      el.memoFolderSelect.value = memo.folder_id || "";
+
+      // 画像貼り付け設定セレクターの表示
+      el.imagePasteConfig.style.display = 'flex';
+
+      // リンクコピーボタンの表示
+      el.linkCopyBtn.style.display = 'flex';
+
+      // 評価パネルの表示と読み込み
+      el.ratingPanel.style.display = 'block';
+      loadRatingsForMemo(id);
+
       updateActiveDbBadge(memo.id);
 
       if (state.isPreviewActive) compileMarkdown();
@@ -1074,6 +2220,16 @@
       el.memoTitle.setAttribute('disabled', true);
       el.memoContent.setAttribute('disabled', true);
       el.emptyState.style.display = 'flex';
+      
+      // フォルダ移動セレクター・リンクコピーボタン・画像設定の非表示
+      el.memoFolderContainer.style.display = 'none';
+      el.imagePasteConfig.style.display = 'none';
+      el.linkCopyBtn.style.display = 'none';
+      // 評価パネルの非表示
+      el.ratingPanel.style.display = 'none';
+      state.currentAxes = [];
+      state.currentRatings = [];
+      state.currentSummary = [];
       updateActiveDbBadge(null);
       renderList();
     }
@@ -1081,10 +2237,18 @@
     // --- メモ操作 ---
     function createMemo() {
       const tempId = `offline_${Date.now()}`;
-      const newMemo = { id: tempId, title: '', content: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      const folderId = typeof state.activeFolderId === 'number' ? state.activeFolderId : null;
+      const newMemo = { 
+        id: tempId, 
+        title: '', 
+        content: '', 
+        folder_id: folderId,
+        created_at: new Date().toISOString(), 
+        updated_at: new Date().toISOString() 
+      };
 
       state.memos.unshift(newMemo);
-      addQueue('CREATE', tempId, '', '');
+      addQueue('CREATE', tempId, '', '', folderId);
       saveCache();
 
       renderList();
@@ -1100,6 +2264,8 @@
 
       const title = el.memoTitle.value;
       const content = el.memoContent.value;
+      const activeMemo = state.memos.find(m => m.id === state.activeMemoId);
+      const folderId = activeMemo ? activeMemo.folder_id : null;
       const now = new Date().toISOString();
 
       state.memos = state.memos.map(m => m.id === state.activeMemoId ? { ...m, title, content, updated_at: now } : m);
@@ -1110,7 +2276,7 @@
 
       clearTimeout(autosaveTimer);
       autosaveTimer = setTimeout(async () => {
-        addQueue('UPDATE', state.activeMemoId, title, content);
+        addQueue('UPDATE', state.activeMemoId, title, content, folderId);
         saveCache();
         
         if (state.isOnline) {
@@ -1141,6 +2307,869 @@
         updateStatusUI('offline');
       }
     }
+
+    // --- フォルダ操作＆メモリンク機能の実装 ---
+
+    async function fetchFolders() {
+      if (!state.isOnline) return;
+      try {
+        const response = await fetch(`${API_URL}/folders`, {
+          method: 'GET',
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        if (response.ok) {
+          state.folders = await response.json();
+          localStorage.setItem('folders_cache', JSON.stringify(state.folders));
+          renderFolders();
+          updateFolderSelectOptions();
+        }
+      } catch (e) {
+        console.error("フォルダ同期エラー", e);
+      }
+    }
+
+    function renderFolders() {
+      if (!el.folderList) return;
+      el.folderList.innerHTML = '';
+
+      // 1. すべてのメモ
+      const allActive = state.activeFolderId === 'all';
+      const allCount = state.memos.length;
+      const allItem = document.createElement('div');
+      allItem.className = `folder-item ${allActive ? 'active' : ''}`;
+      allItem.innerHTML = `
+        <div class="folder-item-left">
+          <i data-lucide="layers" style="width:14px; height:14px;"></i>
+          <span class="folder-item-name">すべてのメモ</span>
+        </div>
+        <span class="folder-count-badge">${allCount}</span>
+      `;
+      allItem.addEventListener('click', () => selectFolder('all'));
+      el.folderList.appendChild(allItem);
+
+      // 2. 未分類のメモ
+      const uncategorizedActive = state.activeFolderId === 'uncategorized';
+      const uncategorizedCount = state.memos.filter(m => !m.folder_id).length;
+      const uncategorizedItem = document.createElement('div');
+      uncategorizedItem.className = `folder-item ${uncategorizedActive ? 'active' : ''}`;
+      uncategorizedItem.innerHTML = `
+        <div class="folder-item-left">
+          <i data-lucide="archive" style="width:14px; height:14px;"></i>
+          <span class="folder-item-name">未分類</span>
+        </div>
+        <span class="folder-count-badge">${uncategorizedCount}</span>
+      `;
+      uncategorizedItem.addEventListener('click', () => selectFolder('uncategorized'));
+      el.folderList.appendChild(uncategorizedItem);
+
+      // 3. 各フォルダ項目
+      state.folders.forEach(folder => {
+        const isActive = state.activeFolderId === folder.id;
+        const count = state.memos.filter(m => m.folder_id === folder.id).length;
+        const item = document.createElement('div');
+        item.className = `folder-item ${isActive ? 'active' : ''}`;
+        item.dataset.id = folder.id;
+        
+        item.innerHTML = `
+          <div class="folder-item-left">
+            <i data-lucide="folder" style="width:14px; height:14px;"></i>
+            <span class="folder-item-name">${escape(folder.name)}</span>
+          </div>
+          <div class="folder-item-right">
+            <span class="folder-count-badge">${count}</span>
+            <div class="folder-actions">
+              <button class="folder-action-btn" title="名前の変更" onclick="event.stopPropagation(); window.openRenameFolderModal(${folder.id}, '${escape(folder.name).replace(/'/g, "\\'")}')">
+                <i data-lucide="edit-2" style="width:12px; height:12px;"></i>
+              </button>
+              <button class="folder-action-btn delete" title="削除" onclick="event.stopPropagation(); window.openDeleteFolderModal(${folder.id}, '${escape(folder.name).replace(/'/g, "\\'")}')">
+                <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        item.addEventListener('click', () => selectFolder(folder.id));
+        el.folderList.appendChild(item);
+      });
+
+      lucide.createIcons();
+    }
+
+    function selectFolder(folderId) {
+      state.activeFolderId = folderId;
+      renderFolders();
+      renderList();
+    }
+
+    function updateFolderSelectOptions() {
+      if (!el.memoFolderSelect) return;
+      el.memoFolderSelect.innerHTML = '<option value="">(分類なし / ルート)</option>';
+      state.folders.forEach(folder => {
+        const option = document.createElement('option');
+        option.value = folder.id;
+        option.textContent = folder.name;
+        el.memoFolderSelect.appendChild(option);
+      });
+      if (state.activeMemoId) {
+        const active = state.memos.find(m => m.id === state.activeMemoId);
+        if (active) {
+          el.memoFolderSelect.value = active.folder_id || "";
+        }
+      }
+    }
+
+    // モーダルオープン
+    window.openCreateFolderModal = () => {
+      if (!state.isOnline) {
+        showToast("フォルダの新規作成にはオンライン接続が必要です", 'shield-alert');
+        return;
+      }
+      editingFolderId = null;
+      el.folderModalTitle.textContent = "新規フォルダ作成";
+      el.folderNameInput.value = "";
+      el.folderModal.classList.add('active');
+      el.folderNameInput.focus();
+    };
+
+    window.openRenameFolderModal = (folderId, currentName) => {
+      if (!state.isOnline) {
+        showToast("フォルダ名の変更にはオンライン接続が必要です", 'shield-alert');
+        return;
+      }
+      editingFolderId = folderId;
+      el.folderModalTitle.textContent = "フォルダ名の変更";
+      el.folderNameInput.value = currentName;
+      el.folderModal.classList.add('active');
+      el.folderNameInput.focus();
+    };
+
+    window.openDeleteFolderModal = (folderId, folderName) => {
+      if (!state.isOnline) {
+        showToast("フォルダの削除にはオンライン接続が必要です", 'shield-alert');
+        return;
+      }
+      deletingFolderId = folderId;
+      document.getElementById('deleteFolderName').textContent = folderName;
+      const count = state.memos.filter(m => m.folder_id === folderId).length;
+      document.getElementById('deleteFolderMemoCount').textContent = count;
+      el.deleteFolderModal.classList.add('active');
+    };
+
+    async function saveFolder() {
+      const name = el.folderNameInput.value.trim();
+      if (!name) return;
+
+      el.folderModal.classList.remove('active');
+      showToast("保存中...", 'refresh-cw');
+
+      try {
+        let res;
+        if (editingFolderId) {
+          // 更新
+          res = await fetch(`${API_URL}/folders/${editingFolderId}`, {
+            method: 'PUT',
+            headers: { 
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ name })
+          });
+        } else {
+          // 新規作成
+          res = await fetch(`${API_URL}/folders`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ name })
+          });
+        }
+
+        if (res.ok) {
+          showToast(editingFolderId ? "フォルダ名を更新しました" : "フォルダを作成しました", 'check');
+          await fetchFolders();
+        } else {
+          showToast("フォルダ保存エラーが発生しました", 'shield-alert');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast("通信エラーが発生しました", 'shield-alert');
+      }
+    }
+
+    async function deleteFolder(deleteContent) {
+      if (!deletingFolderId) return;
+      el.deleteFolderModal.classList.remove('active');
+      showToast("フォルダを削除中...", 'refresh-cw');
+
+      try {
+        const res = await fetch(`${API_URL}/folders/${deletingFolderId}?delete_content=${deleteContent}`, {
+          method: 'DELETE',
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+
+        if (res.ok) {
+          showToast(deleteContent ? "フォルダと中のメモを削除しました" : "フォルダのみ削除しました", 'trash-2');
+          
+          // ローカルキャッシュ側も同期
+          if (deleteContent) {
+            // 中身もすべて削除
+            state.memos = state.memos.filter(m => m.folder_id !== deletingFolderId);
+            state.syncQueue = state.syncQueue.filter(q => q.folder_id !== deletingFolderId);
+            
+            // もし開いていたメモが削除対象なら閉じる
+            if (state.activeMemoId) {
+              const activeExists = state.memos.some(m => m.id === state.activeMemoId);
+              if (!activeExists) closeWorkspace();
+            }
+          } else {
+            // 中身はルート（未分類）へ
+            state.memos = state.memos.map(m => m.folder_id === deletingFolderId ? { ...m, folder_id: null } : m);
+          }
+
+          // アクティブフォルダのクリーンアップ
+          if (state.activeFolderId === deletingFolderId) {
+            state.activeFolderId = 'all';
+          }
+
+          deletingFolderId = null;
+          saveCache();
+          await fetchFolders();
+          renderList();
+        } else {
+          showToast("フォルダ削除に失敗しました", 'shield-alert');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast("通信エラーが発生しました", 'shield-alert');
+      }
+    }
+
+    // コピーリンク機能
+    function copyMemoLink() {
+      if (!state.activeMemoId) return;
+
+      if (typeof state.activeMemoId === 'string' && state.activeMemoId.startsWith('offline_')) {
+        showToast("このメモは未同期のため、リンクをコピーできません。同期後にコピーしてください。", 'shield-alert');
+        return;
+      }
+
+      const active = state.memos.find(m => m.id === state.activeMemoId);
+      const title = active ? (active.title || '無題のメモ') : '無題のメモ';
+      const linkText = `[${title}](memo://${state.activeMemoId})`;
+
+      navigator.clipboard.writeText(linkText)
+        .then(() => {
+          showToast("メモリンクをコピーしました！プレビュー上でクリックしてジャンプできます。", 'link');
+        })
+        .catch(err => {
+          console.error("コピー失敗:", err);
+          showToast("コピーに失敗しました", 'shield-alert');
+        });
+    }
+
+    // ===== 評価システム JavaScript =====
+
+    // 現在のユーザーIDを取得
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch(`${API_URL}/users/me`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        if (res.ok) {
+          const user = await res.json();
+          state.currentUserId = user.id;
+        }
+      } catch (e) { console.log('User fetch skipped (offline)'); }
+    }
+
+    // メモの評価データを一括ロード
+    async function loadRatingsForMemo(memoId) {
+      if (!state.isOnline || typeof memoId === 'string') {
+        // オフラインまたはローカル未同期メモの場合は空表示
+        state.currentAxes = [];
+        state.currentRatings = [];
+        state.currentSummary = [];
+        renderRatingPanel();
+        return;
+      }
+      try {
+        const [axesRes, ratingsRes, summaryRes] = await Promise.all([
+          fetch(`${API_URL}/memos/${memoId}/axes`, { headers: { 'ngrok-skip-browser-warning': 'true' } }),
+          fetch(`${API_URL}/memos/${memoId}/ratings`, { headers: { 'ngrok-skip-browser-warning': 'true' } }),
+          fetch(`${API_URL}/memos/${memoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+        ]);
+        if (axesRes.ok) state.currentAxes = await axesRes.json();
+        if (ratingsRes.ok) state.currentRatings = await ratingsRes.json();
+        if (summaryRes.ok) state.currentSummary = await summaryRes.json();
+      } catch (e) {
+        console.log('Rating load error:', e);
+      }
+      renderRatingPanel();
+    }
+
+    // 評価パネル全体のレンダリング
+    function renderRatingPanel() {
+      const container = el.ratingAxesList;
+      container.innerHTML = '';
+
+      if (state.currentAxes.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:0.75rem; color:var(--text-muted); font-size:0.8rem;">
+          評価軸がありません。<button onclick="openAxisModal()" style="background:transparent; border:none; color:var(--accent); cursor:pointer; font-weight:600; font-family:inherit; font-size:0.8rem;">+ 追加</button>
+        </div>`;
+        el.ratingSummaryRow.style.display = 'none';
+        return;
+      }
+
+      state.currentAxes.forEach(axis => {
+        const card = document.createElement('div');
+        card.className = 'rating-axis-card';
+
+        // 現在のユーザーの評価を見つける
+        const axisData = state.currentRatings.find(r => r.axis && r.axis.id === axis.id);
+        const myRating = axisData ? axisData.ratings.find(r => r.user_id === state.currentUserId) : null;
+
+        const methodLabels = { star: '⭐ 星', tier: '🏆 ティア', numeric: '📊 数値' };
+
+        card.innerHTML = `
+          <div class="rating-axis-header">
+            <div style="display:flex; align-items:center; gap:0.4rem;">
+              <span class="rating-axis-name">${escape(axis.name)}</span>
+              <span class="rating-axis-method-badge ${axis.method}">${methodLabels[axis.method] || axis.method}</span>
+            </div>
+            <button class="axis-delete-btn" onclick="deleteAxis(${axis.id})" title="この評価軸を削除">
+              <i data-lucide="x" style="width:12px; height:12px;"></i>
+            </button>
+          </div>
+          <div id="ratingInput_${axis.id}"></div>
+        `;
+        container.appendChild(card);
+
+        // 入力UIの描画
+        const inputContainer = card.querySelector(`#ratingInput_${axis.id}`);
+        if (axis.method === 'star') {
+          renderStarInput(inputContainer, axis.id, myRating);
+        } else if (axis.method === 'tier') {
+          renderTierInput(inputContainer, axis.id, myRating);
+        } else if (axis.method === 'numeric') {
+          renderNumericInput(inputContainer, axis.id, myRating);
+        }
+      });
+
+      lucide.createIcons();
+      renderRatingSummary();
+    }
+
+    // 星評価UIの描画
+    function renderStarInput(container, axisId, myRating) {
+      const currentScore = myRating ? parseFloat(myRating.raw_value) : 0;
+      const div = document.createElement('div');
+      div.className = 'star-rating';
+      
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.className = `star-btn ${i <= currentScore ? 'active' : ''}`;
+        btn.textContent = i <= currentScore ? '★' : '☆';
+        btn.addEventListener('click', () => submitRating(axisId, String(i)));
+        div.appendChild(btn);
+      }
+      
+      if (currentScore > 0) {
+        const label = document.createElement('span');
+        label.className = 'star-score-label';
+        label.textContent = `${currentScore} / 5`;
+        div.appendChild(label);
+      }
+      
+      container.appendChild(div);
+    }
+
+    // ティア評価UIの描画
+    function renderTierInput(container, axisId, myRating) {
+      const currentTier = myRating ? myRating.raw_value : '';
+      const div = document.createElement('div');
+      div.className = 'tier-rating';
+      
+      ['S', 'A', 'B', 'C', 'D'].forEach(tier => {
+        const btn = document.createElement('button');
+        btn.className = `tier-btn ${currentTier.toUpperCase() === tier ? 'active-' + tier : ''}`;
+        btn.textContent = tier;
+        btn.addEventListener('click', () => submitRating(axisId, tier));
+        div.appendChild(btn);
+      });
+      
+      container.appendChild(div);
+    }
+
+    // 数値評価UIの描画
+    function renderNumericInput(container, axisId, myRating) {
+      const currentVal = myRating ? parseFloat(myRating.raw_value) : 50;
+      const div = document.createElement('div');
+      div.className = 'numeric-rating';
+      
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.className = 'numeric-slider';
+      slider.min = '0';
+      slider.max = '100';
+      slider.value = myRating ? currentVal : 50;
+      
+      const numInput = document.createElement('input');
+      numInput.type = 'number';
+      numInput.className = 'numeric-input';
+      numInput.min = '0';
+      numInput.max = '100';
+      numInput.value = myRating ? currentVal : 50;
+      
+      let debounceTimer = null;
+      const debouncedSubmit = (val) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => submitRating(axisId, String(val)), 500);
+      };
+
+      slider.addEventListener('input', () => {
+        numInput.value = slider.value;
+        debouncedSubmit(slider.value);
+      });
+      
+      numInput.addEventListener('input', () => {
+        const v = Math.max(0, Math.min(100, parseInt(numInput.value) || 0));
+        slider.value = v;
+        debouncedSubmit(v);
+      });
+      
+      div.appendChild(slider);
+      div.appendChild(numInput);
+      container.appendChild(div);
+    }
+
+    // 評価を送信（upsert）
+    async function submitRating(axisId, rawValue) {
+      if (!state.isOnline) {
+        showToast('オフライン時は評価を送信できません', 'shield-alert');
+        return;
+      }
+      try {
+        const res = await fetch(`${API_URL}/axes/${axisId}/rate`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+          body: JSON.stringify({ raw_value: rawValue })
+        });
+        if (res.ok) {
+          showToast('評価を保存しました', 'star');
+          if (state.activeMemoId) await loadRatingsForMemo(state.activeMemoId);
+        }
+      } catch (e) {
+        console.error('Rating submit error:', e);
+        showToast('評価の送信に失敗しました', 'shield-alert');
+      }
+    }
+
+    // 評価軸の削除
+    async function deleteAxis(axisId) {
+      if (!confirm('この評価軸を削除しますか？関連するすべての評価データも削除されます。')) return;
+      try {
+        const res = await fetch(`${API_URL}/axes/${axisId}`, {
+          method: 'DELETE',
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        if (res.ok || res.status === 204) {
+          showToast('評価軸を削除しました', 'trash-2');
+          if (state.activeMemoId) await loadRatingsForMemo(state.activeMemoId);
+        }
+      } catch (e) {
+        showToast('削除に失敗しました', 'shield-alert');
+      }
+    }
+    window.deleteAxis = deleteAxis;
+
+    // 評価軸追加モーダルの表示
+    function openAxisModal() {
+      el.axisNameInput.value = '';
+      el.axisMethodSelect.value = 'star';
+      el.axisModal.classList.add('active');
+      setTimeout(() => el.axisNameInput.focus(), 80);
+    }
+    window.openAxisModal = openAxisModal;
+
+    // 評価軸の保存
+    async function saveAxis() {
+      const name = el.axisNameInput.value.trim();
+      const method = el.axisMethodSelect.value;
+      if (!name) {
+        showToast('軸名を入力してください', 'shield-alert');
+        return;
+      }
+      if (!state.activeMemoId || typeof state.activeMemoId === 'string') {
+        showToast('メモを先に同期してください', 'shield-alert');
+        return;
+      }
+      try {
+        const res = await fetch(`${API_URL}/memos/${state.activeMemoId}/axes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+          body: JSON.stringify({ name, method })
+        });
+        if (res.ok) {
+          el.axisModal.classList.remove('active');
+          showToast(`評価軸「${name}」を追加しました`, 'bar-chart-3');
+          await loadRatingsForMemo(state.activeMemoId);
+        } else {
+          const err = await res.json();
+          showToast(`エラー: ${err.detail || '作成失敗'}`, 'shield-alert');
+        }
+      } catch (e) {
+        showToast('通信エラー', 'shield-alert');
+      }
+    }
+
+    // 集計バッジのレンダリング
+    function renderRatingSummary() {
+      const row = el.ratingSummaryRow;
+      if (state.currentSummary.length === 0) {
+        row.style.display = 'none';
+        return;
+      }
+      row.style.display = 'flex';
+      row.innerHTML = '';
+
+      state.currentSummary.forEach(s => {
+        const badge = document.createElement('div');
+        badge.className = 'rating-summary-badge';
+
+        let displayValue = '—';
+        if (s.average_score !== null && s.average_score !== undefined) {
+          if (s.method === 'star') {
+            displayValue = `★${s.average_score.toFixed(1)}`;
+          } else if (s.method === 'tier') {
+            // ティア分布の最頻値
+            if (s.tier_distribution) {
+              const maxTier = Object.entries(s.tier_distribution).sort((a, b) => b[1] - a[1])[0];
+              displayValue = maxTier ? maxTier[0] : '—';
+            } else {
+              displayValue = `${s.average_score.toFixed(1)}`;
+            }
+          } else {
+            displayValue = `${s.average_score.toFixed(1)}`;
+          }
+        }
+
+        badge.innerHTML = `<span style="font-weight:700;">${escape(s.axis_name)}:</span> ${displayValue} <span style="color:var(--text-muted);">(${s.count}人)</span>`;
+        row.appendChild(badge);
+      });
+    }
+
+    // トグルグリッドの表示
+    async function openToggleGrid() {
+      if (!state.activeMemoId || typeof state.activeMemoId === 'string') {
+        showToast('メモを先に同期してください', 'shield-alert');
+        return;
+      }
+      el.toggleGridModal.classList.add('active');
+      lucide.createIcons();
+      await renderToggleGrid();
+    }
+
+    // トグルグリッドのレンダリング
+    async function renderToggleGrid() {
+      try {
+        const res = await fetch(`${API_URL}/memos/${state.activeMemoId}/visibility`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const axes = state.currentAxes;
+        const grid = data.grid || [];
+
+        // ヘッダー行
+        let headHtml = '<tr><th>ユーザー</th>';
+        axes.forEach(ax => {
+          headHtml += `<th>${escape(ax.name)}<br><button class="toggle-bulk-btn" style="margin-top:0.2rem; font-size:0.6rem; padding:0.1rem 0.3rem;" onclick="bulkToggle('axis_on', null, ${ax.id})">ON</button> <button class="toggle-bulk-btn" style="font-size:0.6rem; padding:0.1rem 0.3rem;" onclick="bulkToggle('axis_off', null, ${ax.id})">OFF</button></th>`;
+        });
+        headHtml += '</tr>';
+        el.toggleGridHead.innerHTML = headHtml;
+
+        // ボディ行
+        let bodyHtml = '';
+        grid.forEach(row => {
+          bodyHtml += `<tr><td style="text-align:left; font-weight:600;">
+            ${escape(row.display_name || row.username)}
+            <div style="display:flex; gap:0.2rem; margin-top:0.2rem;">
+              <button class="toggle-bulk-btn" style="font-size:0.6rem; padding:0.1rem 0.3rem;" onclick="bulkToggle('user_on', ${row.user_id})">全ON</button>
+              <button class="toggle-bulk-btn" style="font-size:0.6rem; padding:0.1rem 0.3rem;" onclick="bulkToggle('user_off', ${row.user_id})">全OFF</button>
+            </div>
+          </td>`;
+          axes.forEach(ax => {
+            const isVisible = row.axes[String(ax.id)] !== 0;
+            bodyHtml += `<td>
+              <label class="toggle-switch">
+                <input type="checkbox" ${isVisible ? 'checked' : ''} onchange="singleToggle(${row.user_id}, ${ax.id}, this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </td>`;
+          });
+          bodyHtml += '</tr>';
+        });
+        el.toggleGridBody.innerHTML = bodyHtml;
+      } catch (e) {
+        console.error('Toggle grid error:', e);
+      }
+    }
+
+    // 個別トグル
+    window.singleToggle = async (targetUserId, axisId, visible) => {
+      try {
+        await fetch(`${API_URL}/visibility/toggle`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+          body: JSON.stringify({ target_user_id: targetUserId, axis_id: axisId, visible })
+        });
+        // 集計を更新
+        if (state.activeMemoId) {
+          const summaryRes = await fetch(`${API_URL}/memos/${state.activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+          if (summaryRes.ok) {
+            state.currentSummary = await summaryRes.json();
+            renderRatingSummary();
+          }
+        }
+      } catch (e) { console.error('Toggle error:', e); }
+    };
+
+    // 一括トグル
+    window.bulkToggle = async (mode, targetUserId = null, axisId = null) => {
+      try {
+        const body = { mode };
+        if (targetUserId !== null) body.target_user_id = targetUserId;
+        if (axisId !== null) body.axis_id = axisId;
+        await fetch(`${API_URL}/visibility/bulk`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+          body: JSON.stringify(body)
+        });
+        await renderToggleGrid();
+        // 集計更新
+        if (state.activeMemoId) {
+          const summaryRes = await fetch(`${API_URL}/memos/${state.activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+          if (summaryRes.ok) {
+            state.currentSummary = await summaryRes.json();
+            renderRatingSummary();
+          }
+        }
+      } catch (e) { console.error('Bulk toggle error:', e); }
+    };
+
+    // --- ヘルプモーダルのタブ切り替え機能 ---
+    window.switchHelpTab = (tabId) => {
+      // すべてのタブボタンとコンテンツを非アクティブにする
+      const tabBtns = document.querySelectorAll('.help-tab-btn');
+      const tabContents = document.querySelectorAll('.help-tab-content');
+      
+      tabBtns.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      // クリックされたタブをアクティブにする
+      const targetBtn = Array.from(tabBtns).find(btn => btn.getAttribute('onclick').includes(tabId));
+      if (targetBtn) targetBtn.classList.add('active');
+      
+      const targetContent = document.getElementById(tabId);
+      if (targetContent) targetContent.classList.add('active');
+    };
+
+    // --- クリップボード画像ペースト＆リサイズ圧縮機能 ---
+    function processAndPasteImage(file, qualitySetting) {
+      if (qualitySetting === 'original') {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          insertImageMarkdown(event.target.result);
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      // JPEG非可逆圧縮処理の実行 (Canvasを使用)
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // デフォルトおよびカスタム（高画質例外）サイズの設定値
+          let maxWidth = 1000;
+          let quality = 0.65; // 軽量標準: JPEG品質 65% 非可逆圧縮
+          
+          if (qualitySetting === 'high') {
+            maxWidth = 2000;
+            quality = 0.82; // 高画質設定: JPEG品質 82%
+          }
+
+          // アスペクト比を維持したリサイズ計算
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+
+          // HTML5 Canvasによる圧縮エンコード
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          
+          // 白背景で塗りつぶす (PNG透過時の黒化防止)
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+          
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // 非可逆JPEGデータURLとして出力
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          insertImageMarkdown(compressedDataUrl);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function insertImageMarkdown(dataUrl) {
+      const textarea = el.memoContent;
+      textarea.focus();
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      
+      const markdownTag = `\n![貼り付け画像](${dataUrl})\n`;
+      textarea.value = text.substring(0, start) + markdownTag + text.substring(end);
+      textarea.selectionStart = textarea.selectionEnd = start + markdownTag.length;
+      
+      // inputイベントを手動で発火して自動保存とプレビュー更新を即トリガー
+      textarea.dispatchEvent(new Event('input'));
+      showToast("画像を非可逆圧縮し、超軽量データとして埋め込みました！", 'image');
+    }
+
+    }
+
+    // --- コマンドパレットおよびコマンドヘルパー機能の実装 ---
+    
+    // アプリ内で利用可能なオプション・コマンド一覧と説明
+    const commandsList = [
+      { id: 'help', name: '/help', desc: '操作ヘルプとマークダウン記法ガイドを表示します', shortcut: 'Help Button', action: () => { el.helpModal.classList.add('active'); lucide.createIcons(); } },
+      { id: 'voice', name: '/voice', desc: '音声入力の開始・停止をトグル切り替えします', shortcut: 'Mic Button', action: () => toggleListening() },
+      { id: 'preview', name: '/preview', desc: 'マークダウンプレビュー表示のON/OFFを切り替えます', shortcut: 'Eye Button', action: () => togglePreview() },
+      { id: 'link', name: '/link', desc: 'このメモを繋ぐWiki風マークダウンリンクをコピーします', shortcut: 'Link Button', action: () => copyMemoLink() },
+      { id: 'delete', name: '/delete', desc: '現在編集中のメモをデータベースから完全に消去します', shortcut: 'Trash Button', action: () => { if (state.activeMemoId) el.deleteModal.classList.add('active'); } },
+      { id: 'folder-new', name: '/folder-new', desc: '新しくフォルダを作成するためのダイアログを起動します', shortcut: '+ Folder', action: () => window.openCreateFolderModal() },
+      { id: 'rate', name: '/rate', desc: '評価パネルにフォーカスします（メモ選択時）', shortcut: '⭐ Rating', action: () => { if (state.activeMemoId) { el.ratingPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); } else { showToast('メモを先に選択してください', 'shield-alert'); } } },
+      { id: 'add-axis', name: '/add-axis', desc: '現在のメモに新しい評価軸を追加します', shortcut: '➕ Axis', action: () => { if (state.activeMemoId) openAxisModal(); else showToast('メモを先に選択してください', 'shield-alert'); } },
+      { id: 'toggle-ratings', name: '/toggle-ratings', desc: '評価の表示設定（トグルグリッド）を開きます', shortcut: '📊 Toggle', action: () => { if (state.activeMemoId) openToggleGrid(); else showToast('メモを先に選択してください', 'shield-alert'); } },
+      { id: 'theme-light', name: '/theme-light', desc: '画面テーマを Notion 風の「クリーンライト」に変更します', shortcut: 'Light Theme', action: () => { applyTheme('theme-light'); el.themeSelect.value = 'theme-light'; } },
+      { id: 'theme-dark', name: '/theme-dark', desc: '画面テーマを高級感のある「モダンダーク」に変更します', shortcut: 'Dark Theme', action: () => { applyTheme('theme-dark'); el.themeSelect.value = 'theme-dark'; } },
+      { id: 'theme-sepia', name: '/theme-sepia', desc: '画面テーマを優しく暖かい「セピアブラウン」に変更します', shortcut: 'Sepia Theme', action: () => { applyTheme('theme-sepia'); el.themeSelect.value = 'theme-sepia'; } },
+      { id: 'theme-nord', name: '/theme-nord', desc: '画面テーマを落ち着きある「ノルディック」に変更します', shortcut: 'Nord Theme', action: () => { applyTheme('theme-nord'); el.themeSelect.value = 'theme-nord'; } },
+      { id: 'clear', name: '/clear', desc: 'エディタ表示を閉じ、現在のメモの選択状態をクリアします', shortcut: 'Close View', action: () => closeWorkspace() }
+    ];
+
+    let selectedCommandIndex = 0;
+    let filteredCommands = [...commandsList];
+
+    // コマンドパレット起動
+    function openCommandPalette() {
+      selectedCommandIndex = 0;
+      el.commandPaletteInput.value = '';
+      el.commandPaletteModal.classList.add('active');
+      renderCommandPalette('');
+      setTimeout(() => el.commandPaletteInput.focus(), 80);
+    }
+
+    function closeCommandPalette() {
+      el.commandPaletteModal.classList.remove('active');
+      // エディタへフォーカスを戻す
+      if (state.activeMemoId) {
+        el.memoContent.focus();
+      }
+    }
+
+    // コマンドパレットの絞り込みレンダリング
+    function renderCommandPalette(filterText = '') {
+      el.commandPaletteList.innerHTML = '';
+      const query = filterText.toLowerCase().replace(/^\//, ''); // 先頭のスラッシュを除去して検索
+
+      filteredCommands = commandsList.filter(cmd => 
+        cmd.name.toLowerCase().includes(query) || cmd.desc.toLowerCase().includes(query)
+      );
+
+      if (filteredCommands.length === 0) {
+        el.commandPaletteList.innerHTML = `<div style="text-align:center; padding:1.5rem; color:var(--text-muted); font-size:0.8rem;">一致するコマンドはありません</div>`;
+        return;
+      }
+
+      if (selectedCommandIndex >= filteredCommands.length) {
+        selectedCommandIndex = filteredCommands.length - 1;
+      }
+      if (selectedCommandIndex < 0) selectedCommandIndex = 0;
+
+      filteredCommands.forEach((cmd, idx) => {
+        const isSelected = idx === selectedCommandIndex;
+        const item = document.createElement('div');
+        item.className = `command-palette-item ${isSelected ? 'selected' : ''}`;
+        item.innerHTML = `
+          <div class="command-palette-left">
+            <span class="command-name">${cmd.name}</span>
+            <span class="command-desc">${cmd.desc}</span>
+          </div>
+          <div class="command-right">
+            <span class="command-shortcut">${cmd.shortcut}</span>
+          </div>
+        `;
+        item.addEventListener('click', () => executeCommand(cmd.id));
+        el.commandPaletteList.appendChild(item);
+      });
+    }
+
+    // ヘルプモーダルのコマンドタブにインタラクティブなボタン付一覧をレンダリング
+    function renderHelpCommands() {
+      if (!el.helpCommandsList) return;
+      el.helpCommandsList.innerHTML = '';
+
+      commandsList.forEach(cmd => {
+        const item = document.createElement('div');
+        item.className = 'command-palette-item';
+        item.style.cursor = 'default'; // ヘルプ内はボタン側をクリックさせるため通常カーソル
+        item.innerHTML = `
+          <div class="command-palette-left" style="flex:1; min-width:0;">
+            <span class="command-name" style="color:var(--accent); font-size:0.9rem;">${cmd.name}</span>
+            <span class="command-desc" style="white-space:normal; font-size:0.75rem;">${cmd.desc}</span>
+          </div>
+          <div class="command-right" style="flex-shrink:0;">
+            <span class="command-shortcut" style="margin-right:0.4rem;">${cmd.shortcut}</span>
+            <button class="command-run-btn" onclick="executeCommand('${cmd.id}')">実行</button>
+          </div>
+        `;
+        el.helpCommandsList.appendChild(item);
+      });
+    }
+
+    // コマンドの実行処理
+    window.executeCommand = (cmdId) => {
+      // 1. 各種モーダルを閉じる
+      el.commandPaletteModal.classList.remove('active');
+      el.helpModal.classList.remove('active');
+
+      // 2. もしエディタ上でスラッシュが入力されて起動した場合、入力されたスラッシュ「/」を自動除去する
+      const textarea = el.memoContent;
+      const text = textarea.value;
+      const caretPos = textarea.selectionStart;
+      
+      // 直前がスラッシュであれば、それを削除
+      if (textarea === document.activeElement && caretPos > 0 && text.substring(caretPos - 1, caretPos) === '/') {
+        textarea.value = text.substring(0, caretPos - 1) + text.substring(caretPos);
+        textarea.selectionStart = textarea.selectionEnd = caretPos - 1;
+        // オートセーブをトリガー
+        textarea.dispatchEvent(new Event('input'));
+      }
+
+      // 3. アクションを遅延実行
+      const cmd = commandsList.find(c => c.id === cmdId);
+      if (cmd) {
+        showToast(`コマンド「${cmd.name}」を実行しました`, 'terminal');
+        setTimeout(() => cmd.action(), 50);
+      }
+    };
 
     // --- 各種イベント設定 ---
     function setupEvents() {
@@ -1202,6 +3231,154 @@
 
       // 音声入力ボタンの処理
       el.voiceBtn.addEventListener('click', toggleListening);
+
+      // フォルダ作成・モーダル関連
+      el.createFolderBtn.addEventListener('click', window.openCreateFolderModal);
+      el.cancelFolderBtn.addEventListener('click', () => el.folderModal.classList.remove('active'));
+      el.saveFolderBtn.addEventListener('click', saveFolder);
+      
+      el.cancelDeleteFolderBtn.addEventListener('click', () => el.deleteFolderModal.classList.remove('active'));
+      el.deleteFolderOnlyBtn.addEventListener('click', () => deleteFolder(false));
+      el.deleteFolderAllBtn.addEventListener('click', () => deleteFolder(true));
+
+      // 評価システム関連
+      el.addAxisBtn.addEventListener('click', openAxisModal);
+      el.cancelAxisBtn.addEventListener('click', () => el.axisModal.classList.remove('active'));
+      el.saveAxisBtn.addEventListener('click', saveAxis);
+      el.toggleGridBtn.addEventListener('click', openToggleGrid);
+      el.closeToggleGridBtn.addEventListener('click', () => el.toggleGridModal.classList.remove('active'));
+      el.axisNameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveAxis(); });
+
+      // メモの所属フォルダ変更
+      el.memoFolderSelect.addEventListener('change', async (e) => {
+        if (!state.activeMemoId) return;
+        const val = e.target.value;
+        const folderId = val ? parseInt(val, 10) : null;
+
+        state.memos = state.memos.map(m => m.id === state.activeMemoId ? { ...m, folder_id: folderId, updated_at: new Date().toISOString() } : m);
+        saveCache();
+        renderFolders();
+        renderList();
+
+        // 同期キューへの追加と同期実行
+        const active = state.memos.find(m => m.id === state.activeMemoId);
+        addQueue('UPDATE', state.activeMemoId, active.title, active.content, folderId);
+        if (state.isOnline) {
+          await processSyncQueue();
+          showToast("所属フォルダを変更しました！", 'check');
+        } else {
+          updateStatusUI('offline');
+        }
+      });
+
+      // コピーリンクボタン
+      el.linkCopyBtn.addEventListener('click', copyMemoLink);
+
+      // 操作ヘルプモーダルの表示・非表示
+      el.helpBtn.addEventListener('click', () => {
+        el.helpModal.classList.add('active');
+        lucide.createIcons();
+      });
+      el.closeHelpBtn.addEventListener('click', () => {
+        el.helpModal.classList.remove('active');
+      });
+
+      // クリップボードからの画像貼り付け (Ctrl + V) 検知
+      el.memoContent.addEventListener('paste', (e) => {
+        const items = e.clipboardData.items;
+        for (const item of items) {
+          if (item.type.indexOf('image') === 0) {
+            e.preventDefault();
+            const file = item.getAsFile();
+            const qualitySetting = el.imageQualitySelect.value || 'standard';
+            showToast("画像の貼り付けを検知しました。軽量非可逆圧縮中...", 'refresh-cw');
+            processAndPasteImage(file, qualitySetting);
+            break;
+          }
+        }
+      });
+
+      // ドラッグ＆ドロップによる画像ファイル挿入
+      el.memoContent.addEventListener('dragover', (e) => {
+        // デフォルトのブラウザ挙動（ファイルダウンロード・別タブ表示）を無効化してドロップ可能にする
+        e.preventDefault();
+      });
+
+      el.memoContent.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          const file = files[0];
+          if (file.type.indexOf('image') === 0) {
+            e.preventDefault();
+            const qualitySetting = el.imageQualitySelect.value || 'standard';
+            showToast("画像のドロップを検知しました。軽量非可逆圧縮中...", 'refresh-cw');
+            processAndPasteImage(file, qualitySetting);
+          }
+        }
+      });
+
+      // スラッシュコマンド「/」の検知によるコマンドパレット自動起動
+      el.memoContent.addEventListener('input', (e) => {
+        const value = e.target.value;
+        const caretPos = e.target.selectionStart;
+        
+        // 直前に「/」が入力された場合、コマンドパレットをポップアップ
+        if (caretPos > 0 && value.substring(caretPos - 1, caretPos) === '/') {
+          openCommandPalette();
+        }
+      });
+
+      // コマンドパレット内のキーボード・文字入力操作ハンドラ
+      el.commandPaletteInput.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedCommandIndex = (selectedCommandIndex + 1) % filteredCommands.length;
+          renderCommandPalette(e.target.value);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedCommandIndex = (selectedCommandIndex - 1 + filteredCommands.length) % filteredCommands.length;
+          renderCommandPalette(e.target.value);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (filteredCommands[selectedCommandIndex]) {
+            executeCommand(filteredCommands[selectedCommandIndex].id);
+          }
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeCommandPalette();
+        }
+      });
+
+      el.commandPaletteInput.addEventListener('input', (e) => {
+        selectedCommandIndex = 0;
+        renderCommandPalette(e.target.value);
+      });
+
+      // コマンドパレットの背景（外側）クリックによる非アクティブ化
+      el.commandPaletteModal.addEventListener('click', (e) => {
+        if (e.target === el.commandPaletteModal) {
+          closeCommandPalette();
+        }
+      });
+
+      // マークダウンプレビュー内のメモリンク（内部ジャンプ）クリックハンドラ
+      el.markdownPreview.addEventListener('click', (e) => {
+        const anchor = e.target.closest('a.memo-link');
+        if (anchor) {
+          e.preventDefault();
+          const memoIdStr = anchor.getAttribute('data-memo-id');
+          // 数値型か文字列型かチェックしてIDをパース
+          const memoId = /^\d+$/.test(memoIdStr) ? parseInt(memoIdStr, 10) : memoIdStr;
+          
+          const exists = state.memos.some(m => m.id === memoId);
+          if (exists) {
+            selectMemo(memoId);
+            showToast(`メモへジャンプしました！`, 'link');
+          } else {
+            showToast("リンク先のメモが見つかりません", 'shield-alert');
+          }
+        }
+      });
     }
 
     // --- プレビュー ---
@@ -1224,6 +3401,49 @@
     function compileMarkdown() {
       const raw = el.memoContent.value || '';
       let html = escape(raw);
+
+      // YouTube動画のパース
+      // 1. [説明](YouTubeURL) の形式を置換
+      html = html.replace(/\[([^\]]+)\]\(((?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/[^)]+)\)/g, (match, text, url) => {
+        const decodedUrl = url.replace(/&amp;/g, '&');
+        const m = decodedUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+        if (m) {
+          const videoId = m[1];
+          return `<div class="youtube-embed-container" style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; margin: 1rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                    <iframe src="https://www.youtube.com/embed/${videoId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>
+                  </div>`;
+        }
+        return match;
+      });
+
+      // 2. 単独直貼りYouTubeURLの置換 (単独行または前後にスペースがある場合)
+      html = html.replace(/(?:^|\s)(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})(?:[^\s<]*))/g, (match, url, videoId) => {
+        return `<div class="youtube-embed-container" style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; margin: 1rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                  <iframe src="https://www.youtube.com/embed/${videoId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>
+                </div>`;
+      });
+
+      // 画像のパース ![説明](URL) or ![説明|サイズ](URL)
+      html = html.replace(/!\[([^\]|]+)(?:\|([^\]]+))?\]\(([^)]+)\)/g, (match, alt, width, url) => {
+        const decodedUrl = url.replace(/&amp;/g, '&');
+        let style = "max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0.75rem 0; display: block;";
+        if (width) {
+          // 数字のみの場合は px を補完、% 等はそのまま適用
+          const w = /^\d+$/.test(width.trim()) ? `${width.trim()}px` : width.trim();
+          style += ` width: ${w};`;
+        }
+        return `<img src="${decodedUrl}" alt="${alt}" style="${style}">`;
+      });
+
+      // リンクのパース [Text](URL) or [Text](memo://id)
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+        const decodedUrl = url.replace(/&amp;/g, '&');
+        if (decodedUrl.startsWith('memo://')) {
+          const memoId = decodedUrl.replace('memo://', '');
+          return `<a href="${decodedUrl}" data-memo-id="${memoId}" class="memo-link" style="color: var(--accent); text-decoration: underline; font-weight: 500;">${text}</a>`;
+        }
+        return `<a href="${decodedUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">${text}</a>`;
+      });
 
       html = html.replace(/```([\s\S]*?)```/gm, (m, c) => `<pre><code>${c.trim()}</code></pre>`);
       html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
@@ -1347,6 +3567,262 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    // --- 一時フローティングメモ (Scratchpad) の実装 ---
+    function initScratchpad() {
+      // LocalStorage から内容を読み込んで復元
+      const savedContent = localStorage.getItem('naomemo_scratchpad_content') || '';
+      el.scratchpadContent.value = savedContent;
+      updateScratchpadBadge();
+
+      // ウィジェットの位置を復元
+      const savedPos = localStorage.getItem('naomemo_scratchpad_pos');
+      if (savedPos) {
+        try {
+          const pos = JSON.parse(savedPos);
+          el.scratchpadWidget.style.left = pos.left;
+          el.scratchpadWidget.style.top = pos.top;
+          el.scratchpadWidget.style.right = 'auto';
+          el.scratchpadWidget.style.bottom = 'auto';
+        } catch (e) { console.error(e); }
+      }
+
+      // ウィジェットの最小化状態を復元
+      const isMin = localStorage.getItem('naomemo_scratchpad_minimized') === 'true';
+      if (isMin) {
+        el.scratchpadWidget.style.display = 'none';
+        el.scratchpadRestoreBtn.style.display = 'flex';
+      } else {
+        el.scratchpadWidget.style.display = 'flex';
+        el.scratchpadRestoreBtn.style.display = 'none';
+      }
+
+      // ドラッグ移動の実装
+      let isDragging = false;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      // マウスドラッグ
+      el.scratchpadHeader.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button')) return;
+        isDragging = true;
+        const rect = el.scratchpadWidget.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        el.scratchpadHeader.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        let left = e.clientX - offsetX;
+        let top = e.clientY - offsetY;
+        const maxX = window.innerWidth - el.scratchpadWidget.offsetWidth;
+        const maxY = window.innerHeight - el.scratchpadWidget.offsetHeight;
+        left = Math.max(0, Math.min(left, maxX));
+        top = Math.max(0, Math.min(top, maxY));
+        el.scratchpadWidget.style.left = left + 'px';
+        el.scratchpadWidget.style.top = top + 'px';
+        el.scratchpadWidget.style.right = 'auto';
+        el.scratchpadWidget.style.bottom = 'auto';
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        el.scratchpadHeader.style.cursor = 'move';
+        document.body.style.userSelect = 'auto';
+        localStorage.setItem('naomemo_scratchpad_pos', JSON.stringify({
+          left: el.scratchpadWidget.style.left,
+          top: el.scratchpadWidget.style.top
+        }));
+      });
+
+      // タッチドラッグ（モバイル対応）
+      el.scratchpadHeader.addEventListener('touchstart', (e) => {
+        if (e.target.closest('button')) return;
+        isDragging = true;
+        const touch = e.touches[0];
+        const rect = el.scratchpadWidget.getBoundingClientRect();
+        offsetX = touch.clientX - rect.left;
+        offsetY = touch.clientY - rect.top;
+      });
+
+      document.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        let left = touch.clientX - offsetX;
+        let top = touch.clientY - offsetY;
+        const maxX = window.innerWidth - el.scratchpadWidget.offsetWidth;
+        const maxY = window.innerHeight - el.scratchpadWidget.offsetHeight;
+        left = Math.max(0, Math.min(left, maxX));
+        top = Math.max(0, Math.min(top, maxY));
+        el.scratchpadWidget.style.left = left + 'px';
+        el.scratchpadWidget.style.top = top + 'px';
+        el.scratchpadWidget.style.right = 'auto';
+        el.scratchpadWidget.style.bottom = 'auto';
+      });
+
+      document.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        localStorage.setItem('naomemo_scratchpad_pos', JSON.stringify({
+          left: el.scratchpadWidget.style.left,
+          top: el.scratchpadWidget.style.top
+        }));
+      });
+
+      // 自動保存
+      el.scratchpadContent.addEventListener('input', (e) => {
+        localStorage.setItem('naomemo_scratchpad_content', e.target.value);
+        updateScratchpadBadge();
+      });
+
+      // 最小化ボタン
+      el.scratchpadMinimizeBtn.addEventListener('click', () => {
+        toggleScratchpadMinimize(true);
+      });
+
+      // 閉じるボタン（非表示＝最小化と同じ扱い）
+      el.scratchpadCloseBtn.addEventListener('click', () => {
+        toggleScratchpadMinimize(true);
+      });
+
+      // 復元ボタン
+      el.scratchpadRestoreBtn.addEventListener('click', () => {
+        toggleScratchpadMinimize(false);
+      });
+
+      // リンクを挿入ボタン
+      el.scratchpadInsertLinkBtn.addEventListener('click', () => {
+        if (!state.activeMemoId) {
+          showToast('コピー元のメモを先に選択してください', 'shield-alert');
+          return;
+        }
+        const activeMemo = state.memos.find(m => m.id === state.activeMemoId);
+        if (!activeMemo) return;
+        
+        // Wikiリンク形式 [タイトル](memo://ID)
+        const linkText = `[${activeMemo.title}](memo://${activeMemo.id})`;
+        insertTextAtCursor(el.scratchpadContent, linkText);
+        localStorage.setItem('naomemo_scratchpad_content', el.scratchpadContent.value);
+        updateScratchpadBadge();
+        showToast('一時メモにメモリンクを挿入しました', 'link');
+      });
+
+      // 通常メモへ変換
+      el.scratchpadExportBtn.addEventListener('click', async () => {
+        const text = el.scratchpadContent.value.trim();
+        if (!text) {
+          showToast('一時メモが空です', 'shield-alert');
+          return;
+        }
+
+        if (!confirm('この一時メモの内容から通常の新しいメモを作成しますか？（作成後、一時メモはクリアされます）')) return;
+
+        const lines = text.split('\n');
+        const title = lines[0].replace(/^#\s*/, '').substring(0, 50) || '一時メモから変換';
+        const content = text;
+        const folderId = null;
+
+        try {
+          if (state.isOnline) {
+            const res = await fetch(`${API_URL}/memos`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+              body: JSON.stringify({ title, content, folder_id: folderId })
+            });
+            if (res.ok) {
+              const newMemo = await res.json();
+              showToast('一時メモを新しいメモに変換・同期しました！', 'check');
+              state.memos.unshift(newMemo);
+              saveCache();
+              renderList();
+              selectMemo(newMemo.id);
+              
+              el.scratchpadContent.value = '';
+              localStorage.setItem('naomemo_scratchpad_content', '');
+              updateScratchpadBadge();
+            } else {
+              showToast('メモの同期保存に失敗しました', 'shield-alert');
+            }
+          } else {
+            // オフライン新規作成
+            const tempId = 'temp_' + Date.now();
+            const nowStr = new Date().toISOString();
+            const newMemo = {
+              id: tempId,
+              title,
+              content,
+              folder_id: folderId,
+              created_at: nowStr,
+              updated_at: nowStr
+            };
+            state.memos.unshift(newMemo);
+            saveCache();
+            renderList();
+            selectMemo(tempId);
+            
+            addQueue('CREATE', tempId, title, content, folderId);
+            updateStatusUI('offline');
+            showToast('オフラインで新規メモを作成しました（同期待ち）', 'clock');
+            
+            el.scratchpadContent.value = '';
+            localStorage.setItem('naomemo_scratchpad_content', '');
+            updateScratchpadBadge();
+          }
+        } catch (e) {
+          console.error(e);
+          showToast('通信エラーが発生しました', 'shield-alert');
+        }
+      });
+    }
+
+    function toggleScratchpadMinimize(minimize) {
+      if (minimize) {
+        el.scratchpadWidget.style.display = 'none';
+        el.scratchpadRestoreBtn.style.display = 'flex';
+        localStorage.setItem('naomemo_scratchpad_minimized', 'true');
+      } else {
+        el.scratchpadWidget.style.display = 'flex';
+        el.scratchpadRestoreBtn.style.display = 'none';
+        localStorage.setItem('naomemo_scratchpad_minimized', 'false');
+        lucide.createIcons();
+      }
+    }
+
+    function updateScratchpadBadge() {
+      const text = el.scratchpadContent.value.trim();
+      if (text) {
+        el.scratchpadBadge.style.display = 'block';
+      } else {
+        el.scratchpadBadge.style.display = 'none';
+      }
+    }
+
+    function insertTextAtCursor(textarea, text) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const val = textarea.value;
+      
+      // 前後にスペースや改行を入れるか判断
+      const beforeText = val.substring(0, start);
+      const afterText = val.substring(end);
+      
+      let insert = text;
+      // 直前が空でなく、スペースや改行でもない場合、前にスペースを追加
+      if (start > 0 && !/\s$/.test(beforeText)) {
+        insert = ' ' + insert;
+      }
+      // 直後が空でなく、スペースや改行でもない場合、後ろにスペースを追加
+      if (end < val.length && !/^\s/.test(afterText)) {
+        insert = insert + ' ';
+      }
+      
+      textarea.value = beforeText + insert + afterText;
+      textarea.selectionStart = textarea.selectionEnd = start + insert.length;
+      textarea.focus();
     }
   </script>
 </body>
