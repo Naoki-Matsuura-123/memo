@@ -1,0 +1,116 @@
+// デフォルトURLと永続化された接続URLの読み込み
+let API_URL = localStorage.getItem('naomemo_api_url') || "https://snubby-arlette-denunciatory.ngrok-free.dev";
+
+// アプリ状態
+let state = {
+  memos: [],
+  folders: [], // フォルダ一覧
+  activeMemoId: null,
+  activeFolderId: 'all', // 'all' | 'uncategorized' | folder_id (number)
+  searchQuery: '',
+  sortBy: 'updated', // 'updated' | 'created' | 'title'
+  isOnline: true,
+  isPreviewActive: false,
+  syncQueue: [],
+  syncing: false,
+  // 評価システム
+  currentAxes: [],      // 現在メモの評価軸一覧
+  currentRatings: [],   // 現在メモの評価データ
+  currentSummary: [],   // 現在メモの集計データ
+  currentUserId: null   // 現在のユーザーID (anonymous)
+};
+
+// フォルダ操作用グローバル変数
+let editingFolderId = null;
+let deletingFolderId = null;
+let autosaveTimer = null;
+
+// DOM要素
+const el = {
+  themeSelect: document.getElementById('themeSelect'),
+  statusDot: document.getElementById('statusDot'),
+  statusText: document.getElementById('statusText'),
+  statusUrl: document.getElementById('statusUrl'),
+  createBtn: document.getElementById('createBtn'),
+  searchBar: document.getElementById('searchBar'),
+  memoList: document.getElementById('memoList'),
+  saveIndicator: document.getElementById('saveIndicator'),
+  activeDbBadge: document.getElementById('activeDbBadge'),
+  previewBtn: document.getElementById('previewBtn'),
+  deleteBtn: document.getElementById('deleteBtn'),
+  memoTitle: document.getElementById('memoTitle'),
+  memoContent: document.getElementById('memoContent'),
+  markdownPreview: document.getElementById('markdownPreview'),
+  emptyState: document.getElementById('emptyState'),
+  deleteModal: document.getElementById('deleteModal'),
+  cancelDeleteBtn: document.getElementById('cancelDeleteBtn'),
+  confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
+  settingsBtn: document.getElementById('settingsBtn'),
+  settingsModal: document.getElementById('settingsModal'),
+  apiUrlInput: document.getElementById('apiUrlInput'),
+  cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
+  saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+  toastContainer: document.getElementById('toastContainer'),
+  ngrokWarningBanner: document.getElementById('ngrokWarningBanner'),
+  ngrokBypassBtn: document.getElementById('ngrokBypassBtn'),
+  sortSelect: document.getElementById('sortSelect'),
+  voiceBtn: document.getElementById('voiceBtn'),
+  
+  // フォルダ操作用
+  createFolderBtn: document.getElementById('createFolderBtn'),
+  folderList: document.getElementById('folderList'),
+  folderModal: document.getElementById('folderModal'),
+  folderModalTitle: document.getElementById('folderModalTitle'),
+  folderNameInput: document.getElementById('folderNameInput'),
+  cancelFolderBtn: document.getElementById('cancelFolderBtn'),
+  saveFolderBtn: document.getElementById('saveFolderBtn'),
+  deleteFolderModal: document.getElementById('deleteFolderModal'),
+  deleteFolderOnlyBtn: document.getElementById('deleteFolderOnlyBtn'),
+  deleteFolderAllBtn: document.getElementById('deleteFolderAllBtn'),
+  cancelDeleteFolderBtn: document.getElementById('cancelDeleteFolderBtn'),
+  
+  // ワークスペース内のフォルダ連携・リンク用
+  memoFolderContainer: document.getElementById('memoFolderContainer'),
+  memoFolderSelect: document.getElementById('memoFolderSelect'),
+  linkCopyBtn: document.getElementById('linkCopyBtn'),
+
+  // ヘルプおよび画像貼り付け用
+  helpBtn: document.getElementById('helpBtn'),
+  helpModal: document.getElementById('helpModal'),
+  closeHelpBtn: document.getElementById('closeHelpBtn'),
+  imagePasteConfig: document.getElementById('imagePasteConfig'),
+  imageQualitySelect: document.getElementById('imageQualitySelect'),
+
+  // コマンドパレットおよびコマンド実行用
+  commandPaletteModal: document.getElementById('commandPaletteModal'),
+  commandPaletteInput: document.getElementById('commandPaletteInput'),
+  commandPaletteList: document.getElementById('commandPaletteList'),
+  helpCommandsList: document.getElementById('helpCommandsList'),
+
+  // 評価システム用
+  ratingPanel: document.getElementById('ratingPanel'),
+  ratingAxesList: document.getElementById('ratingAxesList'),
+  ratingSummaryRow: document.getElementById('ratingSummaryRow'),
+  addAxisBtn: document.getElementById('addAxisBtn'),
+  toggleGridBtn: document.getElementById('toggleGridBtn'),
+  axisModal: document.getElementById('axisModal'),
+  axisNameInput: document.getElementById('axisNameInput'),
+  axisMethodSelect: document.getElementById('axisMethodSelect'),
+  cancelAxisBtn: document.getElementById('cancelAxisBtn'),
+  saveAxisBtn: document.getElementById('saveAxisBtn'),
+  toggleGridModal: document.getElementById('toggleGridModal'),
+  toggleGridHead: document.getElementById('toggleGridHead'),
+  toggleGridBody: document.getElementById('toggleGridBody'),
+  closeToggleGridBtn: document.getElementById('closeToggleGridBtn'),
+
+  // 一時フローティングメモ (Scratchpad)
+  scratchpadWidget: document.getElementById('scratchpadWidget'),
+  scratchpadHeader: document.getElementById('scratchpadHeader'),
+  scratchpadContent: document.getElementById('scratchpadContent'),
+  scratchpadMinimizeBtn: document.getElementById('scratchpadMinimizeBtn'),
+  scratchpadCloseBtn: document.getElementById('scratchpadCloseBtn'),
+  scratchpadRestoreBtn: document.getElementById('scratchpadRestoreBtn'),
+  scratchpadInsertLinkBtn: document.getElementById('scratchpadInsertLinkBtn'),
+  scratchpadExportBtn: document.getElementById('scratchpadExportBtn'),
+  scratchpadBadge: document.getElementById('scratchpadBadge')
+};

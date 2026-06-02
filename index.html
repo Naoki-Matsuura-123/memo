@@ -480,6 +480,42 @@
     </div>
   </div>
 
+  <!-- 一時フローティングメモ (Scratchpad) -->
+  <div id="scratchpadWidget" class="scratchpad-widget">
+    <div id="scratchpadHeader" class="scratchpad-header">
+      <div class="scratchpad-title">
+        <i data-lucide="edit-3" style="width:14px; height:14px;"></i>
+        <span>一時メモ (Scratchpad)</span>
+      </div>
+      <div class="scratchpad-controls">
+        <button id="scratchpadMinimizeBtn" title="最小化">
+          <i data-lucide="minus" style="width:14px; height:14px;"></i>
+        </button>
+        <button id="scratchpadCloseBtn" title="非表示">
+          <i data-lucide="x" style="width:14px; height:14px;"></i>
+        </button>
+      </div>
+    </div>
+    <div id="scratchpadBody" class="scratchpad-body">
+      <textarea id="scratchpadContent" placeholder="一時的に保存したいテキストやリンクをここにペーストできます..."></textarea>
+    </div>
+    <div class="scratchpad-footer">
+      <button class="scratchpad-btn" id="scratchpadInsertLinkBtn" title="現在のメモのリンクを挿入">
+        <i data-lucide="link" style="width:12px; height:12px;"></i>
+        <span>リンク挿入</span>
+      </button>
+      <button class="scratchpad-btn" id="scratchpadExportBtn" title="通常の新しいメモとして保存">
+        <i data-lucide="save" style="width:12px; height:12px;"></i>
+        <span>通常メモへ変換</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 最小化復元ボタン -->
+  <button id="scratchpadRestoreBtn" class="scratchpad-restore-btn" style="display:none;" title="一時メモを開く">
+    <i data-lucide="edit-3" style="width:18px; height:18px;"></i>
+    <span class="badge" id="scratchpadBadge" style="display:none;"></span>
+  </button>
 
   <!-- External Icons and Libraries -->
   <script src="https://unpkg.com/lucide@latest"></script>
