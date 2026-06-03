@@ -7,6 +7,16 @@ function applyTheme(themeName) {
   localStorage.setItem('app-theme', themeName);
 }
 
+// 子孫フォルダIDを再帰的にすべて取得する
+function getAllSubfolderIds(folderId) {
+  let ids = [folderId];
+  const children = state.folders.filter(f => f.parent_id === folderId);
+  children.forEach(child => {
+    ids = ids.concat(getAllSubfolderIds(child.id));
+  });
+  return ids;
+}
+
 // --- レンダリング ---
 function renderList() {
   el.memoList.innerHTML = '';
@@ -18,7 +28,8 @@ function renderList() {
   } else if (state.activeFolderId === 'uncategorized') {
     filtered = state.memos.filter(m => !m.folder_id);
   } else if (state.activeFolderId !== 'all') {
-    filtered = state.memos.filter(m => m.folder_id === state.activeFolderId);
+    const allowedFolderIds = getAllSubfolderIds(state.activeFolderId);
+    filtered = state.memos.filter(m => allowedFolderIds.includes(m.folder_id));
   }
 
   // 検索フィルタ
@@ -137,6 +148,7 @@ function closeWorkspace() {
   el.linkCopyBtn.style.display = 'none';
   
   // 評価パネル非表示
+  el.ratingPanel.style.display = 'none';
   el.ratingPanel.scrollIntoView({ behavior: 'auto' });
   el.ratingAxesList.innerHTML = '';
   el.ratingSummaryRow.style.display = 'none';
@@ -254,6 +266,16 @@ async function fetchFolders() {
   }
 }
 
+// フォルダとその配下の子孫フォルダのメモ合計数を再帰的に取得する
+function getFolderMemoCount(folderId) {
+  let count = state.memos.filter(m => m.folder_id === folderId).length;
+  const children = state.folders.filter(f => f.parent_id === folderId);
+  children.forEach(child => {
+    count += getFolderMemoCount(child.id);
+  });
+  return count;
+}
+
 function renderFolders() {
   el.folderList.innerHTML = '';
 
@@ -278,7 +300,7 @@ function renderFolders() {
   
   function renderSubTree(foldersList, depth) {
     foldersList.forEach(folder => {
-      const count = state.memos.filter(m => m.folder_id === folder.id).length;
+      const count = getFolderMemoCount(folder.id);
       const item = document.createElement('div');
       item.className = `folder-item ${state.activeFolderId === folder.id ? 'active' : ''}`;
       item.style.paddingLeft = `${0.5 + depth * 0.75}rem`; // インデント
@@ -316,11 +338,27 @@ function selectFolder(folderId) {
   renderList();
 }
 
+// フォルダをツリー親子順に平坦化した配列を返す
+function getFoldersTreeSorted() {
+  const sorted = [];
+  const roots = state.folders.filter(f => !f.parent_id || !state.folders.some(pf => pf.id === f.parent_id));
+  
+  function traverse(list) {
+    list.forEach(folder => {
+      sorted.push(folder);
+      const children = state.folders.filter(f => f.parent_id === folder.id);
+      traverse(children);
+    });
+  }
+  traverse(roots);
+  return sorted;
+}
+
 function updateFolderSelectOptions() {
   el.memoFolderSelect.innerHTML = '<option value="">📁 フォルダを選択して移動...</option>';
   
   // フラットに見せるためパス表示でオプションをソートして追加
-  state.folders.forEach(f => {
+  getFoldersTreeSorted().forEach(f => {
     const opt = document.createElement('option');
     opt.value = f.id;
     opt.textContent = getFolderSelectText(f);
@@ -363,7 +401,7 @@ function populateFolderParentSelect(excludeFolderId = null) {
     }
   }
 
-  state.folders.forEach(f => {
+  getFoldersTreeSorted().forEach(f => {
     if (!excludedIds.has(f.id)) {
       const opt = document.createElement('option');
       opt.value = f.id;

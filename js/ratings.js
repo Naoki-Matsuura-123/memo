@@ -11,7 +11,10 @@ async function fetchCurrentUser() {
 }
 
 async function loadRatingsForMemo(memoId) {
-  if (!state.isOnline || typeof memoId === 'string') return;
+  if (!state.isOnline || typeof memoId === 'string' || !memoId) {
+    el.ratingPanel.style.display = 'none';
+    return;
+  }
   try {
     // 1. 軸一覧のロード
     const axesRes = await fetch(`${API_URL}/memos/${memoId}/axes`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
@@ -31,10 +34,12 @@ async function loadRatingsForMemo(memoId) {
     renderRatingPanel();
   } catch (e) {
     console.error('Load ratings error:', e);
+    el.ratingPanel.style.display = 'none';
   }
 }
 
 function renderRatingPanel() {
+  el.ratingPanel.style.display = 'block'; // パネルを明示的に表示
   const container = el.ratingAxesList;
   container.innerHTML = '';
 
