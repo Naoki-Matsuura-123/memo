@@ -755,7 +755,33 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // 初回接続確認と同期開始
   await checkStatus();
-  setInterval(checkStatus, 8000);
+
+  let checkStatusTimer = null;
+
+  function startStatusTimer() {
+    if (checkStatusTimer) clearInterval(checkStatusTimer);
+    checkStatusTimer = setInterval(checkStatus, 30000); // 30秒に緩和
+  }
+
+  function stopStatusTimer() {
+    if (checkStatusTimer) {
+      clearInterval(checkStatusTimer);
+      checkStatusTimer = null;
+    }
+  }
+
+  // タブの表示状態に合わせてタイマーを制御（バックグラウンド時は通信を止める）
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopStatusTimer();
+    } else {
+      checkStatus(); // フォーカスが戻ったら即座に確認
+      startStatusTimer();
+    }
+  });
+
+  // 初回タイマー開始
+  startStatusTimer();
 
   // ウインドウフォーカス時に自動再疎通確認
   window.addEventListener('focus', async () => {
