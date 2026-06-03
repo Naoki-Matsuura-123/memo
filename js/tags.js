@@ -117,11 +117,20 @@ function switchTab(tab) {
     el.tagTabBtn.classList.remove('active');
     el.folderSection.style.display = 'block';
     el.tagSection.style.display = 'none';
+    
+    // タグタブから切り替える際、タグの絞り込みをクリア
+    state.activeTagId = null;
+    renderFolders();
+    renderList();
   } else {
     el.folderTabBtn.classList.remove('active');
     el.tagTabBtn.classList.add('active');
     el.folderSection.style.display = 'none';
     el.tagSection.style.display = 'block';
+    
+    // フォルダタブから切り替える際、フォルダの絞り込みを「すべて」にリセット
+    state.activeFolderId = 'all';
     renderTags();
+    renderList();
   }
 }
