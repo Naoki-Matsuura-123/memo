@@ -12,6 +12,7 @@ function loadCache() {
   try {
     state.memos = JSON.parse(localStorage.getItem('memos_cache') || '[]');
     state.folders = JSON.parse(localStorage.getItem('folders_cache') || '[]');
+    state.tags = JSON.parse(localStorage.getItem('tags_cache') || '[]');
     state.syncQueue = JSON.parse(localStorage.getItem('sync_queue') || '[]');
   } catch (e) {
     console.error("キャッシュ読込エラー", e);
@@ -22,6 +23,7 @@ function saveCache() {
   try {
     localStorage.setItem('memos_cache', JSON.stringify(state.memos));
     localStorage.setItem('folders_cache', JSON.stringify(state.folders));
+    localStorage.setItem('tags_cache', JSON.stringify(state.tags));
     localStorage.setItem('sync_queue', JSON.stringify(state.syncQueue));
   } catch (e) {
     console.error("キャッシュ保存エラー", e);
@@ -47,6 +49,7 @@ async function checkStatus() {
         mergeMemos(serverMemos);
       }
       await fetchFolders();
+      await fetchTags();
     } else {
       throw new Error();
     }
@@ -61,6 +64,7 @@ function mergeMemos(serverMemos) {
   saveCache();
   renderList();
   renderFolders();
+  if (typeof renderTags === 'function') renderTags();
 
   if (state.activeMemoId) {
     const active = state.memos.find(m => m.id === state.activeMemoId);
@@ -99,7 +103,7 @@ async function processSyncQueue() {
             'Content-Type': 'application/json',
             'ngrok-skip-browser-warning': 'true'
           },
-          body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id })
+          body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id, tags: item.tags || [] })
         });
         if (res.ok) {
           const resData = await res.json();
@@ -127,7 +131,7 @@ async function processSyncQueue() {
             'Content-Type': 'application/json',
             'ngrok-skip-browser-warning': 'true'
           },
-          body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id })
+          body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id, tags: item.tags || [] })
         });
         if (!res.ok) failed.push(item);
       }
@@ -166,25 +170,27 @@ async function processSyncQueue() {
   }
 }
 
-function addQueue(type, id, title = '', content = '', folderId = null) {
+function addQueue(type, id, title = '', content = '', folderId = null, tags = []) {
   if (type === 'UPDATE') {
     const idx = state.syncQueue.findIndex(q => q.id === id && q.type === 'UPDATE');
     if (idx !== -1) {
       state.syncQueue[idx].title = title;
       state.syncQueue[idx].content = content;
       state.syncQueue[idx].folder_id = folderId;
+      state.syncQueue[idx].tags = tags;
       saveCache();
       return;
     }
   }
-  state.syncQueue.push({ type, id, title, content, folder_id: folderId });
+  state.syncQueue.push({ type, id, title, content, folder_id: folderId, tags: tags });
   saveCache();
 }
 
 // --- UI更新 ---
 function updateStatusUI(status) {
   el.statusDot.className = 'status-dot';
-  el.statusUrl.textContent = API_URL;
+  const savedUrl = localStorage.getItem('naomemo_api_url');
+  el.statusUrl.textContent = savedUrl ? savedUrl : 'クラウド同期 (デフォルト)';
   
   if (status === 'online') {
     el.statusDot.classList.add('online');
@@ -232,4 +238,18 @@ function updateActiveDbBadge(id) {
     el.activeDbBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
   }
   lucide.createIcons();
+}
+
+async function fetchTags() {
+  if (!state.isOnline) return;
+  try {
+    const res = await fetch(`${API_URL}/tags`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (res.ok) {
+      state.tags = await res.json();
+      saveCache();
+      if (typeof renderTags === 'function') renderTags();
+    }
+  } catch (e) {
+    console.error("タグ取得失敗", e);
+  }
 }

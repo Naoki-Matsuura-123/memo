@@ -108,6 +108,22 @@ function initScratchpad() {
     updateScratchpadBadge();
   });
 
+  // Tabキーインデントのサポート
+  el.scratchpadContent.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = e.target.selectionStart;
+      const end = e.target.selectionEnd;
+      const val = e.target.value;
+      
+      e.target.value = val.substring(0, start) + '\t' + val.substring(end);
+      e.target.selectionStart = e.target.selectionEnd = start + 1;
+      
+      localStorage.setItem('naomemo_scratchpad_content', e.target.value);
+      updateScratchpadBadge();
+    }
+  });
+
   // 最小化ボタン
   el.scratchpadMinimizeBtn.addEventListener('click', () => {
     toggleScratchpadMinimize(true);

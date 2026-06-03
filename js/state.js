@@ -1,12 +1,16 @@
 // デフォルトURLと永続化された接続URLの読み込み
-let API_URL = localStorage.getItem('naomemo_api_url') || "https://snubby-arlette-denunciatory.ngrok-free.dev";
+const DEFAULT_API_URL = "https://snubby-arlette-denunciatory.ngrok-free.dev";
+let API_URL = localStorage.getItem('naomemo_api_url') || DEFAULT_API_URL;
 
 // アプリ状態
 let state = {
   memos: [],
   folders: [], // フォルダ一覧
+  tags: [], // タグ一覧
   activeMemoId: null,
   activeFolderId: 'all', // 'all' | 'uncategorized' | folder_id (number)
+  activeTagId: null, // null | tag_id (number)
+  activeTab: 'folders', // 'folders' | 'tags'
   searchQuery: '',
   sortBy: 'updated', // 'updated' | 'created' | 'title'
   isOnline: true,
@@ -56,6 +60,13 @@ const el = {
   sortSelect: document.getElementById('sortSelect'),
   voiceBtn: document.getElementById('voiceBtn'),
   
+  // タブおよびフォルダ・タグ表示用
+  folderTabBtn: document.getElementById('folderTabBtn'),
+  tagTabBtn: document.getElementById('tagTabBtn'),
+  folderSection: document.getElementById('folderSection'),
+  tagSection: document.getElementById('tagSection'),
+  tagList: document.getElementById('tagList'),
+
   // フォルダ操作用
   createFolderBtn: document.getElementById('createFolderBtn'),
   folderList: document.getElementById('folderList'),
@@ -64,6 +75,7 @@ const el = {
   folderNameInput: document.getElementById('folderNameInput'),
   cancelFolderBtn: document.getElementById('cancelFolderBtn'),
   saveFolderBtn: document.getElementById('saveFolderBtn'),
+  folderParentSelect: document.getElementById('folderParentSelect'),
   deleteFolderModal: document.getElementById('deleteFolderModal'),
   deleteFolderOnlyBtn: document.getElementById('deleteFolderOnlyBtn'),
   deleteFolderAllBtn: document.getElementById('deleteFolderAllBtn'),
@@ -73,6 +85,11 @@ const el = {
   memoFolderContainer: document.getElementById('memoFolderContainer'),
   memoFolderSelect: document.getElementById('memoFolderSelect'),
   linkCopyBtn: document.getElementById('linkCopyBtn'),
+
+  // タグ表示・入力用
+  memoTagContainer: document.getElementById('memoTagContainer'),
+  memoTagList: document.getElementById('memoTagList'),
+  memoTagInput: document.getElementById('memoTagInput'),
 
   // ヘルプおよび画像貼り付け用
   helpBtn: document.getElementById('helpBtn'),

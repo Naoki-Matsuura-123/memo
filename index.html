@@ -28,23 +28,10 @@
             <span>nao-memo</span>
           </div>
           <!-- 接続設定ボタン -->
-          <button class="btn-icon" id="settingsBtn" title="接続設定">
+          <button class="btn-icon" id="settingsBtn" title="接続設定とステータス確認">
             <i data-lucide="settings" style="width:16px; height:16px;"></i>
           </button>
         </div>
-        <div class="db-badge">
-          <i data-lucide="server" style="width:12px; height:12px;"></i>
-          <span>memos.db (SQLite)</span>
-        </div>
-      </div>
-
-      <!-- 接続ステータス -->
-      <div class="status-area">
-        <div class="status-row">
-          <span class="status-dot online" id="statusDot"></span>
-          <span id="statusText">オンライン</span>
-        </div>
-        <span class="status-url" id="statusUrl">http://localhost:8000</span>
       </div>
 
       <!-- アクション・検索・並び替え -->
@@ -62,8 +49,20 @@
         </div>
       </div>
 
+      <!-- サイドバーのフォルダ・タグ切り替えタブ -->
+      <div class="sidebar-tabs" id="sidebarTabs">
+        <button class="sidebar-tab-btn active" id="folderTabBtn" title="フォルダ別表示">
+          <i data-lucide="folder" style="width: 14px; height: 14px;"></i>
+          <span>フォルダ</span>
+        </button>
+        <button class="sidebar-tab-btn" id="tagTabBtn" title="タグ別表示">
+          <i data-lucide="tag" style="width: 14px; height: 14px;"></i>
+          <span>タグ</span>
+        </button>
+      </div>
+
       <!-- フォルダ一覧セクション -->
-      <div class="folder-section">
+      <div class="folder-section" id="folderSection">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
           <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub); display: flex; align-items: center; gap: 0.3rem;">
             <i data-lucide="folder" style="width: 14px; height: 14px;"></i> フォルダ
@@ -74,6 +73,18 @@
         </div>
         <div id="folderList" style="display: flex; flex-direction: column; gap: 0.25rem; max-height: 180px; overflow-y: auto;">
           <!-- 動的にフォルダが生成されます -->
+        </div>
+      </div>
+
+      <!-- タグ一覧セクション -->
+      <div class="folder-section" id="tagSection" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub); display: flex; align-items: center; gap: 0.3rem;">
+            <i data-lucide="tag" style="width: 14px; height: 14px;"></i> タグ
+          </span>
+        </div>
+        <div id="tagList" style="display: flex; flex-direction: column; gap: 0.25rem; max-height: 180px; overflow-y: auto;">
+          <!-- 動的にタグリストが生成されます -->
         </div>
       </div>
 
@@ -147,6 +158,18 @@
           </select>
         </div>
 
+        <!-- タグ入力・表示エリア -->
+        <div id="memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <i data-lucide="tag" style="width:14px; height:14px; color:var(--accent);"></i>
+            <span>タグ:</span>
+          </div>
+          <div id="memoTagList" style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;">
+            <!-- ここに動的にタグチップが入ります -->
+          </div>
+          <input type="text" id="memoTagInput" placeholder="+ タグを追加..." style="background:transparent; border:none; outline:none; color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; font-family:inherit; min-width:80px; border-bottom:1px dashed var(--panel-border);">
+        </div>
+
         <!-- 画像貼り付け設定セレクター -->
         <div id="imagePasteConfig" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
           <i data-lucide="image" style="width:14px; height:14px; color:var(--accent);"></i>
@@ -214,9 +237,15 @@
     <div class="modal-content">
       <div class="modal-title" id="folderModalTitle">新規フォルダ作成</div>
       <div style="margin:1rem 0;">
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom:0.75rem;">
           <label class="form-label" for="folderNameInput">フォルダ名</label>
           <input type="text" class="form-input" id="folderNameInput" placeholder="フォルダの名前を入力...">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="folderParentSelect">親フォルダ (任意)</label>
+          <select class="form-input" id="folderParentSelect" style="cursor:pointer;">
+            <option value="">📁 (ルートフォルダ)</option>
+          </select>
         </div>
       </div>
       <div class="modal-actions">
@@ -404,18 +433,39 @@
 
   <!-- 接続設定モーダル -->
   <div class="modal" id="settingsModal">
-    <div class="modal-content">
-      <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem;">
+    <div class="modal-content" style="width: 450px;">
+      <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 0.5rem; margin-bottom: 1rem;">
         <i data-lucide="settings" style="color:var(--accent); width:20px; height:20px;"></i>
-        <span>接続設定 (Cloudflare Tunnel デモ対応)</span>
+        <span>システム設定 & 接続情報</span>
       </div>
-      <div style="margin:1rem 0;">
-        <div class="form-group">
+      <div style="margin:1rem 0; display:flex; flex-direction:column; gap:1rem;">
+        <!-- 現在の接続ステータス・使用DB情報 (サイドバーから移植) -->
+        <div style="background: rgba(128,128,128,0.05); border: 1px solid var(--panel-border); border-radius: 6px; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+            <span style="color: var(--text-sub); font-weight: 500;">使用中のデータベース:</span>
+            <span class="db-badge" style="margin: 0; padding: 0.15rem 0.4rem;">
+              <i data-lucide="server" style="width:11px; height:11px;"></i>
+              <span>memos.db (SQLite)</span>
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+            <span style="color: var(--text-sub); font-weight: 500;">同期ステータス:</span>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              <span class="status-dot online" id="statusDot"></span>
+              <span id="statusText" style="font-weight: 600;">オンライン</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.75rem; border-top: 1px solid rgba(128,128,128,0.1); padding-top: 0.4rem;">
+            <span style="color: var(--text-muted);">接続先アドレス:</span>
+            <span id="statusUrl" style="font-family: var(--font-mono); color: var(--text-sub); word-break: break-all;">クラウド同期 (デフォルト)</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin: 0;">
           <label class="form-label" for="apiUrlInput">APIサーバーベースURL</label>
-          <input type="text" class="form-input" id="apiUrlInput" placeholder="http://localhost:8000">
+          <input type="text" class="form-input" id="apiUrlInput" placeholder="デフォルト（クラウド同期）">
           <div class="form-help">
-            ローカル稼働時は <strong>http://localhost:8000</strong> を指定します。<br>
-            GitHub PagesからCloudflare Tunnelで自宅PCのDBを操作する場合は、発行されたトンネルURL（例: <strong>https://your-tunnel.trycloudflare.com</strong>）を入力します。
+            デフォルト以外のURLに接続する場合のみ入力してください。接続先を変更するとデータベースの同期先が変わります。
           </div>
         </div>
       </div>
@@ -528,6 +578,7 @@
   <script src="js/commands.js"></script>
   <script src="js/ratings.js"></script>
   <script src="js/scratchpad.js"></script>
+  <script src="js/tags.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
