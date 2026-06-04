@@ -1,5 +1,5 @@
 // デフォルトURLと永続化された接続URLの読み込み
-const DEFAULT_API_URL = "https://snubby-arlette-denunciatory.ngrok-free.dev";
+const DEFAULT_API_URL = "https://memo-api.7korobi.org";
 let API_URL = localStorage.getItem('naomemo_api_url') || DEFAULT_API_URL;
 
 // アプリ状態
