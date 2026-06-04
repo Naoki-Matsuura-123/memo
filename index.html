@@ -45,6 +45,7 @@
             <option value="updated">🕒 更新順</option>
             <option value="created">📅 作成順</option>
             <option value="title">🔤 題名順</option>
+            <option value="rating_desc">⭐ 評価の高い順</option>
           </select>
         </div>
       </div>
@@ -92,6 +93,20 @@
       <div class="memo-list" id="memoList">
         <div class="empty-list-text">読み込み中...</div>
       </div>
+
+      <!-- ユーザー情報とログアウト -->
+      <div class="sidebar-user-footer" id="sidebarUserFooter" style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; border-top:1px solid var(--panel-border); gap:0.75rem;">
+        <div class="user-info" style="display:flex; align-items:center; gap:0.5rem; overflow:hidden; flex:1;">
+          <i data-lucide="user" class="user-avatar-icon" style="width:18px; height:18px; color:var(--accent); flex-shrink:0;"></i>
+          <div class="user-details" style="display:flex; flex-direction:column; overflow:hidden;">
+            <span class="user-display-name" id="userDisplayName" style="font-size:0.8rem; font-weight:600; color:var(--text-main); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">ゲスト</span>
+            <span class="user-username" id="userUsername" style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">@anonymous</span>
+          </div>
+        </div>
+        <button class="btn-icon" id="logoutBtn" title="ログアウト" style="padding: 0.35rem; border-radius: 6px; border: 1px solid var(--panel-border); background:transparent; cursor:pointer;">
+          <i data-lucide="log-out" style="width:14px; height:14px; color:var(--text-sub);"></i>
+        </button>
+      </div>
     </aside>
 
     <!-- エディタ領域 -->
@@ -126,6 +141,9 @@
           </button>
           <button class="btn-secondary" id="voiceBtn" title="音声入力">
             <i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力
+          </button>
+          <button class="btn-secondary" id="shareBtn" title="メモの共有設定" style="display: none;">
+            <i data-lucide="share-2" style="width:14px; height:14px;"></i>共有
           </button>
           <button class="btn-secondary" id="previewBtn">
             <i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー
@@ -371,6 +389,10 @@
               <td><span class="help-code-span">[リンク名](memo://メモID)</span></td>
               <td><a href="#" class="memo-link" onclick="event.preventDefault();" style="color:var(--accent); text-decoration:underline;">メモ間を繋ぐジャンプリンク</a></td>
             </tr>
+            <tr>
+              <td><span class="help-code-span">&lt;details&gt;<br>&nbsp;&nbsp;&lt;summary&gt;タイトル&lt;/summary&gt;<br>&nbsp;&nbsp;折りたたむ内容<br>&lt;/details&gt;</span></td>
+              <td>折りたたみ（アコーディオン）ブロック（エディタ上で <strong>/collapse</strong> も使用可能）</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -530,6 +552,89 @@
     </div>
   </div>
 
+  <!-- ログイン・会員登録モーダル -->
+  <div class="modal" id="loginModal" style="display: none; backdrop-filter: blur(15px); background: rgba(0,0,0,0.6);">
+    <div class="modal-content" style="width: 380px; padding: 2rem; border-radius: 12px; background: var(--bg-glass);">
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <i data-lucide="database" class="logo-icon" style="width: 48px; height: 48px; color: var(--accent); margin-bottom: 0.5rem; display: block; margin-left: auto; margin-right: auto;"></i>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;" id="loginModalTitle">nao-memo にサインイン</h2>
+        <p style="font-size: 0.8rem; color: var(--text-sub);" id="loginModalSubtitle">メモを同期・共有して管理しましょう</p>
+      </div>
+
+      <!-- サインイン用フォーム -->
+      <div id="loginFormContainer">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="loginUsername">ユーザー名</label>
+          <input type="text" class="form-input" id="loginUsername" placeholder="ユーザー名を入力..." autocomplete="username">
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" for="loginPassword">パスワード</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="パスワードを入力..." autocomplete="current-password">
+        </div>
+        <button class="btn-primary" id="loginSubmitBtn" style="width: 100%; height: 40px; font-weight: 600; cursor:pointer;">サインイン</button>
+        <div style="text-align: center; margin-top: 1rem; font-size: 0.8rem; color: var(--text-sub);">
+          アカウントがありませんか？ <a href="#" id="toRegisterLink" style="color: var(--accent); text-decoration: underline;">新規登録</a>
+        </div>
+      </div>
+
+      <!-- 新規登録用フォーム (初期は非表示) -->
+      <div id="registerFormContainer" style="display: none;">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="registerUsername">ユーザー名 (英数字3-20字)</label>
+          <input type="text" class="form-input" id="registerUsername" placeholder="ユーザー名を入力..." autocomplete="username">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="registerDisplayName">表示名 (ニックネーム)</label>
+          <input type="text" class="form-input" id="registerDisplayName" placeholder="表示名を入力...">
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" for="registerPassword">パスワード (4文字以上)</label>
+          <input type="password" class="form-input" id="registerPassword" placeholder="パスワードを入力..." autocomplete="new-password">
+        </div>
+        <button class="btn-primary" id="registerSubmitBtn" style="width: 100%; height: 40px; font-weight: 600; background-color: var(--success); cursor:pointer;">アカウント作成</button>
+        <div style="text-align: center; margin-top: 1rem; font-size: 0.8rem; color: var(--text-sub);">
+          既にアカウントをお持ちですか？ <a href="#" id="toLoginLink" style="color: var(--accent); text-decoration: underline;">サインイン</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- メモ共有設定モーダル -->
+  <div class="modal" id="shareModal">
+    <div class="modal-content" style="width: 450px;">
+      <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem; border-bottom:1px solid var(--panel-border); padding-bottom:0.75rem; margin-bottom:0.75rem;">
+        <i data-lucide="share-2" style="color:var(--accent); width:20px; height:20px;"></i>
+        <span>📤 メモの共有設定</span>
+      </div>
+      
+      <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:1rem;">共有先（ユーザーまたはロール）を指定して、このメモの閲覧または編集権限を付与できます。</p>
+      
+      <!-- 共有追加フォーム -->
+      <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem;">
+        <select class="form-input" id="shareTypeSelect" style="width:110px; cursor:pointer;">
+          <option value="user">👤 ユーザー</option>
+          <option value="role">👥 ロール</option>
+        </select>
+        <input type="text" class="form-input" id="shareTargetInput" placeholder="ユーザー名を入力..." style="flex:1;">
+        <select class="form-input" id="sharePermissionSelect" style="width:110px; cursor:pointer;">
+          <option value="read">👀 閲覧のみ</option>
+          <option value="write">✏️ 編集可能</option>
+        </select>
+        <button class="btn-primary" id="addShareBtn" style="width:auto; padding:0 1rem; cursor:pointer;">追加</button>
+      </div>
+
+      <div style="font-size:0.85rem; font-weight:600; color:var(--text-main); margin-bottom:0.5rem;">共有中のユーザー・ロール</div>
+      <div id="shareList" style="display:flex; flex-direction:column; gap:0.5rem; max-height:200px; overflow-y:auto; margin-bottom:1.5rem;">
+        <!-- 動的に共有中ユーザー・ロールのリストが生成されます -->
+        <div style="text-align:center; font-size:0.8rem; color:var(--text-muted); padding:1rem;">共有しているユーザー・ロールはいません</div>
+      </div>
+
+      <div class="modal-actions" style="border-top:1px solid var(--panel-border); padding-top:0.75rem;">
+        <button class="btn-secondary" id="closeShareBtn">閉じる</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 一時フローティングメモ (Scratchpad) -->
   <div id="scratchpadWidget" class="scratchpad-widget">
     <div id="scratchpadHeader" class="scratchpad-header">
@@ -568,11 +673,13 @@
   </button>
 
   <!-- External Icons and Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- App Modular Scripts -->
   <script src="js/state.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/markdown.js"></script>
   <script src="js/voice.js"></script>
   <script src="js/commands.js"></script>

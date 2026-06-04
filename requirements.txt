@@ -1,3 +1,7 @@
 fastapi
 uvicorn
 sqlalchemy
+psycopg2-binary
+pyjwt
+passlib[bcrypt]
+python-multipart

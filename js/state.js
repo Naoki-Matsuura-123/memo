@@ -129,5 +129,35 @@ const el = {
   scratchpadRestoreBtn: document.getElementById('scratchpadRestoreBtn'),
   scratchpadInsertLinkBtn: document.getElementById('scratchpadInsertLinkBtn'),
   scratchpadExportBtn: document.getElementById('scratchpadExportBtn'),
-  scratchpadBadge: document.getElementById('scratchpadBadge')
+  scratchpadBadge: document.getElementById('scratchpadBadge'),
+  
+  // 共有＆認証
+  loginModal: document.getElementById('loginModal'),
+  loginModalTitle: document.getElementById('loginModalTitle'),
+  loginModalSubtitle: document.getElementById('loginModalSubtitle'),
+  loginFormContainer: document.getElementById('loginFormContainer'),
+  registerFormContainer: document.getElementById('registerFormContainer'),
+  loginUsername: document.getElementById('loginUsername'),
+  loginPassword: document.getElementById('loginPassword'),
+  loginSubmitBtn: document.getElementById('loginSubmitBtn'),
+  toRegisterLink: document.getElementById('toRegisterLink'),
+  registerUsername: document.getElementById('registerUsername'),
+  registerDisplayName: document.getElementById('registerDisplayName'),
+  registerPassword: document.getElementById('registerPassword'),
+  registerSubmitBtn: document.getElementById('registerSubmitBtn'),
+  toLoginLink: document.getElementById('toLoginLink'),
+  
+  sidebarUserFooter: document.getElementById('sidebarUserFooter'),
+  userDisplayName: document.getElementById('userDisplayName'),
+  userUsername: document.getElementById('userUsername'),
+  logoutBtn: document.getElementById('logoutBtn'),
+  
+  shareBtn: document.getElementById('shareBtn'),
+  shareModal: document.getElementById('shareModal'),
+  shareTypeSelect: document.getElementById('shareTypeSelect'),
+  shareTargetInput: document.getElementById('shareTargetInput'),
+  sharePermissionSelect: document.getElementById('sharePermissionSelect'),
+  addShareBtn: document.getElementById('addShareBtn'),
+  shareList: document.getElementById('shareList'),
+  closeShareBtn: document.getElementById('closeShareBtn')
 };

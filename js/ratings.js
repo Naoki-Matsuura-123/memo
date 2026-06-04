@@ -1,4 +1,8 @@
 async function fetchCurrentUser() {
+  if (state.currentUser) {
+    state.currentUserId = state.currentUser.id;
+    return;
+  }
   try {
     const res = await fetch(`${API_URL}/users/me`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
     if (res.ok) {
@@ -51,6 +55,9 @@ function renderRatingPanel() {
     return;
   }
 
+  const activeMemo = state.memos.find(m => m.id === state.activeMemoId);
+  const isReadOnly = activeMemo && activeMemo.permission === 'read';
+
   state.currentAxes.forEach(axis => {
     const card = document.createElement('div');
     card.className = 'rating-axis-card';
@@ -67,7 +74,7 @@ function renderRatingPanel() {
           <span class="rating-axis-name">${escape(axis.name)}</span>
           <span class="rating-axis-method-badge ${axis.method}">${methodLabels[axis.method] || axis.method}</span>
         </div>
-        <button class="axis-delete-btn" onclick="deleteAxis(${axis.id})" title="この評価軸を削除">
+        <button class="axis-delete-btn" onclick="deleteAxis(${axis.id})" title="この評価軸を削除" style="${isReadOnly ? 'display:none;' : ''}">
           <i data-lucide="x" style="width:12px; height:12px;"></i>
         </button>
       </div>

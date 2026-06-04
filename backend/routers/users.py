@@ -15,10 +15,9 @@ def list_users(db: Session = Depends(get_db)):
     """全ユーザー一覧を取得する。"""
     return db.query(UserModel).all()
 
+from backend.routers.auth import get_current_user
+
 @router.get('/me', response_model=User)
-def get_current_user(db: Session = Depends(get_db)):
-    """現在のユーザー（anonymous）を取得する。"""
-    user = db.query(UserModel).filter(UserModel.username == 'anonymous').first()
-    if not user:
-        raise HTTPException(status_code=404, detail='No anonymous user found')
-    return user
+def read_current_user(current_user: UserModel = Depends(get_current_user)):
+    """現在のログインユーザーを取得する。"""
+    return current_user

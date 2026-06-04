@@ -4,6 +4,7 @@ const commandsList = [
   { id: 'voice', name: '/voice', desc: '音声入力の開始・停止をトグル切り替えします', shortcut: 'Mic Button', action: () => toggleListening() },
   { id: 'preview', name: '/preview', desc: 'マークダウンプレビュー表示 of ON/OFFを切り替えます', shortcut: 'Eye Button', action: () => togglePreview() },
   { id: 'link', name: '/link', desc: 'このメモを繋ぐWiki風マークダウンリンクをコピーします', shortcut: 'Link Button', action: () => copyMemoLink() },
+  { id: 'collapse', name: '/collapse', desc: '折りたたみブロック（アコーディオン）を挿入します', shortcut: '➕ Fold', action: () => insertAccordion() },
   { id: 'delete', name: '/delete', desc: '現在編集中のメモをデータベースから完全に消去します', shortcut: 'Trash Button', action: () => { if (state.activeMemoId) el.deleteModal.classList.add('active'); } },
   { id: 'folder-new', name: '/folder-new', desc: '新しくフォルダを作成するためのダイアログを起動します', shortcut: '+ Folder', action: () => window.openCreateFolderModal() },
   { id: 'rate', name: '/rate', desc: '評価パネルにフォーカスします（メモ選択時）', shortcut: '⭐ Rating', action: () => { if (state.activeMemoId) { el.ratingPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); } else { showToast('メモを先に選択してください', 'shield-alert'); } } },
@@ -15,6 +16,29 @@ const commandsList = [
   { id: 'theme-nord', name: '/theme-nord', desc: '画面テーマを落ち着きある「ノルディック」に変更します', shortcut: 'Nord Theme', action: () => { applyTheme('theme-nord'); el.themeSelect.value = 'theme-nord'; } },
   { id: 'clear', name: '/clear', desc: 'エディタ表示を閉じ、現在のメモの選択状態をクリアします', shortcut: 'Close View', action: () => closeWorkspace() }
 ];
+
+// 折りたたみ（アコーディオン）ブロックの挿入
+function insertAccordion() {
+  const textarea = el.memoContent;
+  if (!textarea) return;
+
+  const template = `<details>\n  <summary>折りたたみのタイトル</summary>\n\n  ここに折りたたむ内容を記述します。\n</details>\n`;
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const val = textarea.value;
+
+  textarea.value = val.substring(0, start) + template + val.substring(end);
+
+  // タイトル部分を選択状態にする
+  const prefixLength = template.indexOf('<summary>') + '<summary>'.length;
+  const selectStart = start + prefixLength;
+  const selectEnd = selectStart + '折りたたみのタイトル'.length;
+
+  textarea.setSelectionRange(selectStart, selectEnd);
+  // inputイベントを手動で発火して自動保存とプレビュー更新を即トリガー
+  textarea.dispatchEvent(new Event('input'));
+  textarea.focus();
+}
 
 let selectedCommandIndex = 0;
 let filteredCommands = [...commandsList];

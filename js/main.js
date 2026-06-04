@@ -34,10 +34,21 @@ function renderList() {
 
   // 検索フィルタ
   if (state.searchQuery) {
-    const q = state.searchQuery.toLowerCase();
+    const q = state.searchQuery.toLowerCase().trim();
     if (q.startsWith('tag:')) {
       const tagName = q.substring(4).trim();
       filtered = filtered.filter(m => m.tags && m.tags.some(t => t.name.toLowerCase().includes(tagName)));
+    } else if (q.startsWith('#')) {
+      const tagName = q.substring(1).trim();
+      filtered = filtered.filter(m => m.tags && m.tags.some(t => t.name.toLowerCase().includes(tagName)));
+    } else if (q.startsWith('rating:')) {
+      const val = parseFloat(q.substring(7).trim()) || 0;
+      const minScore = val <= 5.0 ? val * 20.0 : val;
+      filtered = filtered.filter(m => m.average_rating !== undefined && m.average_rating !== null && m.average_rating >= minScore);
+    } else if (q.startsWith('rating>=')) {
+      const val = parseFloat(q.substring(8).trim()) || 0;
+      const minScore = val <= 5.0 ? val * 20.0 : val;
+      filtered = filtered.filter(m => m.average_rating !== undefined && m.average_rating !== null && m.average_rating >= minScore);
     } else {
       filtered = filtered.filter(m => 
         m.title.toLowerCase().includes(q) || 
@@ -54,6 +65,8 @@ function renderList() {
     filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   } else if (state.sortBy === 'title') {
     filtered.sort((a, b) => a.title.localeCompare(b.title));
+  } else if (state.sortBy === 'rating_desc') {
+    filtered.sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
   }
 
   if (filtered.length === 0) {
@@ -89,6 +102,38 @@ function selectMemo(id) {
   const memo = state.memos.find(m => m.id === id);
   if (!memo) return;
 
+  // リンクジャンプ時などで、現在のアクティブフォルダ/タグにこのメモが含まれていない場合、
+  // メモが所属するフォルダに自動切り替え（なければ未分類）
+  const allowedFolderIds = state.activeFolderId !== 'all' && state.activeFolderId !== 'uncategorized' 
+    ? getAllSubfolderIds(state.activeFolderId) 
+    : [];
+  
+  let needsFilterReset = false;
+  if (state.activeTagId) {
+    if (!memo.tags || !memo.tags.some(t => t.name === state.activeTagId)) {
+      needsFilterReset = true;
+    }
+  } else if (state.activeFolderId === 'uncategorized') {
+    if (memo.folder_id) {
+      needsFilterReset = true;
+    }
+  } else if (state.activeFolderId !== 'all') {
+    if (!allowedFolderIds.includes(memo.folder_id)) {
+      needsFilterReset = true;
+    }
+  }
+
+  if (needsFilterReset) {
+    if (memo.folder_id) {
+      state.activeFolderId = memo.folder_id;
+    } else {
+      state.activeFolderId = 'uncategorized';
+    }
+    state.activeTagId = null; // タグフィルタは解除
+    renderFolders();
+    if (typeof renderTags === 'function') renderTags();
+  }
+
   // UI更新
   document.querySelectorAll('.memo-item').forEach(el => el.classList.remove('active'));
   renderList();
@@ -97,15 +142,10 @@ function selectMemo(id) {
   el.memoTitle.value = memo.title;
   el.memoContent.value = memo.content;
   
-  // 編集可能にする
-  el.memoTitle.disabled = false;
-  el.memoContent.disabled = false;
-  
   // 編集エリア初期表示
   el.memoTitle.style.display = 'block';
   el.memoContent.style.display = 'block';
   el.previewBtn.style.display = 'flex';
-  el.deleteBtn.style.display = 'flex';
   
   // フォルダセレクトの復元
   updateFolderSelectOptions();
@@ -118,17 +158,60 @@ function selectMemo(id) {
   
   el.linkCopyBtn.style.display = 'flex';
 
+  // 権限の適用
+  applyMemoPermissions(memo);
+ 
   if (state.isPreviewActive) {
     compileMarkdown();
   } else {
     el.markdownPreview.classList.remove('active');
     el.memoContent.style.display = 'block';
   }
-
+ 
   updateActiveDbBadge(id);
-
+ 
   // 評価パネルロード
   loadRatingsForMemo(id);
+}
+
+function applyMemoPermissions(memo) {
+  // 既存の閲覧専用バナーを削除
+  const existingBanner = document.querySelector('.readonly-banner');
+  if (existingBanner) existingBanner.remove();
+
+  if (memo.permission === 'read') {
+    // 閲覧のみ権限
+    el.memoTitle.disabled = true;
+    el.memoContent.disabled = true;
+    el.memoFolderSelect.disabled = true;
+    el.memoTagInput.disabled = true;
+    el.memoTagInput.placeholder = "閲覧のみのためタグを追加できません";
+    el.deleteBtn.style.display = 'none';
+    el.shareBtn.style.display = 'none';
+    el.addAxisBtn.style.display = 'none';
+    
+    // タグ削除ボタンを非表示
+    document.querySelectorAll('.tag-chip-remove').forEach(btn => btn.style.display = 'none');
+
+    // 閲覧専用の警告バナーを表示
+    const banner = document.createElement('div');
+    banner.className = 'readonly-banner';
+    banner.innerHTML = `<i data-lucide="lock" style="width:14px; height:14px;"></i><span>このメモは閲覧専用です。内容の編集や共有の変更はできません。</span>`;
+    el.memoTitle.parentNode.insertBefore(banner, el.memoTitle);
+    lucide.createIcons();
+  } else {
+    // 所有者または編集可能権限
+    el.memoTitle.disabled = false;
+    el.memoContent.disabled = false;
+    el.memoFolderSelect.disabled = false;
+    el.memoTagInput.disabled = false;
+    el.memoTagInput.placeholder = "+ タグを追加...";
+    el.deleteBtn.style.display = memo.permission === 'owner' ? 'flex' : 'none'; // 削除は所有者のみ
+    el.shareBtn.style.display = memo.permission === 'owner' ? 'flex' : 'none'; // 共有は所有者のみ
+    el.addAxisBtn.style.display = 'flex';
+    
+    document.querySelectorAll('.tag-chip-remove').forEach(btn => btn.style.display = 'flex');
+  }
 }
 
 function closeWorkspace() {
@@ -142,10 +225,14 @@ function closeWorkspace() {
   el.memoContent.disabled = true;
   el.previewBtn.style.display = 'none';
   el.deleteBtn.style.display = 'none';
+  el.shareBtn.style.display = 'none';
   el.memoFolderContainer.style.display = 'none';
   el.memoTagContainer.style.display = 'none';
   el.memoTagList.innerHTML = '';
   el.linkCopyBtn.style.display = 'none';
+  
+  const existingBanner = document.querySelector('.readonly-banner');
+  if (existingBanner) existingBanner.remove();
   
   // 評価パネル非表示
   el.ratingPanel.style.display = 'none';
@@ -193,6 +280,8 @@ function createMemo() {
 
 function triggerAutosave() {
   if (!state.activeMemoId) return;
+  const active = state.memos.find(m => m.id === state.activeMemoId);
+  if (!active || active.permission === 'read') return;
   
   setSaveMessage('saving', '自動保存中...');
 
@@ -788,11 +877,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   // リスナー登録
   setupEvents();
 
-  // ユーザーID取得（評価システム用）
-  fetchCurrentUser();
-
-  // 初回接続確認と同期開始
-  await checkStatus();
+  // 認証の確認と初期データの読み込み
+  if (typeof initAuth === 'function') {
+    await initAuth();
+    if (state.currentUser) {
+      state.currentUserId = state.currentUser.id;
+    }
+  } else {
+    // フォールバック
+    fetchCurrentUser();
+    await checkStatus();
+  }
 
   let checkStatusTimer = null;
 

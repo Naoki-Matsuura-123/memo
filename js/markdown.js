@@ -85,69 +85,155 @@ function togglePreview() {
 
 function compileMarkdown() {
   const raw = el.memoContent.value || '';
-  let html = escape(raw);
+  
+  if (typeof marked === 'undefined') {
+    el.markdownPreview.innerHTML = `<p>${escape(raw).replace(/\n/g, '<br>')}</p>`;
+    return;
+  }
+  
+  // marked.parse を使用してマークダウンを HTML に完璧に変換 (表、チェックボックス、コードブロック、各種リスト等に対応)
+  let html = marked.parse(raw);
+  el.markdownPreview.innerHTML = html;
 
-  // YouTube動画のパース
-  // 1. [説明](YouTubeURL) の形式を置換
-  html = html.replace(/\[([^\]]+)\]\(((?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/[^)]+)\)/g, (match, text, url) => {
-    const decodedUrl = url.replace(/&amp;/g, '&');
-    const m = decodedUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
-    if (m) {
-      const videoId = m[1];
-      return `<div class="youtube-embed-container" style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; margin: 1rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
-                <iframe src="https://www.youtube.com/embed/${videoId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>
-              </div>`;
+  // 後処理: YouTube動画埋め込み ＆ memo://ジャンプリンク・バッジ付与
+  const anchors = el.markdownPreview.querySelectorAll('a');
+  anchors.forEach(a => {
+    const url = a.getAttribute('href');
+    if (!url) return;
+    
+    // YouTube動画の埋め込み処理
+    const ymMappings = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+    if (ymMappings) {
+      const videoId = ymMappings[1];
+      const iframeContainer = document.createElement('div');
+      iframeContainer.className = 'youtube-embed-container';
+      iframeContainer.style.cssText = "position: relative; width: 100%; height: 0; padding-bottom: 56.25%; margin: 1rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15);";
+      iframeContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>`;
+      
+      const parent = a.parentElement;
+      if (parent && parent.tagName === 'P' && parent.childNodes.length === 1) {
+        parent.replaceWith(iframeContainer);
+      } else {
+        a.replaceWith(iframeContainer);
+      }
+      return;
     }
-    return match;
-  });
 
-  // 2. 単独直貼りYouTubeURLの置換 (単独行または前後にスペースがある場合)
-  html = html.replace(/(?:^|\s)(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})(?:[^\s<]*))/g, (match, url, videoId) => {
-    return `<div class="youtube-embed-container" style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; margin: 1rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
-              <iframe src="https://www.youtube.com/embed/${videoId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>
-            </div>`;
-  });
-
-  // 画像のパース ![説明](URL) or ![説明|サイズ](URL)
-  html = html.replace(/!\[([^\]|]+)(?:\|([^\]]+))?\]\(([^)]+)\)/g, (match, alt, width, url) => {
-    const decodedUrl = url.replace(/&amp;/g, '&');
-    let style = "max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0.75rem 0; display: block;";
-    if (width) {
-      // 数字のみの場合は px を補完、% 等はそのまま適用
-      const w = /^\d+$/.test(width.trim()) ? `${width.trim()}px` : width.trim();
-      style += ` width: ${w};`;
+    // memo:// ジャンプリンクとインラインバッジ処理
+    if (url.startsWith('memo://')) {
+      const memoId = url.replace('memo://', '');
+      const mId = /^\d+$/.test(memoId) ? parseInt(memoId, 10) : memoId;
+      
+      a.className = 'memo-link';
+      a.setAttribute('data-memo-id', memoId);
+      a.style.cssText = "color: var(--accent); text-decoration: underline; font-weight: 500; display:inline-block; vertical-align:middle;";
+      a.removeAttribute('target');
+      
+      const targetMemo = state.memos.find(m => m.id === mId);
+      if (targetMemo) {
+        let badgeHtml = '';
+        if (targetMemo.tags && targetMemo.tags.length > 0) {
+          targetMemo.tags.forEach(t => {
+            badgeHtml += `<span class="inline-tag-badge" style="font-size:0.65rem; background:rgba(128,128,128,0.15); color:var(--text-sub); padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.25rem; display:inline-flex; align-items:center; vertical-align:middle; font-weight:500;"><i data-lucide="tag" style="width:10px; height:10px; margin-right:2px; display:inline-block; vertical-align:middle;"></i>${escape(t.name)}</span>`;
+          });
+        }
+        if (targetMemo.average_rating !== undefined && targetMemo.average_rating !== null) {
+          const starVal = (targetMemo.average_rating / 20.0).toFixed(1);
+          badgeHtml += `<span class="inline-rating-badge" style="font-size:0.65rem; background:rgba(245,158,11,0.15); color:var(--warning); padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.25rem; display:inline-flex; align-items:center; vertical-align:middle; font-weight:600;"><i data-lucide="star" style="width:10px; height:10px; margin-right:2px; display:inline-block; vertical-align:middle; fill:var(--warning);"></i>${starVal}</span>`;
+        }
+        if (badgeHtml) {
+          a.insertAdjacentHTML('afterend', badgeHtml);
+        }
+      }
+      return;
     }
-    return `<img src="${decodedUrl}" alt="${alt}" style="${style}">`;
+
+    // 外部リンクは別窓で開く
+    a.setAttribute('target', '_blank');
+    a.setAttribute('rel', 'noopener noreferrer');
+    a.style.cssText = "color: var(--accent); text-decoration: underline;";
   });
 
-  // リンクのパース [Text](URL) or [Text](memo://id)
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
-    const decodedUrl = url.replace(/&amp;/g, '&');
-    if (decodedUrl.startsWith('memo://')) {
-      const memoId = decodedUrl.replace('memo://', '');
-      return `<a href="${decodedUrl}" data-memo-id="${memoId}" class="memo-link" style="color: var(--accent); text-decoration: underline; font-weight: 500;">${text}</a>`;
+  // 後処理: 画像のサイズ指定 ![alt|width](url)
+  const images = el.markdownPreview.querySelectorAll('img');
+  images.forEach(img => {
+    const alt = img.getAttribute('alt') || '';
+    img.style.cssText = "max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0.75rem 0; display: block;";
+    
+    if (alt.includes('|')) {
+      const parts = alt.split('|');
+      const realAlt = parts[0].trim();
+      const width = parts[1].trim();
+      
+      img.setAttribute('alt', realAlt);
+      const w = /^\d+$/.test(width) ? `${width}px` : width;
+      img.style.width = w;
     }
-    return `<a href="${decodedUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">${text}</a>`;
   });
 
-  html = html.replace(/```([\s\S]*?)```/gm, (m, c) => `<pre><code>${c.trim()}</code></pre>`);
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-  html = html.replace(/^\&gt\; (.*$)/gim, '<blockquote>$1</blockquote>');
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  html = html.replace(/^\s*\-\s+(.*$)/gim, '<li>$1</li>');
-  html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
-  html = html.replace(/<\/ul>\s*<ul>/g, '');
-
-  const blocks = html.split(/\n{2,}/g).map(b => {
-    if (b.trim().startsWith('<h') || b.trim().startsWith('<pre') || b.trim().startsWith('<ul') || b.trim().startsWith('<blockquote')) {
-      return b;
+  // 後処理: コードブロックへのヘッダーとコピーボタンの追加 (カード風表示)
+  const preBlocks = el.markdownPreview.querySelectorAll('pre');
+  preBlocks.forEach(pre => {
+    // すでにヘッダーを追加している場合は重複処理をスキップ
+    if (pre.querySelector('.code-block-header')) return;
+    
+    // コード要素を取得
+    const codeEl = pre.querySelector('code');
+    if (!codeEl) return;
+    const rawCode = codeEl.innerText;
+    
+    // コードブロックの言語クラスを取得
+    let lang = 'code';
+    const classes = Array.from(codeEl.classList);
+    const langClass = classes.find(c => c.startsWith('language-'));
+    if (langClass) {
+      lang = langClass.replace('language-', '');
     }
-    return `<p>${b.replace(/\n/g, '<br>')}</p>`;
+    
+    // ヘッダーバーの作成
+    const header = document.createElement('div');
+    header.className = 'code-block-header';
+    header.innerHTML = `
+      <span class="code-block-lang">${lang}</span>
+      <button class="code-block-copy-btn" title="コードをコピー">
+        <i data-lucide="copy" style="width:12px; height:12px;"></i>
+        <span>コピー</span>
+      </button>
+    `;
+    
+    // コピーボタンのイベントリスナー
+    const copyBtn = header.querySelector('.code-block-copy-btn');
+    copyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(rawCode).then(() => {
+        const span = copyBtn.querySelector('span');
+        const icon = copyBtn.querySelector('i');
+        span.textContent = 'コピー完了';
+        copyBtn.classList.add('copied');
+        
+        // アイコンを一時的にチェックマークに切り替え
+        if (icon) {
+          icon.setAttribute('data-lucide', 'check');
+          lucide.createIcons();
+        }
+        
+        setTimeout(() => {
+          span.textContent = 'コピー';
+          copyBtn.classList.remove('copied');
+          if (icon) {
+            icon.setAttribute('data-lucide', 'copy');
+            lucide.createIcons();
+          }
+        }, 2000);
+        showToast('コードをクリップボードにコピーしました！', 'copy');
+      }).catch(() => {
+        showToast('コピーに失敗しました', 'shield-alert');
+      });
+    });
+    
+    pre.appendChild(header);
   });
 
-  el.markdownPreview.innerHTML = blocks.join('');
+  // アイコン描画
+  lucide.createIcons();
 }

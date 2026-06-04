@@ -1,1 +1,1 @@
-from . import folders, memos, users, ratings
+from . import folders, memos, users, ratings, tags

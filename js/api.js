@@ -1,3 +1,31 @@
+// --- Fetch Interceptor for JWT Auth ---
+(function() {
+  const originalFetch = window.fetch;
+  window.fetch = async function(url, options = {}) {
+    if (typeof url === 'string' && url.startsWith(API_URL)) {
+      options.headers = options.headers || {};
+      const token = localStorage.getItem('token');
+      if (token && !url.includes('/auth/login') && !url.includes('/auth/register')) {
+        options.headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    
+    try {
+      const response = await originalFetch(url, options);
+      if (response.status === 401 && typeof url === 'string' && url.startsWith(API_URL)) {
+        if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+          if (typeof handleAuthRequired === 'function') {
+            handleAuthRequired();
+          }
+        }
+      }
+      return response;
+    } catch (e) {
+      throw e;
+    }
+  };
+})();
+
 function showToast(message, iconName = 'database') {
   const toast = document.createElement('div');
   toast.className = 'toast';
