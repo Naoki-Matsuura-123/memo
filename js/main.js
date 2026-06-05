@@ -77,6 +77,7 @@ function renderList() {
   filtered.forEach(memo => {
     const item = document.createElement('div');
     item.className = `memo-item ${memo.id === state.activeMemoId ? 'active' : ''}`;
+    item.setAttribute('data-memo-id', memo.id);
     
     // サマリーテキスト抽出
     const plainText = memo.content.replace(/[#*`\[\]()]/g, '');
@@ -1086,7 +1087,13 @@ window.addEventListener('DOMContentLoaded', async () => {
   // テーマ復元
   const savedTheme = localStorage.getItem('app-theme') || 'theme-light';
   applyTheme(savedTheme);
-  el.themeSelect.value = savedTheme;
+  if (el.themeSelect) {
+    el.themeSelect.value = savedTheme;
+  }
+  const leftThemeSelect = document.getElementById('left-themeSelect');
+  if (leftThemeSelect) leftThemeSelect.value = savedTheme;
+  const rightThemeSelect = document.getElementById('right-themeSelect');
+  if (rightThemeSelect) rightThemeSelect.value = savedTheme;
 
   // エディタ最大幅の復元
   const savedWidth = localStorage.getItem('naomemo_editor_max_width') || '800';
