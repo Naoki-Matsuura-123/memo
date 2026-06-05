@@ -221,29 +221,31 @@ function addQueue(type, id, title = '', content = '', folderId = null, tags = []
 
 // --- UI更新 ---
 function updateStatusUI(status) {
-  el.statusDot.className = 'status-dot';
+  if (el.statusDot) el.statusDot.className = 'status-dot';
   const savedUrl = localStorage.getItem('naomemo_api_url');
-  el.statusUrl.textContent = savedUrl ? savedUrl : 'クラウド同期 (デフォルト)';
+  if (el.statusUrl) el.statusUrl.textContent = savedUrl ? savedUrl : 'クラウド同期 (デフォルト)';
   
   if (status === 'online') {
-    el.statusDot.classList.add('online');
-    el.statusText.textContent = '同期完了 (SQLite)';
+    if (el.statusDot) el.statusDot.classList.add('online');
+    if (el.statusText) el.statusText.textContent = '同期完了 (SQLite)';
     setSaveMessage('saved', 'SQLiteに保存済み', 'left');
     setSaveMessage('saved', 'SQLiteに保存済み', 'right');
-    el.ngrokWarningBanner.style.display = 'none';
+    if (el.ngrokWarningBanner) el.ngrokWarningBanner.style.display = 'none';
   } else if (status === 'offline') {
-    el.statusDot.classList.add('offline');
-    el.statusText.textContent = 'オフライン（ローカル保存中）';
+    if (el.statusDot) el.statusDot.classList.add('offline');
+    if (el.statusText) el.statusText.textContent = 'オフライン（ローカル保存中）';
     setSaveMessage('saved', 'ローカルに一時保存済み', 'left');
     setSaveMessage('saved', 'ローカルに一時保存済み', 'right');
-    if (API_URL.includes('ngrok-free.dev')) {
-      el.ngrokWarningBanner.style.display = 'flex';
-    } else {
-      el.ngrokWarningBanner.style.display = 'none';
+    if (el.ngrokWarningBanner) {
+      if (API_URL.includes('ngrok-free.dev')) {
+        el.ngrokWarningBanner.style.display = 'flex';
+      } else {
+        el.ngrokWarningBanner.style.display = 'none';
+      }
     }
   } else if (status === 'syncing') {
-    el.statusDot.classList.add('syncing');
-    el.statusText.textContent = '同期処理中...';
+    if (el.statusDot) el.statusDot.classList.add('syncing');
+    if (el.statusText) el.statusText.textContent = '同期処理中...';
     setSaveMessage('saving', 'SQLiteに保存中...', 'left');
     setSaveMessage('saving', 'SQLiteに保存中...', 'right');
   }
