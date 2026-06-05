@@ -14,14 +14,25 @@ let state = {
   searchQuery: '',
   sortBy: 'updated', // 'updated' | 'created' | 'title'
   isOnline: true,
-  isPreviewActive: false,
+  isPreviewActive: true, // デフォルトでビューモードにする
+  isEditModeExplicit: false, // 明示的編集トグルのフラグ
   syncQueue: [],
   syncing: false,
+  
+  // スプリットペイン用の状態
+  activePaneId: 'left', // 現在アクティブなペイン ('left' | 'right')
+  isSplitView: false, // 画面分割が有効か
+  panes: {
+    left: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false },
+    right: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false }
+  },
+
   // 評価システム
   currentAxes: [],      // 現在メモの評価軸一覧
   currentRatings: [],   // 現在メモの評価データ
   currentSummary: [],   // 現在メモの集計データ
-  currentUserId: null   // 現在のユーザーID (anonymous)
+  currentUserId: null,  // 現在のユーザーID (anonymous)
+  scratchpadPreviewActive: true // 一時メモが現在ビューモードかどうかのフラグ
 };
 
 // フォルダ操作用グローバル変数
@@ -52,6 +63,8 @@ const el = {
   settingsBtn: document.getElementById('settingsBtn'),
   settingsModal: document.getElementById('settingsModal'),
   apiUrlInput: document.getElementById('apiUrlInput'),
+  editorWidthSlider: document.getElementById('editorWidthSlider'),
+  editorWidthVal: document.getElementById('editorWidthVal'),
   cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
   saveSettingsBtn: document.getElementById('saveSettingsBtn'),
   toastContainer: document.getElementById('toastContainer'),
@@ -124,6 +137,7 @@ const el = {
   scratchpadWidget: document.getElementById('scratchpadWidget'),
   scratchpadHeader: document.getElementById('scratchpadHeader'),
   scratchpadContent: document.getElementById('scratchpadContent'),
+  scratchpadPreview: document.getElementById('scratchpadPreview'),
   scratchpadMinimizeBtn: document.getElementById('scratchpadMinimizeBtn'),
   scratchpadCloseBtn: document.getElementById('scratchpadCloseBtn'),
   scratchpadRestoreBtn: document.getElementById('scratchpadRestoreBtn'),
@@ -140,6 +154,7 @@ const el = {
   loginUsername: document.getElementById('loginUsername'),
   loginPassword: document.getElementById('loginPassword'),
   loginSubmitBtn: document.getElementById('loginSubmitBtn'),
+  guestLoginBtn: document.getElementById('guestLoginBtn'),
   toRegisterLink: document.getElementById('toRegisterLink'),
   registerUsername: document.getElementById('registerUsername'),
   registerDisplayName: document.getElementById('registerDisplayName'),
@@ -159,5 +174,45 @@ const el = {
   sharePermissionSelect: document.getElementById('sharePermissionSelect'),
   addShareBtn: document.getElementById('addShareBtn'),
   shareList: document.getElementById('shareList'),
-  closeShareBtn: document.getElementById('closeShareBtn')
+  closeShareBtn: document.getElementById('closeShareBtn'),
+  
+  // スプリットビュー
+  splitViewBtn: document.getElementById('splitViewBtn'),
+  splitViewBtnText: document.getElementById('splitViewBtnText'),
+  panesContainer: document.getElementById('panesContainer')
 };
+
+// ペイン固有のDOM要素へのアクセスヘルパー
+function getPaneEl(paneId) {
+  return {
+    saveIndicator: document.getElementById(`${paneId}-saveIndicator`),
+    saveIconContainer: document.getElementById(`${paneId}-saveIconContainer`),
+    activeDbBadge: document.getElementById(`${paneId}-activeDbBadge`),
+    themeSelect: document.getElementById(`${paneId}-themeSelect`),
+    linkCopyBtn: document.getElementById(`${paneId}-linkCopyBtn`),
+    voiceBtn: document.getElementById(`${paneId}-voiceBtn`),
+    shareBtn: document.getElementById(`${paneId}-shareBtn`),
+    previewBtn: document.getElementById(`${paneId}-previewBtn`),
+    deleteBtn: document.getElementById(`${paneId}-deleteBtn`),
+    memoFolderContainer: document.getElementById(`${paneId}-memoFolderContainer`),
+    memoFolderSelect: document.getElementById(`${paneId}-memoFolderSelect`),
+    memoTagContainer: document.getElementById(`${paneId}-memoTagContainer`),
+    memoTagList: document.getElementById(`${paneId}-memoTagList`),
+    memoTagInput: document.getElementById(`${paneId}-memoTagInput`),
+    imagePasteConfig: document.getElementById(`${paneId}-imagePasteConfig`),
+    imageQualitySelect: document.getElementById(`${paneId}-imageQualitySelect`),
+    ratingPanel: document.getElementById(`${paneId}-ratingPanel`),
+    addAxisBtn: document.getElementById(`${paneId}-addAxisBtn`),
+    toggleGridBtn: document.getElementById(`${paneId}-toggleGridBtn`),
+    ratingAxesList: document.getElementById(`${paneId}-ratingAxesList`),
+    ratingSummaryRow: document.getElementById(`${paneId}-ratingSummaryRow`),
+    memoTitle: document.getElementById(`${paneId}-memoTitle`),
+    memoContent: document.getElementById(`${paneId}-memoContent`),
+    markdownPreview: document.getElementById(`${paneId}-markdownPreview`),
+    emptyState: document.getElementById(`${paneId}-emptyState`),
+    tabsSidebar: document.getElementById(`${paneId}-tabsSidebar`),
+    tabsList: document.getElementById(`${paneId}-tabsList`),
+    toggleTabsBtn: document.getElementById(`${paneId}-toggleTabsBtn`),
+    openTabsBtn: document.getElementById(`${paneId}-openTabsBtn`),
+    container: document.getElementById(`pane-${paneId}`)
+}

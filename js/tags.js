@@ -1,27 +1,30 @@
-// --- タグ機能モジュール ---
-
 // エディタ内のタグチップを描画する
-function renderMemoTags(memo) {
-  el.memoTagList.innerHTML = '';
+function renderMemoTags(memo, paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
+  if (!pel.memoTagList) return;
+  
+  pel.memoTagList.innerHTML = '';
   const tags = memo.tags || [];
   tags.forEach(tag => {
     const chip = document.createElement('div');
     chip.className = 'tag-chip';
     chip.innerHTML = `
       <span>${escape(tag.name)}</span>
-      <button class="tag-chip-remove" onclick="removeMemoTag('${escape(tag.name)}')">
+      <button class="tag-chip-remove" onclick="removeMemoTag('${escape(tag.name)}', '${paneId}')">
         <i data-lucide="x" style="width:10px; height:10px;"></i>
       </button>
     `;
-    el.memoTagList.appendChild(chip);
+    pel.memoTagList.appendChild(chip);
   });
   lucide.createIcons();
 }
 
 // 現在選択されているメモにタグを追加する
-function addMemoTag(tagName) {
-  if (!state.activeMemoId) return;
-  const memo = state.memos.find(m => m.id === state.activeMemoId);
+function addMemoTag(tagName, paneId = state.activePaneId) {
+  const paneState = state.panes[paneId];
+  const activeMemoId = paneState.activeMemoId;
+  if (!activeMemoId) return;
+  const memo = state.memos.find(m => m.id === activeMemoId);
   if (!memo) return;
   
   if (!memo.tags) memo.tags = [];
@@ -36,10 +39,10 @@ function addMemoTag(tagName) {
   
   // メモリ上の状態を更新
   memo.tags.push({ id: -Date.now(), name: name });
-  renderMemoTags(memo);
+  renderMemoTags(memo, paneId);
   
   // 自動保存を発火
-  triggerAutosave();
+  triggerAutosave(paneId);
   
   // オンラインならタグ一覧をサーバーから再取得
   if (state.isOnline) {
@@ -48,17 +51,19 @@ function addMemoTag(tagName) {
 }
 
 // 現在選択されているメモからタグを削除する
-window.removeMemoTag = (tagName) => {
-  if (!state.activeMemoId) return;
-  const memo = state.memos.find(m => m.id === state.activeMemoId);
+window.removeMemoTag = (tagName, paneId = state.activePaneId) => {
+  const paneState = state.panes[paneId];
+  const activeMemoId = paneState.activeMemoId;
+  if (!activeMemoId) return;
+  const memo = state.memos.find(m => m.id === activeMemoId);
   if (!memo) return;
   
   if (!memo.tags) return;
   memo.tags = memo.tags.filter(t => t.name !== tagName);
-  renderMemoTags(memo);
+  renderMemoTags(memo, paneId);
   
   // 自動保存を発火
-  triggerAutosave();
+  triggerAutosave(paneId);
   
   // オンラインならタグ一覧をサーバーから再取得
   if (state.isOnline) {

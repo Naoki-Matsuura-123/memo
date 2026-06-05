@@ -111,129 +111,260 @@
 
     <!-- エディタ領域 -->
     <main class="editor-area">
-      <!-- ヘッダー -->
-      <div class="editor-header">
-        <div class="save-indicator-group">
-          <div class="save-indicator" id="saveIndicator">
-            <span id="saveIconContainer"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
-            <span>保存済み</span>
-          </div>
-          <!-- データベースID表示バッジ -->
-          <div class="active-db-badge" id="activeDbBadge">
-            SQLite ID: -
-          </div>
-        </div>
-        
-        <div class="editor-controls">
-          <!-- テーマ選択 -->
-          <select class="theme-select" id="themeSelect">
-            <option value="theme-dark">🌌 モダンダーク</option>
-            <option value="theme-light">☀️ クリーンライト</option>
-            <option value="theme-sepia">☕ セピアブラウン</option>
-            <option value="theme-nord">❄️ ノルディック</option>
-          </select>
-
-          <button class="btn-secondary" id="linkCopyBtn" title="メモリンクをコピー" style="display: none;">
-            <i data-lucide="link" style="width:14px; height:14px;"></i>リンクをコピー
-          </button>
-          <button class="btn-secondary" id="helpBtn" title="操作ヘルプと記法ガイド">
-            <i data-lucide="help-circle" style="width:14px; height:14px;"></i>ヘルプ
-          </button>
-          <button class="btn-secondary" id="voiceBtn" title="音声入力">
-            <i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力
-          </button>
-          <button class="btn-secondary" id="shareBtn" title="メモの共有設定" style="display: none;">
-            <i data-lucide="share-2" style="width:14px; height:14px;"></i>共有
-          </button>
-          <button class="btn-secondary" id="previewBtn">
-            <i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー
-          </button>
-          <button class="btn-secondary" id="deleteBtn" style="color:var(--danger); border-color:rgba(239, 68, 68, 0.2);">
-            <i data-lucide="trash-2" style="width:14px; height:14px;"></i>削除
-          </button>
-        </div>
-      </div>
-
-      <!-- ngrokの認証/警告スキップ許可を促すバナー -->
-      <div id="ngrokWarningBanner" style="display:none; background:rgba(245,158,11,0.1); border-bottom:1px solid rgba(245,158,11,0.25); color:var(--warning); padding:0.85rem 1.5rem; font-size:0.85rem; align-items:center; justify-content:space-between; gap:1rem;">
-        <div style="display:flex; align-items:center; gap:0.5rem;">
-          <i data-lucide="shield-alert" style="width:16px; height:16px; flex-shrink:0;"></i>
-          <span><strong>ngrok接続の初期許可が必要です：</strong> 自宅PCのデータベースと安全に通信するため、一度だけアクセス許可を有効にしてください。</span>
-        </div>
-        <button class="btn-primary" id="ngrokBypassBtn" style="width:auto; padding:0.35rem 0.75rem; font-size:0.75rem; background-color:var(--warning); color:#000; border:none; border-radius:4px; font-weight:600; cursor:pointer;">
-          アクセス許可を有効にする
+      <!-- グローバルヘッダー（画面分割コントロールなど） -->
+      <div class="editor-global-header" style="display:flex; justify-content:flex-end; padding:0.5rem 1rem; border-bottom:1px solid var(--panel-border); background:var(--sidebar-bg); gap:0.5rem; align-items:center; height:40px; box-sizing:border-box;">
+        <button class="btn-secondary" id="splitViewBtn" style="padding:0.25rem 0.6rem; font-size:0.75rem; height:28px; display:flex; align-items:center; gap:0.3rem;">
+          <i data-lucide="columns" style="width:14px; height:14px;"></i>
+          <span id="splitViewBtnText">画面分割 (左右)</span>
         </button>
       </div>
 
-      <!-- 入力 / プレビュー表示 -->
-      <div class="editor-viewport">
-        <!-- フォルダ移動セレクター -->
-        <div id="memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
-          <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
-          <span>所属フォルダ:</span>
-          <select id="memoFolderSelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
-            <option value="">(分類なし / ルート)</option>
-          </select>
-        </div>
-
-        <!-- タグ入力・表示エリア -->
-        <div id="memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
-          <div style="display:flex; align-items:center; gap:0.4rem;">
-            <i data-lucide="tag" style="width:14px; height:14px; color:var(--accent);"></i>
-            <span>タグ:</span>
-          </div>
-          <div id="memoTagList" style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;">
-            <!-- ここに動的にタグチップが入ります -->
-          </div>
-          <input type="text" id="memoTagInput" placeholder="+ タグを追加..." style="background:transparent; border:none; outline:none; color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; font-family:inherit; min-width:80px; border-bottom:1px dashed var(--panel-border);">
-        </div>
-
-        <!-- 画像貼り付け設定セレクター -->
-        <div id="imagePasteConfig" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
-          <i data-lucide="image" style="width:14px; height:14px; color:var(--accent);"></i>
-          <span>画像貼り付け画質:</span>
-          <select id="imageQualitySelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
-            <option value="standard">軽量標準 (最大1000px / JPEG高圧縮)</option>
-            <option value="high">高画質 (最大2000px / JPEG中圧縮)</option>
-            <option value="original">オリジナル画質 (無圧縮・PNG等)</option>
-          </select>
-        </div>
-
-        <!-- 評価パネル -->
-        <div class="rating-panel" id="ratingPanel">
-          <div class="rating-panel-header">
-            <div class="rating-panel-title">
-              <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
-              <span>評価</span>
-            </div>
-            <div class="rating-panel-actions">
-              <button class="btn-icon" id="addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
-                <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
-              </button>
-              <button class="btn-icon" id="toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
-                <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
+      <!-- ペインコンテナ -->
+      <div class="panes-container" id="panesContainer">
+        
+        <!-- 左ペイン -->
+        <div class="editor-pane active" id="pane-left">
+          <!-- 縦タブサイドバー -->
+          <div class="pane-tabs-sidebar" id="left-tabsSidebar">
+            <div class="pane-tabs-header">
+              <span><i data-lucide="layers" style="width:12px; height:12px; margin-right:4px; color:var(--accent); vertical-align:middle;"></i>開いているメモ</span>
+              <button class="btn-toggle-tabs" id="left-toggleTabsBtn" title="タブリストを折りたたむ">
+                <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
               </button>
             </div>
+            <div class="pane-tabs-list" id="left-tabsList">
+              <!-- 動的にタブが注入される -->
+            </div>
           </div>
-          <div id="ratingAxesList">
-            <!-- 動的に評価軸カードが生成されます -->
-          </div>
-          <div class="rating-summary-row" id="ratingSummaryRow" style="display:none;">
-            <!-- 動的に集計バッジが生成されます -->
+
+          <!-- エディタ本体 -->
+          <div class="pane-editor-body">
+            <!-- ヘッダー -->
+            <div class="editor-header">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <button class="btn-icon btn-open-tabs" id="left-openTabsBtn" title="開いているメモ一覧を表示" style="display:none; padding:4px; border-radius:4px;">
+                  <i data-lucide="chevron-right" style="width:16px; height:16px;"></i>
+                </button>
+                <div class="save-indicator-group">
+                  <div class="save-indicator" id="left-saveIndicator">
+                    <span id="left-saveIconContainer"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
+                    <span>保存済み</span>
+                  </div>
+                  <div class="active-db-badge" id="left-activeDbBadge">
+                    SQLite ID: -
+                  </div>
+                </div>
+              </div>
+              
+              <div class="editor-controls">
+                <select class="theme-select" id="left-themeSelect">
+                  <option value="theme-dark">🌌 モダンダーク</option>
+                  <option value="theme-light">☀️ クリーンライト</option>
+                  <option value="theme-sepia">☕ セピアブラウン</option>
+                  <option value="theme-nord">❄️ ノルディック</option>
+                </select>
+
+                <button class="btn-secondary" id="left-linkCopyBtn" title="メモリンクをコピー" style="display: none;">
+                  <i data-lucide="link" style="width:14px; height:14px;"></i>リンクをコピー
+                </button>
+                <button class="btn-secondary" id="helpBtn" title="操作ヘルプと記法ガイド">
+                  <i data-lucide="help-circle" style="width:14px; height:14px;"></i>ヘルプ
+                </button>
+                <button class="btn-secondary" id="left-voiceBtn" title="音声入力">
+                  <i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力
+                </button>
+                <button class="btn-secondary" id="left-shareBtn" title="メモの共有設定" style="display: none;">
+                  <i data-lucide="share-2" style="width:14px; height:14px;"></i>共有
+                </button>
+                <button class="btn-secondary" id="left-previewBtn">
+                  <i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー
+                </button>
+                <button class="btn-secondary" id="left-deleteBtn" style="color:var(--danger); border-color:rgba(239, 68, 68, 0.2);">
+                  <i data-lucide="trash-2" style="width:14px; height:14px;"></i>削除
+                </button>
+              </div>
+            </div>
+
+            <!-- 入力 / プレビュー表示 -->
+            <div class="editor-viewport">
+              <div id="left-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
+                <span>所属フォルダ:</span>
+                <select id="left-memoFolderSelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
+                  <option value="">(分類なし / ルート)</option>
+                </select>
+              </div>
+
+              <div id="left-memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <i data-lucide="tag" style="width:14px; height:14px; color:var(--accent);"></i>
+                  <span>タグ:</span>
+                </div>
+                <div id="left-memoTagList" style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;"></div>
+                <input type="text" id="left-memoTagInput" placeholder="+ タグを追加..." style="background:transparent; border:none; outline:none; color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; font-family:inherit; min-width:80px; border-bottom:1px dashed var(--panel-border);">
+              </div>
+
+              <div id="left-imagePasteConfig" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                <i data-lucide="image" style="width:14px; height:14px; color:var(--accent);"></i>
+                <span>画像貼り付け画質:</span>
+                <select id="left-imageQualitySelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
+                  <option value="standard">軽量標準 (最大1000px / JPEG高圧縮)</option>
+                  <option value="high">高画質 (最大2000px / JPEG中圧縮)</option>
+                  <option value="original">オリジナル画質 (無圧縮・PNG等)</option>
+                </select>
+              </div>
+
+              <!-- 評価パネル -->
+              <div class="rating-panel" id="left-ratingPanel">
+                <div class="rating-panel-header">
+                  <div class="rating-panel-title">
+                    <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
+                    <span>評価</span>
+                  </div>
+                  <div class="rating-panel-actions">
+                    <button class="btn-icon" id="left-addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
+                      <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
+                    </button>
+                    <button class="btn-icon" id="left-toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
+                      <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
+                    </button>
+                  </div>
+                </div>
+                <div id="left-ratingAxesList"></div>
+                <div class="rating-summary-row" id="left-ratingSummaryRow" style="display:none;"></div>
+              </div>
+
+              <input type="text" class="title-input" id="left-memoTitle" placeholder="無題のメモ" disabled>
+              <textarea class="content-textarea" id="left-memoContent" placeholder="内容を入力してください... (マークダウン対応)" disabled></textarea>
+              <div class="preview-container" id="left-markdownPreview"></div>
+
+              <div class="editor-empty-state" id="left-emptyState">
+                <p>メモを選択するか、新しく作成してください。</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <input type="text" class="title-input" id="memoTitle" placeholder="無題のメモ" disabled>
-        
-        <textarea class="content-textarea" id="memoContent" placeholder="内容を入力してください... (マークダウン対応)" disabled></textarea>
-        
-        <!-- プレビュー -->
-        <div class="preview-container" id="markdownPreview"></div>
+        <!-- 右ペイン (初期状態は非表示) -->
+        <div class="editor-pane" id="pane-right" style="display:none;">
+          <!-- 縦タブサイドバー -->
+          <div class="pane-tabs-sidebar" id="right-tabsSidebar">
+            <div class="pane-tabs-header">
+              <span><i data-lucide="layers" style="width:12px; height:12px; margin-right:4px; color:var(--accent); vertical-align:middle;"></i>開いているメモ</span>
+              <button class="btn-toggle-tabs" id="right-toggleTabsBtn" title="タブリストを折りたたむ">
+                <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
+              </button>
+            </div>
+            <div class="pane-tabs-list" id="right-tabsList">
+              <!-- 動的にタブが注入される -->
+            </div>
+          </div>
 
-        <!-- プレースホルダー -->
-        <div class="editor-empty-state" id="emptyState">
-          <p>メモを選択するか、新しく作成してください。</p>
+          <!-- エディタ本体 -->
+          <div class="pane-editor-body">
+            <!-- ヘッダー -->
+            <div class="editor-header">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <button class="btn-icon btn-open-tabs" id="right-openTabsBtn" title="開いているメモ一覧を表示" style="display:none; padding:4px; border-radius:4px;">
+                  <i data-lucide="chevron-right" style="width:16px; height:16px;"></i>
+                </button>
+                <div class="save-indicator-group">
+                  <div class="save-indicator" id="right-saveIndicator">
+                    <span id="right-saveIconContainer"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
+                    <span>保存済み</span>
+                  </div>
+                  <div class="active-db-badge" id="right-activeDbBadge">
+                    SQLite ID: -
+                  </div>
+                </div>
+              </div>
+              
+              <div class="editor-controls">
+                <select class="theme-select" id="right-themeSelect">
+                  <option value="theme-dark">🌌 モダンダーク</option>
+                  <option value="theme-light">☀️ クリーンライト</option>
+                  <option value="theme-sepia">☕ セピアブラウン</option>
+                  <option value="theme-nord">❄️ ノルディック</option>
+                </select>
+
+                <button class="btn-secondary" id="right-linkCopyBtn" title="メモリンクをコピー" style="display: none;">
+                  <i data-lucide="link" style="width:14px; height:14px;"></i>リンクをコピー
+                </button>
+                <button class="btn-secondary" id="right-voiceBtn" title="音声入力">
+                  <i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力
+                </button>
+                <button class="btn-secondary" id="right-shareBtn" title="メモの共有設定" style="display: none;">
+                  <i data-lucide="share-2" style="width:14px; height:14px;"></i>共有
+                </button>
+                <button class="btn-secondary" id="right-previewBtn">
+                  <i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー
+                </button>
+                <button class="btn-secondary" id="right-deleteBtn" style="color:var(--danger); border-color:rgba(239, 68, 68, 0.2);">
+                  <i data-lucide="trash-2" style="width:14px; height:14px;"></i>削除
+                </button>
+              </div>
+            </div>
+
+            <!-- 入力 / プレビュー表示 -->
+            <div class="editor-viewport">
+              <div id="right-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
+                <span>所属フォルダ:</span>
+                <select id="right-memoFolderSelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
+                  <option value="">(分類なし / ルート)</option>
+                </select>
+              </div>
+
+              <div id="right-memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <i data-lucide="tag" style="width:14px; height:14px; color:var(--accent);"></i>
+                  <span>タグ:</span>
+                </div>
+                <div id="right-memoTagList" style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;"></div>
+                <input type="text" id="right-memoTagInput" placeholder="+ タグを追加..." style="background:transparent; border:none; outline:none; color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; font-family:inherit; min-width:80px; border-bottom:1px dashed var(--panel-border);">
+              </div>
+
+              <div id="right-imagePasteConfig" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                <i data-lucide="image" style="width:14px; height:14px; color:var(--accent);"></i>
+                <span>画像貼り付け画質:</span>
+                <select id="right-imageQualitySelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
+                  <option value="standard">軽量標準 (最大1000px / JPEG高圧縮)</option>
+                  <option value="high">高画質 (最大2000px / JPEG中圧縮)</option>
+                  <option value="original">オリジナル画質 (無圧縮・PNG等)</option>
+                </select>
+              </div>
+
+              <!-- 評価パネル -->
+              <div class="rating-panel" id="right-ratingPanel">
+                <div class="rating-panel-header">
+                  <div class="rating-panel-title">
+                    <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
+                    <span>評価</span>
+                  </div>
+                  <div class="rating-panel-actions">
+                    <button class="btn-icon" id="right-addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
+                      <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
+                    </button>
+                    <button class="btn-icon" id="right-toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
+                      <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
+                    </button>
+                  </div>
+                </div>
+                <div id="right-ratingAxesList"></div>
+                <div class="rating-summary-row" id="right-ratingSummaryRow" style="display:none;"></div>
+              </div>
+
+              <input type="text" class="title-input" id="right-memoTitle" placeholder="無題のメモ" disabled>
+              <textarea class="content-textarea" id="right-memoContent" placeholder="内容を入力してください... (マークダウン対応)" disabled></textarea>
+              <div class="preview-container" id="right-markdownPreview"></div>
+
+              <div class="editor-empty-state" id="right-emptyState">
+                <p>メモを選択するか、新しく作成してください。</p>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
     </main>
   </div>
@@ -490,6 +621,14 @@
             デフォルト以外のURLに接続する場合のみ入力してください。接続先を変更するとデータベースの同期先が変わります。
           </div>
         </div>
+
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label" for="editorWidthSlider">エディタ最大幅: <span id="editorWidthVal">800</span>px</label>
+          <input type="range" class="form-input" id="editorWidthSlider" min="400" max="1600" step="50" value="800" style="cursor: pointer;">
+          <div class="form-help">
+            エディタやプレビュー画面の読みやすい最大幅を調整できます（デフォルト: 800px）。
+          </div>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn-secondary" id="cancelSettingsBtn">キャンセル</button>
@@ -572,6 +711,7 @@
           <input type="password" class="form-input" id="loginPassword" placeholder="パスワードを入力..." autocomplete="current-password">
         </div>
         <button class="btn-primary" id="loginSubmitBtn" style="width: 100%; height: 40px; font-weight: 600; cursor:pointer;">サインイン</button>
+        <button class="btn-secondary" id="guestLoginBtn" style="width: 100%; height: 40px; font-weight: 600; cursor:pointer; margin-top: 0.5rem; border: 1px solid var(--panel-border);">ゲストとして利用</button>
         <div style="text-align: center; margin-top: 1rem; font-size: 0.8rem; color: var(--text-sub);">
           アカウントがありませんか？ <a href="#" id="toRegisterLink" style="color: var(--accent); text-decoration: underline;">新規登録</a>
         </div>
@@ -653,6 +793,7 @@
     </div>
     <div id="scratchpadBody" class="scratchpad-body">
       <textarea id="scratchpadContent" placeholder="一時的に保存したいテキストやリンクをここにペーストできます..."></textarea>
+      <div id="scratchpadPreview" class="scratchpad-preview" style="display:none;"></div>
     </div>
     <div class="scratchpad-footer">
       <button class="scratchpad-btn" id="scratchpadInsertLinkBtn" title="現在のメモのリンクを挿入">

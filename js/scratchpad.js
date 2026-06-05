@@ -220,6 +220,33 @@ function initScratchpad() {
       showToast('通信エラーが発生しました', 'shield-alert');
     }
   });
+
+  // Notion風トグル用リスナー
+  el.scratchpadPreview.addEventListener('dblclick', () => {
+    state.scratchpadPreviewActive = false;
+    syncScratchpadUI();
+    el.scratchpadContent.focus();
+  });
+
+  el.scratchpadContent.addEventListener('blur', () => {
+    setTimeout(() => {
+      if (document.activeElement !== el.scratchpadContent) {
+        state.scratchpadPreviewActive = true;
+        syncScratchpadUI();
+      }
+    }, 200);
+  });
+
+  el.scratchpadContent.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      el.scratchpadContent.blur();
+      state.scratchpadPreviewActive = true;
+      syncScratchpadUI();
+    }
+  });
+
+  // 初期UI状態の適用
+  syncScratchpadUI();
 }
 
 function toggleScratchpadMinimize(minimize) {
@@ -263,4 +290,55 @@ function insertTextAtCursor(textarea, text) {
   textarea.value = beforeText + insert + afterText;
   textarea.selectionStart = textarea.selectionEnd = start + insert.length;
   textarea.focus();
+}
+
+function syncScratchpadUI() {
+  if (!el.scratchpadPreview) return;
+  if (state.scratchpadPreviewActive) {
+    el.scratchpadContent.style.display = 'none';
+    el.scratchpadPreview.style.display = 'block';
+    
+    // マークダウンコンパイル
+    const raw = el.scratchpadContent.value || '';
+    if (typeof marked === 'undefined') {
+      el.scratchpadPreview.innerHTML = `<p>${escape(raw).replace(/\n/g, '<br>')}</p>`;
+    } else {
+      el.scratchpadPreview.innerHTML = marked.parse(raw);
+    }
+    
+    // リンク処理
+    const anchors = el.scratchpadPreview.querySelectorAll('a');
+    anchors.forEach(a => {
+      const url = a.getAttribute('href');
+      if (!url) return;
+      
+      if (url.startsWith('memo://')) {
+        const memoId = url.replace('memo://', '');
+        const mId = /^\d+$/.test(memoId) ? parseInt(memoId, 10) : memoId;
+        
+        a.className = 'memo-link';
+        a.setAttribute('data-memo-id', memoId);
+        a.style.cssText = "color: var(--accent); text-decoration: underline; font-weight: 500; cursor: pointer;";
+        a.removeAttribute('target');
+        
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const exists = state.memos.some(m => m.id === mId);
+          if (exists) {
+            selectMemo(mId, state.activePaneId);
+            showToast(`メモへジャンプしました！`, 'link');
+          } else {
+            showToast("リンク先のメモが見つかりません", 'shield-alert');
+          }
+        });
+      } else {
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+        a.style.cssText = "color: var(--accent); text-decoration: underline;";
+      }
+    });
+  } else {
+    el.scratchpadContent.style.display = 'block';
+    el.scratchpadPreview.style.display = 'none';
+  }
 }

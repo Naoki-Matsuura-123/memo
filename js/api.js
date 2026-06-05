@@ -94,19 +94,24 @@ function mergeMemos(serverMemos) {
   renderFolders();
   if (typeof renderTags === 'function') renderTags();
 
-  if (state.activeMemoId) {
-    const active = state.memos.find(m => m.id === state.activeMemoId);
-    if (active) {
-      updateActiveDbBadge(active.id);
-      if (document.activeElement !== el.memoTitle && document.activeElement !== el.memoContent) {
-        el.memoTitle.value = active.title;
-        el.memoContent.value = active.content;
-        if (state.isPreviewActive) compileMarkdown();
+  const panesToUpdate = ['left', 'right'];
+  panesToUpdate.forEach(paneId => {
+    const paneState = state.panes[paneId];
+    if (paneState.activeMemoId) {
+      const active = state.memos.find(m => m.id === paneState.activeMemoId);
+      if (active) {
+        updateActiveDbBadge(active.id, paneId);
+        const pel = getPaneEl(paneId);
+        if (document.activeElement !== pel.memoTitle && document.activeElement !== pel.memoContent) {
+          pel.memoTitle.value = active.title;
+          pel.memoContent.value = active.content;
+          if (paneState.isPreviewActive) compileMarkdown(paneId);
+        }
+      } else {
+        closePaneTab(paneId, paneState.activeMemoId);
       }
-    } else {
-      closeWorkspace();
     }
-  }
+  });
 }
 
 async function processSyncQueue() {
@@ -223,12 +228,14 @@ function updateStatusUI(status) {
   if (status === 'online') {
     el.statusDot.classList.add('online');
     el.statusText.textContent = '同期完了 (SQLite)';
-    setSaveMessage('saved', 'SQLiteに保存済み');
+    setSaveMessage('saved', 'SQLiteに保存済み', 'left');
+    setSaveMessage('saved', 'SQLiteに保存済み', 'right');
     el.ngrokWarningBanner.style.display = 'none';
   } else if (status === 'offline') {
     el.statusDot.classList.add('offline');
     el.statusText.textContent = 'オフライン（ローカル保存中）';
-    setSaveMessage('saved', 'ローカル保存済み');
+    setSaveMessage('saved', 'ローカルに一時保存済み', 'left');
+    setSaveMessage('saved', 'ローカルに一時保存済み', 'right');
     if (API_URL.includes('ngrok-free.dev')) {
       el.ngrokWarningBanner.style.display = 'flex';
     } else {
@@ -237,33 +244,38 @@ function updateStatusUI(status) {
   } else if (status === 'syncing') {
     el.statusDot.classList.add('syncing');
     el.statusText.textContent = '同期処理中...';
-    setSaveMessage('saving', 'SQLiteに保存中...');
+    setSaveMessage('saving', 'SQLiteに保存中...', 'left');
+    setSaveMessage('saving', 'SQLiteに保存中...', 'right');
   }
 }
 
-function setSaveMessage(status, text) {
-  el.saveIndicator.querySelector('span:last-child').textContent = text;
+function setSaveMessage(status, text, paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
+  if (!pel.saveIndicator) return;
+  pel.saveIndicator.querySelector('span:last-child').textContent = text;
   const iconName = status === 'saving' ? 'refresh-cw' : 'check';
-  document.getElementById('saveIconContainer').innerHTML = `<i data-lucide="${iconName}" style="width:14px; height:14px;"></i>`;
+  pel.saveIconContainer.innerHTML = `<i data-lucide="${iconName}" style="width:14px; height:14px;"></i>`;
   lucide.createIcons();
 }
 
-function updateActiveDbBadge(id) {
+function updateActiveDbBadge(id, paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
+  if (!pel.activeDbBadge) return;
   if (!id) {
-    el.activeDbBadge.style.display = 'none';
+    pel.activeDbBadge.style.display = 'none';
     return;
   }
-  el.activeDbBadge.style.display = 'inline-block';
+  pel.activeDbBadge.style.display = 'inline-block';
   if (typeof id === 'string' && id.startsWith('offline_')) {
-    el.activeDbBadge.innerHTML = `<i data-lucide="cloud-off" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>未同期下書き`;
-    el.activeDbBadge.style.background = 'rgba(245, 158, 11, 0.1)';
-    el.activeDbBadge.style.color = 'var(--warning)';
-    el.activeDbBadge.style.borderColor = 'rgba(245, 158, 11, 0.2)';
+    pel.activeDbBadge.innerHTML = `<i data-lucide="cloud-off" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>未同期下書き`;
+    pel.activeDbBadge.style.background = 'rgba(245, 158, 11, 0.1)';
+    pel.activeDbBadge.style.color = 'var(--warning)';
+    pel.activeDbBadge.style.borderColor = 'rgba(245, 158, 11, 0.2)';
   } else {
-    el.activeDbBadge.innerHTML = `<i data-lucide="database" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>SQLite ID: ${id}`;
-    el.activeDbBadge.style.background = 'rgba(16, 185, 129, 0.1)';
-    el.activeDbBadge.style.color = 'var(--success)';
-    el.activeDbBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+    pel.activeDbBadge.innerHTML = `<i data-lucide="database" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>SQLite ID: ${id}`;
+    pel.activeDbBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+    pel.activeDbBadge.style.color = 'var(--success)';
+    pel.activeDbBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
   }
   lucide.createIcons();
 }

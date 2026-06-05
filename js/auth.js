@@ -73,6 +73,37 @@ async function loginUser(username, password) {
   }
 }
 
+// Guest Sign In
+async function guestLogin() {
+  try {
+    const res = await fetch(`${API_URL}/auth/guest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+      }
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem('token', data.access_token);
+      state.currentUser = data.user;
+      updateSidebarProfile(data.user);
+      
+      el.loginModal.style.display = 'none';
+      showToast(`ゲストとしてサインインしました！`, 'check');
+      
+      // Load app data
+      await checkStatus();
+    } else {
+      const err = await res.json();
+      showToast(err.detail || "ゲストサインインに失敗しました", 'shield-alert');
+    }
+  } catch (e) {
+    showToast("サインインに失敗しました。サーバー接続を確認してください", 'shield-alert');
+  }
+}
+
 // Sign Up
 async function registerUser(username, displayName, password) {
   if (!username || !displayName || !password) {
@@ -335,6 +366,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Submit handlers
   el.loginSubmitBtn.addEventListener('click', () => {
     loginUser(el.loginUsername.value.trim(), el.loginPassword.value);
+  });
+  el.guestLoginBtn.addEventListener('click', () => {
+    guestLogin();
   });
   el.loginUsername.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') el.loginPassword.focus();
