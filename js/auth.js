@@ -388,7 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
   el.logoutBtn.addEventListener('click', logoutUser);
   
   // Share handlers
-  el.shareBtn.addEventListener('click', openShareModal);
+  if (el.shareBtn) {
+    el.shareBtn.addEventListener('click', openShareModal);
+  }
   el.closeShareBtn.addEventListener('click', () => el.shareModal.classList.remove('active'));
   el.addShareBtn.addEventListener('click', addShare);
   el.shareTargetInput.addEventListener('keydown', (e) => {

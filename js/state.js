@@ -215,4 +215,5 @@ function getPaneEl(paneId) {
     toggleTabsBtn: document.getElementById(`${paneId}-toggleTabsBtn`),
     openTabsBtn: document.getElementById(`${paneId}-openTabsBtn`),
     container: document.getElementById(`pane-${paneId}`)
+  };
 }
