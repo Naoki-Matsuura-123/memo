@@ -8,8 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/lucide.min.js"></script>
   
   <link rel="stylesheet" href="index.css">
 </head>
@@ -189,6 +188,12 @@
                 <button class="btn-secondary" id="left-shareBtn" title="メモの共有設定" style="display: none;">
                   <i data-lucide="share-2" style="width:14px; height:14px;"></i><span>共有</span>
                 </button>
+                <button class="btn-secondary" id="left-addAxisBtn" title="評価軸を追加" style="display: none;">
+                  <i data-lucide="plus-circle" style="width:14px; height:14px;"></i><span>評価の追加</span>
+                </button>
+                <button class="btn-secondary" id="left-toggleGridBtn" title="評価の表示設定" style="display: none;">
+                  <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i><span>評価の確認</span>
+                </button>
                 <button class="btn-secondary" id="left-previewBtn">
                   <i data-lucide="eye" style="width:14px; height:14px;"></i><span>プレビュー</span>
                 </button>
@@ -198,20 +203,11 @@
               </div>
             </div>
 
-            <!-- 評価パネル (固定表示) -->
             <div class="rating-panel" id="left-ratingPanel" style="display:none;">
               <div class="rating-panel-header">
                 <div class="rating-panel-title">
                   <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
                   <span>評価</span>
-                </div>
-                <div class="rating-panel-actions">
-                  <button class="btn-icon" id="left-addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
-                    <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
-                  </button>
-                  <button class="btn-icon" id="left-toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
-                    <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
-                  </button>
                 </div>
               </div>
               <div id="left-ratingAxesList"></div>
@@ -300,6 +296,12 @@
                 <button class="btn-secondary" id="right-shareBtn" title="メモの共有設定" style="display: none;">
                   <i data-lucide="share-2" style="width:14px; height:14px;"></i><span>共有</span>
                 </button>
+                <button class="btn-secondary" id="right-addAxisBtn" title="評価軸を追加" style="display: none;">
+                  <i data-lucide="plus-circle" style="width:14px; height:14px;"></i><span>評価の追加</span>
+                </button>
+                <button class="btn-secondary" id="right-toggleGridBtn" title="評価の表示設定" style="display: none;">
+                  <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i><span>評価の確認</span>
+                </button>
                 <button class="btn-secondary" id="right-previewBtn">
                   <i data-lucide="eye" style="width:14px; height:14px;"></i><span>プレビュー</span>
                 </button>
@@ -309,20 +311,11 @@
               </div>
             </div>
 
-            <!-- 評価パネル (固定表示) -->
             <div class="rating-panel" id="right-ratingPanel" style="display:none;">
               <div class="rating-panel-header">
                 <div class="rating-panel-title">
                   <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
                   <span>評価</span>
-                </div>
-                <div class="rating-panel-actions">
-                  <button class="btn-icon" id="right-addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
-                    <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
-                  </button>
-                  <button class="btn-icon" id="right-toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
-                    <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
-                  </button>
                 </div>
               </div>
               <div id="right-ratingAxesList"></div>
@@ -819,9 +812,8 @@
     <span class="badge" id="scratchpadBadge" style="display:none;"></span>
   </button>
 
-  <!-- External Icons and Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/marked.min.js"></script>
+  <script src="js/lucide.min.js"></script>
 
   <!-- App Modular Scripts -->
   <script src="js/state.js"></script>

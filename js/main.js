@@ -177,6 +177,8 @@ function selectMemo(id, paneId = state.activePaneId) {
   pel.previewBtn.style.display = 'flex';
   if (pel.linkCopyBtn) pel.linkCopyBtn.style.display = 'flex';
   if (pel.voiceBtn) pel.voiceBtn.style.display = 'flex';
+  if (pel.addAxisBtn) pel.addAxisBtn.style.display = 'flex';
+  if (pel.toggleGridBtn) pel.toggleGridBtn.style.display = 'flex';
   
   // フォルダセレクトの復元
   updateFolderSelectOptions(paneId);
@@ -1263,6 +1265,8 @@ function clearPaneEditor(paneId) {
   if (pel.voiceBtn) pel.voiceBtn.style.display = 'none';
   if (pel.deleteBtn) pel.deleteBtn.style.display = 'none';
   if (pel.shareBtn) pel.shareBtn.style.display = 'none';
+  if (pel.addAxisBtn) pel.addAxisBtn.style.display = 'none';
+  if (pel.toggleGridBtn) pel.toggleGridBtn.style.display = 'none';
   pel.memoFolderContainer.style.display = 'none';
   pel.memoTagContainer.style.display = 'none';
   if (pel.ratingPanel) pel.ratingPanel.style.display = 'none';
