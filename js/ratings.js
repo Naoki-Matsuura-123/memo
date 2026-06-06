@@ -242,12 +242,15 @@ async function saveAxis() {
     showToast('軸名を入力してください', 'shield-alert');
     return;
   }
-  if (!state.activeMemoId || typeof state.activeMemoId === 'string') {
+  const paneId = state.activePaneId;
+  const paneState = state.panes[paneId];
+  const activeMemoId = paneState.activeMemoId;
+  if (!activeMemoId || typeof activeMemoId === 'string') {
     showToast('メモを先に同期してください', 'shield-alert');
     return;
   }
   try {
-    const res = await fetch(`${API_URL}/memos/${state.activeMemoId}/axes`, {
+    const res = await fetch(`${API_URL}/memos/${activeMemoId}/axes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ name, method })
@@ -255,7 +258,7 @@ async function saveAxis() {
     if (res.ok) {
       el.axisModal.classList.remove('active');
       showToast(`評価軸「${name}」を追加しました`, 'bar-chart-3');
-      await loadRatingsForMemo(state.activeMemoId);
+      await loadRatingsForMemo(activeMemoId, paneId);
     } else {
       const err = await res.json();
       showToast(`エラー: ${err.detail || '作成失敗'}`, 'shield-alert');
@@ -302,7 +305,9 @@ function renderRatingSummary() {
 
 // トグルグリッドの表示
 async function openToggleGrid() {
-  if (!state.activeMemoId || typeof state.activeMemoId === 'string') {
+  const paneId = state.activePaneId;
+  const activeMemoId = state.panes[paneId].activeMemoId;
+  if (!activeMemoId || typeof activeMemoId === 'string') {
     showToast('メモを先に同期してください', 'shield-alert');
     return;
   }
@@ -314,7 +319,10 @@ async function openToggleGrid() {
 // トグルグリッドのレンダリング
 async function renderToggleGrid() {
   try {
-    const res = await fetch(`${API_URL}/memos/${state.activeMemoId}/visibility`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const paneId = state.activePaneId;
+    const activeMemoId = state.panes[paneId].activeMemoId;
+    if (!activeMemoId || typeof activeMemoId === 'string') return;
+    const res = await fetch(`${API_URL}/memos/${activeMemoId}/visibility`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
     if (!res.ok) return;
     const data = await res.json();
 
@@ -364,8 +372,10 @@ async function singleToggle(targetUserId, axisId, visible) {
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ target_user_id: targetUserId, axis_id: axisId, visible })
     });
-    if (state.activeMemoId) {
-      const summaryRes = await fetch(`${API_URL}/memos/${state.activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const paneId = state.activePaneId;
+    const activeMemoId = state.panes[paneId].activeMemoId;
+    if (activeMemoId && typeof activeMemoId !== 'string') {
+      const summaryRes = await fetch(`${API_URL}/memos/${activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
       if (summaryRes.ok) {
         state.currentSummary = await summaryRes.json();
         renderRatingSummary();
@@ -386,8 +396,10 @@ async function bulkToggle(mode, targetUserId = null, axisId = null) {
       body: JSON.stringify(body)
     });
     await renderToggleGrid();
-    if (state.activeMemoId) {
-      const summaryRes = await fetch(`${API_URL}/memos/${state.activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const paneId = state.activePaneId;
+    const activeMemoId = state.panes[paneId].activeMemoId;
+    if (activeMemoId && typeof activeMemoId !== 'string') {
+      const summaryRes = await fetch(`${API_URL}/memos/${activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
       if (summaryRes.ok) {
         state.currentSummary = await summaryRes.json();
         renderRatingSummary();

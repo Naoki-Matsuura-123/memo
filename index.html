@@ -185,6 +185,26 @@
               </div>
             </div>
 
+            <!-- 評価パネル (固定表示) -->
+            <div class="rating-panel" id="left-ratingPanel" style="display:none;">
+              <div class="rating-panel-header">
+                <div class="rating-panel-title">
+                  <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
+                  <span>評価</span>
+                </div>
+                <div class="rating-panel-actions">
+                  <button class="btn-icon" id="left-addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
+                    <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
+                  </button>
+                  <button class="btn-icon" id="left-toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
+                    <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
+                  </button>
+                </div>
+              </div>
+              <div id="left-ratingAxesList"></div>
+              <div class="rating-summary-row" id="left-ratingSummaryRow" style="display:none;"></div>
+            </div>
+
             <!-- 入力 / プレビュー表示 -->
             <div class="editor-viewport">
               <div id="left-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
@@ -214,25 +234,6 @@
                 </select>
               </div>
 
-              <!-- 評価パネル -->
-              <div class="rating-panel" id="left-ratingPanel">
-                <div class="rating-panel-header">
-                  <div class="rating-panel-title">
-                    <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
-                    <span>評価</span>
-                  </div>
-                  <div class="rating-panel-actions">
-                    <button class="btn-icon" id="left-addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
-                      <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
-                    </button>
-                    <button class="btn-icon" id="left-toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
-                      <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
-                    </button>
-                  </div>
-                </div>
-                <div id="left-ratingAxesList"></div>
-                <div class="rating-summary-row" id="left-ratingSummaryRow" style="display:none;"></div>
-              </div>
 
               <input type="text" class="title-input" id="left-memoTitle" placeholder="無題のメモ" disabled>
               <textarea class="content-textarea" id="left-memoContent" placeholder="内容を入力してください... (マークダウン対応)" disabled></textarea>
@@ -305,6 +306,26 @@
               </div>
             </div>
 
+            <!-- 評価パネル (固定表示) -->
+            <div class="rating-panel" id="right-ratingPanel" style="display:none;">
+              <div class="rating-panel-header">
+                <div class="rating-panel-title">
+                  <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
+                  <span>評価</span>
+                </div>
+                <div class="rating-panel-actions">
+                  <button class="btn-icon" id="right-addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
+                    <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
+                  </button>
+                  <button class="btn-icon" id="right-toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
+                    <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
+                  </button>
+                </div>
+              </div>
+              <div id="right-ratingAxesList"></div>
+              <div class="rating-summary-row" id="right-ratingSummaryRow" style="display:none;"></div>
+            </div>
+
             <!-- 入力 / プレビュー表示 -->
             <div class="editor-viewport">
               <div id="right-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
@@ -334,25 +355,6 @@
                 </select>
               </div>
 
-              <!-- 評価パネル -->
-              <div class="rating-panel" id="right-ratingPanel">
-                <div class="rating-panel-header">
-                  <div class="rating-panel-title">
-                    <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
-                    <span>評価</span>
-                  </div>
-                  <div class="rating-panel-actions">
-                    <button class="btn-icon" id="right-addAxisBtn" title="評価軸を追加" style="padding:0.2rem;">
-                      <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
-                    </button>
-                    <button class="btn-icon" id="right-toggleGridBtn" title="評価の表示設定" style="padding:0.2rem;">
-                      <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i>
-                    </button>
-                  </div>
-                </div>
-                <div id="right-ratingAxesList"></div>
-                <div class="rating-summary-row" id="right-ratingSummaryRow" style="display:none;"></div>
-              </div>
 
               <input type="text" class="title-input" id="right-memoTitle" placeholder="無題のメモ" disabled>
               <textarea class="content-textarea" id="right-memoContent" placeholder="内容を入力してください... (マークダウン対応)" disabled></textarea>

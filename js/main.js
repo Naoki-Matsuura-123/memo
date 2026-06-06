@@ -19,17 +19,22 @@ function getAllSubfolderIds(folderId) {
 
 // --- レンダリング ---
 function renderList() {
+  if (!el.memoList) return;
   el.memoList.innerHTML = '';
+  
+  if (!Array.isArray(state.memos)) {
+    state.memos = [];
+  }
   
   // フォルダ/タグフィルタ
   let filtered = state.memos;
   if (state.activeTagId) {
-    filtered = state.memos.filter(m => m.tags && m.tags.some(t => t.name === state.activeTagId));
+    filtered = state.memos.filter(m => m && m.tags && m.tags.some(t => t && t.name === state.activeTagId));
   } else if (state.activeFolderId === 'uncategorized') {
-    filtered = state.memos.filter(m => !m.folder_id);
+    filtered = state.memos.filter(m => m && !m.folder_id);
   } else if (state.activeFolderId !== 'all') {
     const allowedFolderIds = getAllSubfolderIds(state.activeFolderId);
-    filtered = state.memos.filter(m => allowedFolderIds.includes(m.folder_id));
+    filtered = state.memos.filter(m => m && allowedFolderIds.includes(m.folder_id));
   }
 
   // 検索フィルタ
@@ -37,34 +42,36 @@ function renderList() {
     const q = state.searchQuery.toLowerCase().trim();
     if (q.startsWith('tag:')) {
       const tagName = q.substring(4).trim();
-      filtered = filtered.filter(m => m.tags && m.tags.some(t => t.name.toLowerCase().includes(tagName)));
+      filtered = filtered.filter(m => m && m.tags && m.tags.some(t => t && t.name && t.name.toLowerCase().includes(tagName)));
     } else if (q.startsWith('#')) {
       const tagName = q.substring(1).trim();
-      filtered = filtered.filter(m => m.tags && m.tags.some(t => t.name.toLowerCase().includes(tagName)));
+      filtered = filtered.filter(m => m && m.tags && m.tags.some(t => t && t.name && t.name.toLowerCase().includes(tagName)));
     } else if (q.startsWith('rating:')) {
       const val = parseFloat(q.substring(7).trim()) || 0;
       const minScore = val <= 5.0 ? val * 20.0 : val;
-      filtered = filtered.filter(m => m.average_rating !== undefined && m.average_rating !== null && m.average_rating >= minScore);
+      filtered = filtered.filter(m => m && m.average_rating !== undefined && m.average_rating !== null && m.average_rating >= minScore);
     } else if (q.startsWith('rating>=')) {
       const val = parseFloat(q.substring(8).trim()) || 0;
       const minScore = val <= 5.0 ? val * 20.0 : val;
-      filtered = filtered.filter(m => m.average_rating !== undefined && m.average_rating !== null && m.average_rating >= minScore);
+      filtered = filtered.filter(m => m && m.average_rating !== undefined && m.average_rating !== null && m.average_rating >= minScore);
     } else {
       filtered = filtered.filter(m => 
-        m.title.toLowerCase().includes(q) || 
-        m.content.toLowerCase().includes(q) ||
-        (m.tags && m.tags.some(t => t.name.toLowerCase().includes(q)))
+        m && (
+          (m.title || '').toLowerCase().includes(q) || 
+          (m.content || '').toLowerCase().includes(q) ||
+          (m.tags && m.tags.some(t => t && t.name && t.name.toLowerCase().includes(q)))
+        )
       );
     }
   }
 
   // ソート
   if (state.sortBy === 'updated') {
-    filtered.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+    filtered.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
   } else if (state.sortBy === 'created') {
-    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   } else if (state.sortBy === 'title') {
-    filtered.sort((a, b) => a.title.localeCompare(b.title));
+    filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
   } else if (state.sortBy === 'rating_desc') {
     filtered.sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
   }
@@ -75,12 +82,13 @@ function renderList() {
   }
 
   filtered.forEach(memo => {
+    if (!memo) return;
     const item = document.createElement('div');
     item.className = `memo-item ${memo.id === state.activeMemoId ? 'active' : ''}`;
     item.setAttribute('data-memo-id', memo.id);
     
     // サマリーテキスト抽出
-    const plainText = memo.content.replace(/[#*`\[\]()]/g, '');
+    const plainText = (memo.content || '').replace(/[#*`\[\]()]/g, '');
     const summary = plainText.substring(0, 60) + (plainText.length > 60 ? '...' : '');
 
     // オフライン未同期判定のバッジ表示

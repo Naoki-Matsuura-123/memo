@@ -42,8 +42,17 @@ function loadCache() {
     state.folders = JSON.parse(localStorage.getItem('folders_cache') || '[]');
     state.tags = JSON.parse(localStorage.getItem('tags_cache') || '[]');
     state.syncQueue = JSON.parse(localStorage.getItem('sync_queue') || '[]');
+    
+    if (!Array.isArray(state.memos)) state.memos = [];
+    if (!Array.isArray(state.folders)) state.folders = [];
+    if (!Array.isArray(state.tags)) state.tags = [];
+    if (!Array.isArray(state.syncQueue)) state.syncQueue = [];
   } catch (e) {
     console.error("キャッシュ読込エラー", e);
+    state.memos = [];
+    state.folders = [];
+    state.tags = [];
+    state.syncQueue = [];
   }
 }
 
