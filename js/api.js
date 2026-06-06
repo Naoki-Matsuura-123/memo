@@ -175,7 +175,7 @@ async function processSyncQueue() {
           },
           body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id, tags: item.tags || [] })
         });
-        if (!res.ok) failed.push(item);
+        if (!res.ok && res.status !== 404) failed.push(item);
       }
       else if (item.type === 'DELETE') {
         if (typeof actualId === 'string' && actualId.startsWith('offline_')) continue;
