@@ -175,8 +175,8 @@ function selectMemo(id, paneId = state.activePaneId) {
   pel.memoTitle.style.display = 'block';
   pel.memoContent.style.display = 'block';
   pel.previewBtn.style.display = 'flex';
-  pel.linkCopyBtn.style.display = 'flex';
-  pel.voiceBtn.style.display = 'flex';
+  if (pel.linkCopyBtn) pel.linkCopyBtn.style.display = 'flex';
+  if (pel.voiceBtn) pel.voiceBtn.style.display = 'flex';
   
   // フォルダセレクトの復元
   updateFolderSelectOptions(paneId);
@@ -218,9 +218,9 @@ function applyMemoPermissions(memo, paneId = state.activePaneId) {
     pel.memoFolderSelect.disabled = true;
     pel.memoTagInput.disabled = true;
     pel.memoTagInput.placeholder = "閲覧のみのためタグを追加できません";
-    pel.deleteBtn.style.display = 'none';
-    pel.shareBtn.style.display = 'none';
-    pel.addAxisBtn.style.display = 'none';
+    if (pel.deleteBtn) pel.deleteBtn.style.display = 'none';
+    if (pel.shareBtn) pel.shareBtn.style.display = 'none';
+    if (pel.addAxisBtn) pel.addAxisBtn.style.display = 'none';
     
     // 指定ペイン内のタグ削除ボタンを非表示
     pel.memoTagList.querySelectorAll('.tag-chip-remove').forEach(btn => btn.style.display = 'none');
@@ -239,9 +239,9 @@ function applyMemoPermissions(memo, paneId = state.activePaneId) {
     pel.memoFolderSelect.disabled = false;
     pel.memoTagInput.disabled = false;
     pel.memoTagInput.placeholder = "+ タグを追加...";
-    pel.deleteBtn.style.display = memo.permission === 'owner' ? 'flex' : 'none'; // 削除は所有者のみ
-    pel.shareBtn.style.display = memo.permission === 'owner' ? 'flex' : 'none'; // 共有は所有者のみ
-    pel.addAxisBtn.style.display = 'flex';
+    if (pel.deleteBtn) pel.deleteBtn.style.display = memo.permission === 'owner' ? 'flex' : 'none'; // 削除は所有者のみ
+    if (pel.shareBtn) pel.shareBtn.style.display = memo.permission === 'owner' ? 'flex' : 'none'; // 共有は所有者のみ
+    if (pel.addAxisBtn) pel.addAxisBtn.style.display = 'flex';
     
     pel.memoTagList.querySelectorAll('.tag-chip-remove').forEach(btn => btn.style.display = 'flex');
   }
@@ -1259,8 +1259,8 @@ function clearPaneEditor(paneId) {
   pel.memoTitle.style.display = 'none';
   pel.memoContent.style.display = 'none';
   pel.previewBtn.style.display = 'none';
-  pel.linkCopyBtn.style.display = 'none';
-  pel.voiceBtn.style.display = 'none';
+  if (pel.linkCopyBtn) pel.linkCopyBtn.style.display = 'none';
+  if (pel.voiceBtn) pel.voiceBtn.style.display = 'none';
   if (pel.deleteBtn) pel.deleteBtn.style.display = 'none';
   if (pel.shareBtn) pel.shareBtn.style.display = 'none';
   pel.memoFolderContainer.style.display = 'none';
