@@ -31,7 +31,7 @@ function showToast(message, iconName = 'database') {
   toast.className = 'toast';
   toast.innerHTML = `<i data-lucide="${iconName}" style="width:16px; height:16px; color:var(--success);"></i><span>${message}</span>`;
   el.toastContainer.appendChild(toast);
-  lucide.createIcons();
+  safeCreateIcons();
   setTimeout(() => toast.remove(), 3000);
 }
 
@@ -266,7 +266,7 @@ function setSaveMessage(status, text, paneId = state.activePaneId) {
   pel.saveIndicator.querySelector('span:last-child').textContent = text;
   const iconName = status === 'saving' ? 'refresh-cw' : 'check';
   pel.saveIconContainer.innerHTML = `<i data-lucide="${iconName}" style="width:14px; height:14px;"></i>`;
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 function updateActiveDbBadge(id, paneId = state.activePaneId) {
@@ -288,7 +288,7 @@ function updateActiveDbBadge(id, paneId = state.activePaneId) {
     pel.activeDbBadge.style.color = 'var(--success)';
     pel.activeDbBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
   }
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 async function fetchTags() {

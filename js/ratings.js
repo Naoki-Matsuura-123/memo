@@ -98,7 +98,7 @@ function renderRatingPanel(paneId = state.activePaneId) {
     }
   });
 
-  lucide.createIcons();
+  safeCreateIcons();
   renderRatingSummary(paneId);
 }
 
@@ -312,7 +312,7 @@ async function openToggleGrid() {
     return;
   }
   el.toggleGridModal.classList.add('active');
-  lucide.createIcons();
+  safeCreateIcons();
   await renderToggleGrid();
 }
 

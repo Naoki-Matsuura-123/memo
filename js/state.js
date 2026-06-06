@@ -217,3 +217,15 @@ function getPaneEl(paneId) {
     container: document.getElementById(`pane-${paneId}`)
   };
 }
+
+function safeCreateIcons() {
+  if (typeof lucide !== 'undefined' && lucide && typeof lucide.createIcons === 'function') {
+    try {
+      lucide.createIcons();
+    } catch (e) {
+      console.error("Lucide icons creation failed:", e);
+    }
+  } else {
+    console.warn("Lucide library is not loaded yet or unavailable. Skipping icon creation.");
+  }
+}

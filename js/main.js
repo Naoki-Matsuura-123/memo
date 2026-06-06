@@ -67,13 +67,13 @@ function renderList() {
 
   // ソート
   if (state.sortBy === 'updated') {
-    filtered.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+    filtered.sort((a, b) => new Date((b && b.updated_at) || 0) - new Date((a && a.updated_at) || 0));
   } else if (state.sortBy === 'created') {
-    filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    filtered.sort((a, b) => new Date((b && b.created_at) || 0) - new Date((a && a.created_at) || 0));
   } else if (state.sortBy === 'title') {
-    filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    filtered.sort((a, b) => ((a && a.title) || '').localeCompare((b && b.title) || ''));
   } else if (state.sortBy === 'rating_desc') {
-    filtered.sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
+    filtered.sort((a, b) => ((b && b.average_rating) || 0) - ((a && a.average_rating) || 0));
   }
 
   if (filtered.length === 0) {
@@ -103,7 +103,7 @@ function renderList() {
     item.addEventListener('click', () => selectMemo(memo.id));
     el.memoList.appendChild(item);
   });
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 function selectMemo(id, paneId = state.activePaneId) {
@@ -119,7 +119,7 @@ function selectMemo(id, paneId = state.activePaneId) {
     state.activeMemoId = id;
   }
   
-  const memo = state.memos.find(m => m.id === id);
+  const memo = state.memos.find(m => m && m.id === id);
   if (!memo) return;
 
   // リンクジャンプ時などで、現在のアクティブフォルダ/タグにこのメモが含まれていない場合、
@@ -231,7 +231,7 @@ function applyMemoPermissions(memo, paneId = state.activePaneId) {
     banner.innerHTML = `<i data-lucide="lock" style="width:14px; height:14px; margin-right:4px; vertical-align:middle;"></i><span>このメモは閲覧専用です。</span>`;
     banner.style.cssText = "font-size: 0.75rem; color: var(--danger); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.35rem 0.75rem; border-radius: 6px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.3rem;";
     pel.memoTitle.parentNode.insertBefore(banner, pel.memoTitle);
-    lucide.createIcons();
+    safeCreateIcons();
   } else {
     // 所有者または編集可能権限
     pel.memoTitle.disabled = false;
@@ -308,7 +308,7 @@ function triggerAutosave(paneId = state.activePaneId) {
   const paneState = state.panes[paneId];
   const activeMemoId = paneState.activeMemoId;
   if (!activeMemoId) return;
-  const active = state.memos.find(m => m.id === activeMemoId);
+  const active = state.memos.find(m => m && m.id === activeMemoId);
   if (!active || active.permission === 'read') return;
   
   setSaveMessage('saving', '自動保存中...', paneId);
@@ -318,7 +318,7 @@ function triggerAutosave(paneId = state.activePaneId) {
     const pel = getPaneEl(paneId);
     const title = pel.memoTitle.value;
     const content = pel.memoContent.value;
-    const active = state.memos.find(m => m.id === activeMemoId);
+    const active = state.memos.find(m => m && m.id === activeMemoId);
     if (!active) return;
 
     const folderId = active.folder_id;
@@ -326,7 +326,7 @@ function triggerAutosave(paneId = state.activePaneId) {
 
     // キャッシュ更新
     state.memos = state.memos.map(m => 
-      m.id === activeMemoId 
+      m && m.id === activeMemoId 
         ? { ...m, title, content, updated_at: new Date().toISOString() } 
         : m
     );
@@ -357,7 +357,7 @@ async function confirmDelete() {
   el.deleteModal.classList.remove('active');
 
   // キャッシュから削除
-  state.memos = state.memos.filter(m => m.id !== idToDelete);
+  state.memos = state.memos.filter(m => m && m.id !== idToDelete);
   saveCache();
   
   // 左右のペインからこのメモのタブを除去して画面をクリアまたは別のタブに切り替え
@@ -395,10 +395,10 @@ async function fetchFolders() {
 
 // フォルダとその配下の子孫フォルダのメモ合計数を再帰的に取得する
 function getFolderMemoCount(folderId) {
-  let count = state.memos.filter(m => m.folder_id === folderId).length;
-  const children = state.folders.filter(f => f.parent_id === folderId);
+  let count = state.memos.filter(m => m && m.folder_id === folderId).length;
+  const children = state.folders.filter(f => f && f.parent_id === folderId);
   children.forEach(child => {
-    count += getFolderMemoCount(child.id);
+    if (child) count += getFolderMemoCount(child.id);
   });
   return count;
 }
@@ -414,7 +414,7 @@ function renderFolders() {
   el.folderList.appendChild(allItem);
 
   // 2. 未分類
-  const uncatCount = state.memos.filter(m => !m.folder_id).length;
+  const uncatCount = state.memos.filter(m => m && !m.folder_id).length;
   const uncatItem = document.createElement('div');
   uncatItem.className = `folder-item ${state.activeFolderId === 'uncategorized' ? 'active' : ''}`;
   uncatItem.innerHTML = `<i data-lucide="file-warning" style="width:14px; height:14px;"></i><span>未分類</span><span class="count">${uncatCount}</span>`;
@@ -455,7 +455,7 @@ function renderFolders() {
   }
   
   renderSubTree(roots, 0);
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 function selectFolder(folderId) {
@@ -1002,7 +1002,7 @@ function setupEvents() {
 
   el.helpBtn.addEventListener('click', () => {
     el.helpModal.classList.add('active');
-    lucide.createIcons();
+    safeCreateIcons();
   });
   el.closeHelpBtn.addEventListener('click', () => {
     el.helpModal.classList.remove('active');
@@ -1033,7 +1033,7 @@ function setupEvents() {
       el.splitViewBtnText.textContent = "画面分割 (左右)";
       selectPane('left');
     }
-    lucide.createIcons();
+    safeCreateIcons();
   });
 
   // 縦タブアコーディオン開閉 (左ペイン)
@@ -1090,7 +1090,7 @@ function escape(str) {
 
 // --- アプリケーション初期化 (DOMContentLoaded) ---
 window.addEventListener('DOMContentLoaded', async () => {
-  lucide.createIcons();
+  safeCreateIcons();
 
   // テーマ復元
   const savedTheme = localStorage.getItem('app-theme') || 'theme-light';
@@ -1233,7 +1233,7 @@ function renderPaneTabs(paneId) {
     pel.tabsList.appendChild(tab);
   });
   
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 function closePaneTab(paneId, memoId) {

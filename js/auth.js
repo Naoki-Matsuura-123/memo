@@ -292,7 +292,7 @@ function renderShareList(shares) {
     `;
     el.shareList.appendChild(row);
   });
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 async function addShare() {

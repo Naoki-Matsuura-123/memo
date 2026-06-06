@@ -16,7 +16,7 @@ function renderMemoTags(memo, paneId = state.activePaneId) {
     `;
     pel.memoTagList.appendChild(chip);
   });
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 // 現在選択されているメモにタグを追加する
@@ -94,7 +94,7 @@ function renderTags() {
     el.tagList.appendChild(item);
   });
   
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 // サイドバーでタグを選択した際の処理
