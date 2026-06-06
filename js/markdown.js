@@ -67,36 +67,73 @@ function insertImageMarkdown(dataUrl) {
   showToast("画像を非可逆圧縮し、超軽量データとして埋め込みました！", 'image');
 }
 
-function togglePreview() {
-  state.isPreviewActive = !state.isPreviewActive;
-  
-  if (state.isPreviewActive) {
-    el.previewBtn.innerHTML = '<i data-lucide="edit-3" style="width:14px; height:14px;"></i>編集に戻る';
-    el.memoContent.style.display = 'none';
-    el.markdownPreview.classList.add('active');
-    compileMarkdown();
+function syncPreviewUI(paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
+  const paneState = state.panes[paneId];
+  const activeMemo = state.memos.find(m => m.id === paneState.activeMemoId);
+  const isReadOnlyByACL = activeMemo && activeMemo.permission === 'read';
+
+  if (paneState.isPreviewActive) {
+    pel.previewBtn.innerHTML = '<i data-lucide="edit-3" style="width:14px; height:14px;"></i>編集';
+    pel.memoContent.style.display = 'none';
+    pel.markdownPreview.classList.add('active');
+    pel.memoTitle.readOnly = true;
+    pel.memoTitle.classList.add('readonly-title');
+    compileMarkdown(paneId);
   } else {
-    el.previewBtn.innerHTML = '<i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー';
-    el.memoContent.style.display = 'block';
-    el.markdownPreview.classList.remove('active');
+    pel.previewBtn.innerHTML = '<i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー';
+    pel.memoContent.style.display = 'block';
+    pel.markdownPreview.classList.remove('active');
+    
+    if (!isReadOnlyByACL) {
+      pel.memoTitle.readOnly = false;
+      pel.memoTitle.classList.remove('readonly-title');
+    }
   }
-  lucide.createIcons();
+  
+  if (paneState.isEditModeExplicit) {
+    pel.previewBtn.style.background = 'var(--accent-glow)';
+    pel.previewBtn.style.borderColor = 'var(--accent)';
+  } else {
+    pel.previewBtn.style.background = '';
+    pel.previewBtn.style.borderColor = '';
+  }
+  safeCreateIcons();
 }
 
-function compileMarkdown() {
-  const raw = el.memoContent.value || '';
+function togglePreview(paneId = state.activePaneId) {
+  if (typeof paneId !== 'string') {
+    // クリックイベントハンドラから直接呼ばれた場合、thisやeventオブジェクトが渡る可能性があるため防ぐ
+    paneId = state.activePaneId;
+  }
+  const paneState = state.panes[paneId];
+  const activeMemo = state.memos.find(m => m.id === paneState.activeMemoId);
+  if (activeMemo && activeMemo.permission === 'read') {
+    paneState.isPreviewActive = true;
+    paneState.isEditModeExplicit = false;
+    syncPreviewUI(paneId);
+    return;
+  }
+
+  paneState.isEditModeExplicit = !paneState.isEditModeExplicit;
+  paneState.isPreviewActive = !paneState.isEditModeExplicit;
+  syncPreviewUI(paneId);
+}
+
+function compileMarkdown(paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
+  const raw = pel.memoContent.value || '';
   
   if (typeof marked === 'undefined') {
-    el.markdownPreview.innerHTML = `<p>${escape(raw).replace(/\n/g, '<br>')}</p>`;
+    pel.markdownPreview.innerHTML = `<p>${escape(raw).replace(/\n/g, '<br>')}</p>`;
     return;
   }
   
-  // marked.parse を使用してマークダウンを HTML に完璧に変換 (表、チェックボックス、コードブロック、各種リスト等に対応)
   let html = marked.parse(raw);
-  el.markdownPreview.innerHTML = html;
+  pel.markdownPreview.innerHTML = html;
 
   // 後処理: YouTube動画埋め込み ＆ memo://ジャンプリンク・バッジ付与
-  const anchors = el.markdownPreview.querySelectorAll('a');
+  const anchors = pel.markdownPreview.querySelectorAll('a');
   anchors.forEach(a => {
     const url = a.getAttribute('href');
     if (!url) return;
@@ -155,7 +192,7 @@ function compileMarkdown() {
   });
 
   // 後処理: 画像のサイズ指定 ![alt|width](url)
-  const images = el.markdownPreview.querySelectorAll('img');
+  const images = pel.markdownPreview.querySelectorAll('img');
   images.forEach(img => {
     const alt = img.getAttribute('alt') || '';
     img.style.cssText = "max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0.75rem 0; display: block;";
@@ -172,17 +209,14 @@ function compileMarkdown() {
   });
 
   // 後処理: コードブロックへのヘッダーとコピーボタンの追加 (カード風表示)
-  const preBlocks = el.markdownPreview.querySelectorAll('pre');
+  const preBlocks = pel.markdownPreview.querySelectorAll('pre');
   preBlocks.forEach(pre => {
-    // すでにヘッダーを追加している場合は重複処理をスキップ
     if (pre.querySelector('.code-block-header')) return;
     
-    // コード要素を取得
     const codeEl = pre.querySelector('code');
     if (!codeEl) return;
     const rawCode = codeEl.innerText;
     
-    // コードブロックの言語クラスを取得
     let lang = 'code';
     const classes = Array.from(codeEl.classList);
     const langClass = classes.find(c => c.startsWith('language-'));
@@ -190,7 +224,6 @@ function compileMarkdown() {
       lang = langClass.replace('language-', '');
     }
     
-    // ヘッダーバーの作成
     const header = document.createElement('div');
     header.className = 'code-block-header';
     header.innerHTML = `
@@ -201,7 +234,6 @@ function compileMarkdown() {
       </button>
     `;
     
-    // コピーボタンのイベントリスナー
     const copyBtn = header.querySelector('.code-block-copy-btn');
     copyBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -211,10 +243,9 @@ function compileMarkdown() {
         span.textContent = 'コピー完了';
         copyBtn.classList.add('copied');
         
-        // アイコンを一時的にチェックマークに切り替え
         if (icon) {
           icon.setAttribute('data-lucide', 'check');
-          lucide.createIcons();
+          safeCreateIcons();
         }
         
         setTimeout(() => {
@@ -222,7 +253,7 @@ function compileMarkdown() {
           copyBtn.classList.remove('copied');
           if (icon) {
             icon.setAttribute('data-lucide', 'copy');
-            lucide.createIcons();
+            safeCreateIcons();
           }
         }, 2000);
         showToast('コードをクリップボードにコピーしました！', 'copy');
@@ -234,6 +265,5 @@ function compileMarkdown() {
     pre.appendChild(header);
   });
 
-  // アイコン描画
-  lucide.createIcons();
+  safeCreateIcons();
 }

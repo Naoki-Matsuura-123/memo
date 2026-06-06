@@ -73,6 +73,37 @@ async function loginUser(username, password) {
   }
 }
 
+// Guest Sign In
+async function guestLogin() {
+  try {
+    const res = await fetch(`${API_URL}/auth/guest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+      }
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem('token', data.access_token);
+      state.currentUser = data.user;
+      updateSidebarProfile(data.user);
+      
+      el.loginModal.style.display = 'none';
+      showToast(`ゲストとしてサインインしました！`, 'check');
+      
+      // Load app data
+      await checkStatus();
+    } else {
+      const err = await res.json();
+      showToast(err.detail || "ゲストサインインに失敗しました", 'shield-alert');
+    }
+  } catch (e) {
+    showToast("サインインに失敗しました。サーバー接続を確認してください", 'shield-alert');
+  }
+}
+
 // Sign Up
 async function registerUser(username, displayName, password) {
   if (!username || !displayName || !password) {
@@ -190,6 +221,30 @@ async function openShareModal() {
   el.shareModal.classList.add('active');
   
   await fetchShareList();
+  await populateUserSuggestions();
+}
+
+async function populateUserSuggestions() {
+  if (!el.shareUserDatalist) return;
+  el.shareUserDatalist.innerHTML = '';
+  try {
+    const res = await fetch(`${API_URL}/users`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (res.ok) {
+      const users = await res.json();
+      const filtered = users.filter(u => 
+        u.username !== 'anonymous' && 
+        (!state.currentUser || u.username !== state.currentUser.username)
+      );
+      filtered.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.username;
+        opt.textContent = `${u.display_name} (@${u.username})`;
+        el.shareUserDatalist.appendChild(opt);
+      });
+    }
+  } catch (e) {
+    console.error("Failed to load user suggestions:", e);
+  }
 }
 
 async function fetchShareList() {
@@ -261,7 +316,7 @@ function renderShareList(shares) {
     `;
     el.shareList.appendChild(row);
   });
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 async function addShare() {
@@ -336,6 +391,9 @@ document.addEventListener('DOMContentLoaded', () => {
   el.loginSubmitBtn.addEventListener('click', () => {
     loginUser(el.loginUsername.value.trim(), el.loginPassword.value);
   });
+  el.guestLoginBtn.addEventListener('click', () => {
+    guestLogin();
+  });
   el.loginUsername.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') el.loginPassword.focus();
   });
@@ -354,7 +412,9 @@ document.addEventListener('DOMContentLoaded', () => {
   el.logoutBtn.addEventListener('click', logoutUser);
   
   // Share handlers
-  el.shareBtn.addEventListener('click', openShareModal);
+  if (el.shareBtn) {
+    el.shareBtn.addEventListener('click', openShareModal);
+  }
   el.closeShareBtn.addEventListener('click', () => el.shareModal.classList.remove('active'));
   el.addShareBtn.addEventListener('click', addShare);
   el.shareTargetInput.addEventListener('keydown', (e) => {

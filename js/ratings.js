@@ -14,9 +14,10 @@ async function fetchCurrentUser() {
   }
 }
 
-async function loadRatingsForMemo(memoId) {
+async function loadRatingsForMemo(memoId, paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
   if (!state.isOnline || typeof memoId === 'string' || !memoId) {
-    el.ratingPanel.style.display = 'none';
+    if (pel.ratingPanel) pel.ratingPanel.style.display = 'none';
     return;
   }
   try {
@@ -35,27 +36,31 @@ async function loadRatingsForMemo(memoId) {
     if (summaryRes.ok) {
       state.currentSummary = await summaryRes.json();
     }
-    renderRatingPanel();
+    renderRatingPanel(paneId);
   } catch (e) {
     console.error('Load ratings error:', e);
-    el.ratingPanel.style.display = 'none';
+    if (pel.ratingPanel) pel.ratingPanel.style.display = 'none';
   }
 }
 
-function renderRatingPanel() {
-  el.ratingPanel.style.display = 'block'; // パネルを明示的に表示
-  const container = el.ratingAxesList;
+function renderRatingPanel(paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
+  if (!pel.ratingPanel) return;
+  pel.ratingPanel.style.display = 'block'; // パネルを明示的に表示
+  const container = pel.ratingAxesList;
+  if (!container) return;
   container.innerHTML = '';
 
   if (state.currentAxes.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding:0.75rem; color:var(--text-muted); font-size:0.8rem;">
       評価軸がありません。<button onclick="openAxisModal()" style="background:transparent; border:none; color:var(--accent); cursor:pointer; font-weight:600; font-family:inherit; font-size:0.8rem;">+ 追加</button>
     </div>`;
-    el.ratingSummaryRow.style.display = 'none';
+    if (pel.ratingSummaryRow) pel.ratingSummaryRow.style.display = 'none';
     return;
   }
 
-  const activeMemo = state.memos.find(m => m.id === state.activeMemoId);
+  const paneState = state.panes[paneId];
+  const activeMemo = state.memos.find(m => m.id === paneState.activeMemoId);
   const isReadOnly = activeMemo && activeMemo.permission === 'read';
 
   state.currentAxes.forEach(axis => {
@@ -74,31 +79,31 @@ function renderRatingPanel() {
           <span class="rating-axis-name">${escape(axis.name)}</span>
           <span class="rating-axis-method-badge ${axis.method}">${methodLabels[axis.method] || axis.method}</span>
         </div>
-        <button class="axis-delete-btn" onclick="deleteAxis(${axis.id})" title="この評価軸を削除" style="${isReadOnly ? 'display:none;' : ''}">
+        <button class="axis-delete-btn" onclick="deleteAxis(${axis.id}, '${paneId}')" title="この評価軸を削除" style="${isReadOnly ? 'display:none;' : ''}">
           <i data-lucide="x" style="width:12px; height:12px;"></i>
         </button>
       </div>
-      <div id="ratingInput_${axis.id}"></div>
+      <div id="ratingInput_${paneId}_${axis.id}"></div>
     `;
     container.appendChild(card);
 
     // 入力UIの描画
-    const inputContainer = card.querySelector(`#ratingInput_${axis.id}`);
+    const inputContainer = card.querySelector(`#ratingInput_${paneId}_${axis.id}`);
     if (axis.method === 'star') {
-      renderStarInput(inputContainer, axis.id, myRating);
+      renderStarInput(inputContainer, axis.id, myRating, paneId);
     } else if (axis.method === 'tier') {
-      renderTierInput(inputContainer, axis.id, myRating);
+      renderTierInput(inputContainer, axis.id, myRating, paneId);
     } else if (axis.method === 'numeric') {
-      renderNumericInput(inputContainer, axis.id, myRating);
+      renderNumericInput(inputContainer, axis.id, myRating, paneId);
     }
   });
 
-  lucide.createIcons();
-  renderRatingSummary();
+  safeCreateIcons();
+  renderRatingSummary(paneId);
 }
 
 // 星評価UIの描画
-function renderStarInput(container, axisId, myRating) {
+function renderStarInput(container, axisId, myRating, paneId) {
   const currentScore = myRating ? parseFloat(myRating.raw_value) : 0;
   const div = document.createElement('div');
   div.className = 'star-rating';
@@ -107,7 +112,7 @@ function renderStarInput(container, axisId, myRating) {
     const btn = document.createElement('button');
     btn.className = `star-btn ${i <= currentScore ? 'active' : ''}`;
     btn.textContent = i <= currentScore ? '★' : '☆';
-    btn.addEventListener('click', () => submitRating(axisId, String(i)));
+    btn.addEventListener('click', () => submitRating(axisId, String(i), paneId));
     div.appendChild(btn);
   }
   
@@ -122,7 +127,7 @@ function renderStarInput(container, axisId, myRating) {
 }
 
 // ティア評価UIの描画
-function renderTierInput(container, axisId, myRating) {
+function renderTierInput(container, axisId, myRating, paneId) {
   const currentTier = myRating ? myRating.raw_value : '';
   const div = document.createElement('div');
   div.className = 'tier-rating';
@@ -131,7 +136,7 @@ function renderTierInput(container, axisId, myRating) {
     const btn = document.createElement('button');
     btn.className = `tier-btn ${currentTier.toUpperCase() === tier ? 'active-' + tier : ''}`;
     btn.textContent = tier;
-    btn.addEventListener('click', () => submitRating(axisId, tier));
+    btn.addEventListener('click', () => submitRating(axisId, tier, paneId));
     div.appendChild(btn);
   });
   
@@ -139,7 +144,7 @@ function renderTierInput(container, axisId, myRating) {
 }
 
 // 数値評価UIの描画
-function renderNumericInput(container, axisId, myRating) {
+function renderNumericInput(container, axisId, myRating, paneId) {
   const currentVal = myRating ? parseFloat(myRating.raw_value) : 50;
   const div = document.createElement('div');
   div.className = 'numeric-rating';
@@ -161,7 +166,7 @@ function renderNumericInput(container, axisId, myRating) {
   let debounceTimer = null;
   const debouncedSubmit = (val) => {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => submitRating(axisId, String(val)), 500);
+    debounceTimer = setTimeout(() => submitRating(axisId, String(val), paneId), 500);
   };
 
   slider.addEventListener('input', () => {
@@ -181,7 +186,7 @@ function renderNumericInput(container, axisId, myRating) {
 }
 
 // 評価を送信（upsert）
-async function submitRating(axisId, rawValue) {
+async function submitRating(axisId, rawValue, paneId = state.activePaneId) {
   if (!state.isOnline) {
     showToast('オフライン時は評価を送信できません', 'shield-alert');
     return;
@@ -194,7 +199,8 @@ async function submitRating(axisId, rawValue) {
     });
     if (res.ok) {
       showToast('評価を保存しました', 'star');
-      if (state.activeMemoId) await loadRatingsForMemo(state.activeMemoId);
+      const paneState = state.panes[paneId];
+      if (paneState && paneState.activeMemoId) await loadRatingsForMemo(paneState.activeMemoId, paneId);
     }
   } catch (e) {
     console.error('Rating submit error:', e);
@@ -203,7 +209,7 @@ async function submitRating(axisId, rawValue) {
 }
 
 // 評価軸の削除
-async function deleteAxis(axisId) {
+async function deleteAxis(axisId, paneId = state.activePaneId) {
   if (!confirm('この評価軸を削除しますか？関連するすべての評価データも削除されます。')) return;
   try {
     const res = await fetch(`${API_URL}/axes/${axisId}`, {
@@ -212,7 +218,8 @@ async function deleteAxis(axisId) {
     });
     if (res.ok || res.status === 204) {
       showToast('評価軸を削除しました', 'trash-2');
-      if (state.activeMemoId) await loadRatingsForMemo(state.activeMemoId);
+      const paneState = state.panes[paneId];
+      if (paneState && paneState.activeMemoId) await loadRatingsForMemo(paneState.activeMemoId, paneId);
     }
   } catch (e) {
     showToast('削除に失敗しました', 'shield-alert');
@@ -235,12 +242,15 @@ async function saveAxis() {
     showToast('軸名を入力してください', 'shield-alert');
     return;
   }
-  if (!state.activeMemoId || typeof state.activeMemoId === 'string') {
+  const paneId = state.activePaneId;
+  const paneState = state.panes[paneId];
+  const activeMemoId = paneState.activeMemoId;
+  if (!activeMemoId || typeof activeMemoId === 'string') {
     showToast('メモを先に同期してください', 'shield-alert');
     return;
   }
   try {
-    const res = await fetch(`${API_URL}/memos/${state.activeMemoId}/axes`, {
+    const res = await fetch(`${API_URL}/memos/${activeMemoId}/axes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ name, method })
@@ -248,7 +258,7 @@ async function saveAxis() {
     if (res.ok) {
       el.axisModal.classList.remove('active');
       showToast(`評価軸「${name}」を追加しました`, 'bar-chart-3');
-      await loadRatingsForMemo(state.activeMemoId);
+      await loadRatingsForMemo(activeMemoId, paneId);
     } else {
       const err = await res.json();
       showToast(`エラー: ${err.detail || '作成失敗'}`, 'shield-alert');
@@ -295,19 +305,24 @@ function renderRatingSummary() {
 
 // トグルグリッドの表示
 async function openToggleGrid() {
-  if (!state.activeMemoId || typeof state.activeMemoId === 'string') {
+  const paneId = state.activePaneId;
+  const activeMemoId = state.panes[paneId].activeMemoId;
+  if (!activeMemoId || typeof activeMemoId === 'string') {
     showToast('メモを先に同期してください', 'shield-alert');
     return;
   }
   el.toggleGridModal.classList.add('active');
-  lucide.createIcons();
+  safeCreateIcons();
   await renderToggleGrid();
 }
 
 // トグルグリッドのレンダリング
 async function renderToggleGrid() {
   try {
-    const res = await fetch(`${API_URL}/memos/${state.activeMemoId}/visibility`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const paneId = state.activePaneId;
+    const activeMemoId = state.panes[paneId].activeMemoId;
+    if (!activeMemoId || typeof activeMemoId === 'string') return;
+    const res = await fetch(`${API_URL}/memos/${activeMemoId}/visibility`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
     if (!res.ok) return;
     const data = await res.json();
 
@@ -357,8 +372,10 @@ async function singleToggle(targetUserId, axisId, visible) {
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ target_user_id: targetUserId, axis_id: axisId, visible })
     });
-    if (state.activeMemoId) {
-      const summaryRes = await fetch(`${API_URL}/memos/${state.activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const paneId = state.activePaneId;
+    const activeMemoId = state.panes[paneId].activeMemoId;
+    if (activeMemoId && typeof activeMemoId !== 'string') {
+      const summaryRes = await fetch(`${API_URL}/memos/${activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
       if (summaryRes.ok) {
         state.currentSummary = await summaryRes.json();
         renderRatingSummary();
@@ -379,8 +396,10 @@ async function bulkToggle(mode, targetUserId = null, axisId = null) {
       body: JSON.stringify(body)
     });
     await renderToggleGrid();
-    if (state.activeMemoId) {
-      const summaryRes = await fetch(`${API_URL}/memos/${state.activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const paneId = state.activePaneId;
+    const activeMemoId = state.panes[paneId].activeMemoId;
+    if (activeMemoId && typeof activeMemoId !== 'string') {
+      const summaryRes = await fetch(`${API_URL}/memos/${activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
       if (summaryRes.ok) {
         state.currentSummary = await summaryRes.json();
         renderRatingSummary();

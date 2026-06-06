@@ -31,7 +31,7 @@ function showToast(message, iconName = 'database') {
   toast.className = 'toast';
   toast.innerHTML = `<i data-lucide="${iconName}" style="width:16px; height:16px; color:var(--success);"></i><span>${message}</span>`;
   el.toastContainer.appendChild(toast);
-  lucide.createIcons();
+  safeCreateIcons();
   setTimeout(() => toast.remove(), 3000);
 }
 
@@ -42,8 +42,17 @@ function loadCache() {
     state.folders = JSON.parse(localStorage.getItem('folders_cache') || '[]');
     state.tags = JSON.parse(localStorage.getItem('tags_cache') || '[]');
     state.syncQueue = JSON.parse(localStorage.getItem('sync_queue') || '[]');
+    
+    if (!Array.isArray(state.memos)) state.memos = [];
+    if (!Array.isArray(state.folders)) state.folders = [];
+    if (!Array.isArray(state.tags)) state.tags = [];
+    if (!Array.isArray(state.syncQueue)) state.syncQueue = [];
   } catch (e) {
     console.error("キャッシュ読込エラー", e);
+    state.memos = [];
+    state.folders = [];
+    state.tags = [];
+    state.syncQueue = [];
   }
 }
 
@@ -94,19 +103,24 @@ function mergeMemos(serverMemos) {
   renderFolders();
   if (typeof renderTags === 'function') renderTags();
 
-  if (state.activeMemoId) {
-    const active = state.memos.find(m => m.id === state.activeMemoId);
-    if (active) {
-      updateActiveDbBadge(active.id);
-      if (document.activeElement !== el.memoTitle && document.activeElement !== el.memoContent) {
-        el.memoTitle.value = active.title;
-        el.memoContent.value = active.content;
-        if (state.isPreviewActive) compileMarkdown();
+  const panesToUpdate = ['left', 'right'];
+  panesToUpdate.forEach(paneId => {
+    const paneState = state.panes[paneId];
+    if (paneState.activeMemoId) {
+      const active = state.memos.find(m => m.id === paneState.activeMemoId);
+      if (active) {
+        updateActiveDbBadge(active.id, paneId);
+        const pel = getPaneEl(paneId);
+        if (document.activeElement !== pel.memoTitle && document.activeElement !== pel.memoContent) {
+          pel.memoTitle.value = active.title;
+          pel.memoContent.value = active.content;
+          if (paneState.isPreviewActive) compileMarkdown(paneId);
+        }
+      } else {
+        closePaneTab(paneId, paneState.activeMemoId);
       }
-    } else {
-      closeWorkspace();
     }
-  }
+  });
 }
 
 async function processSyncQueue() {
@@ -161,7 +175,7 @@ async function processSyncQueue() {
           },
           body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id, tags: item.tags || [] })
         });
-        if (!res.ok) failed.push(item);
+        if (!res.ok && res.status !== 404) failed.push(item);
       }
       else if (item.type === 'DELETE') {
         if (typeof actualId === 'string' && actualId.startsWith('offline_')) continue;
@@ -216,56 +230,65 @@ function addQueue(type, id, title = '', content = '', folderId = null, tags = []
 
 // --- UI更新 ---
 function updateStatusUI(status) {
-  el.statusDot.className = 'status-dot';
+  if (el.statusDot) el.statusDot.className = 'status-dot';
   const savedUrl = localStorage.getItem('naomemo_api_url');
-  el.statusUrl.textContent = savedUrl ? savedUrl : 'クラウド同期 (デフォルト)';
+  if (el.statusUrl) el.statusUrl.textContent = savedUrl ? savedUrl : 'クラウド同期 (デフォルト)';
   
   if (status === 'online') {
-    el.statusDot.classList.add('online');
-    el.statusText.textContent = '同期完了 (SQLite)';
-    setSaveMessage('saved', 'SQLiteに保存済み');
-    el.ngrokWarningBanner.style.display = 'none';
+    if (el.statusDot) el.statusDot.classList.add('online');
+    if (el.statusText) el.statusText.textContent = '同期完了 (SQLite)';
+    setSaveMessage('saved', 'SQLiteに保存済み', 'left');
+    setSaveMessage('saved', 'SQLiteに保存済み', 'right');
+    if (el.ngrokWarningBanner) el.ngrokWarningBanner.style.display = 'none';
   } else if (status === 'offline') {
-    el.statusDot.classList.add('offline');
-    el.statusText.textContent = 'オフライン（ローカル保存中）';
-    setSaveMessage('saved', 'ローカル保存済み');
-    if (API_URL.includes('ngrok-free.dev')) {
-      el.ngrokWarningBanner.style.display = 'flex';
-    } else {
-      el.ngrokWarningBanner.style.display = 'none';
+    if (el.statusDot) el.statusDot.classList.add('offline');
+    if (el.statusText) el.statusText.textContent = 'オフライン（ローカル保存中）';
+    setSaveMessage('saved', 'ローカルに一時保存済み', 'left');
+    setSaveMessage('saved', 'ローカルに一時保存済み', 'right');
+    if (el.ngrokWarningBanner) {
+      if (API_URL.includes('ngrok-free.dev')) {
+        el.ngrokWarningBanner.style.display = 'flex';
+      } else {
+        el.ngrokWarningBanner.style.display = 'none';
+      }
     }
   } else if (status === 'syncing') {
-    el.statusDot.classList.add('syncing');
-    el.statusText.textContent = '同期処理中...';
-    setSaveMessage('saving', 'SQLiteに保存中...');
+    if (el.statusDot) el.statusDot.classList.add('syncing');
+    if (el.statusText) el.statusText.textContent = '同期処理中...';
+    setSaveMessage('saving', 'SQLiteに保存中...', 'left');
+    setSaveMessage('saving', 'SQLiteに保存中...', 'right');
   }
 }
 
-function setSaveMessage(status, text) {
-  el.saveIndicator.querySelector('span:last-child').textContent = text;
+function setSaveMessage(status, text, paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
+  if (!pel.saveIndicator) return;
+  pel.saveIndicator.querySelector('span:last-child').textContent = text;
   const iconName = status === 'saving' ? 'refresh-cw' : 'check';
-  document.getElementById('saveIconContainer').innerHTML = `<i data-lucide="${iconName}" style="width:14px; height:14px;"></i>`;
-  lucide.createIcons();
+  pel.saveIconContainer.innerHTML = `<i data-lucide="${iconName}" style="width:14px; height:14px;"></i>`;
+  safeCreateIcons();
 }
 
-function updateActiveDbBadge(id) {
+function updateActiveDbBadge(id, paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
+  if (!pel.activeDbBadge) return;
   if (!id) {
-    el.activeDbBadge.style.display = 'none';
+    pel.activeDbBadge.style.display = 'none';
     return;
   }
-  el.activeDbBadge.style.display = 'inline-block';
+  pel.activeDbBadge.style.display = 'inline-block';
   if (typeof id === 'string' && id.startsWith('offline_')) {
-    el.activeDbBadge.innerHTML = `<i data-lucide="cloud-off" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>未同期下書き`;
-    el.activeDbBadge.style.background = 'rgba(245, 158, 11, 0.1)';
-    el.activeDbBadge.style.color = 'var(--warning)';
-    el.activeDbBadge.style.borderColor = 'rgba(245, 158, 11, 0.2)';
+    pel.activeDbBadge.innerHTML = `<i data-lucide="cloud-off" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>未同期下書き`;
+    pel.activeDbBadge.style.background = 'rgba(245, 158, 11, 0.1)';
+    pel.activeDbBadge.style.color = 'var(--warning)';
+    pel.activeDbBadge.style.borderColor = 'rgba(245, 158, 11, 0.2)';
   } else {
-    el.activeDbBadge.innerHTML = `<i data-lucide="database" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>SQLite ID: ${id}`;
-    el.activeDbBadge.style.background = 'rgba(16, 185, 129, 0.1)';
-    el.activeDbBadge.style.color = 'var(--success)';
-    el.activeDbBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+    pel.activeDbBadge.innerHTML = `<i data-lucide="database" style="width:10px; height:10px; display:inline; vertical-align:middle; margin-right:2px;"></i>SQLite ID: ${id}`;
+    pel.activeDbBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+    pel.activeDbBadge.style.color = 'var(--success)';
+    pel.activeDbBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
   }
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 async function fetchTags() {

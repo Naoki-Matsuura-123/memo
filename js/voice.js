@@ -1,5 +1,6 @@
 let recognition = null;
 let isListening = false;
+let listeningPaneId = 'left';
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -16,7 +17,9 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
     if (!transcript.trim()) return;
     
-    const textarea = el.memoContent;
+    const pel = getPaneEl(listeningPaneId);
+    const textarea = pel.memoContent;
+    if (!textarea) return;
     textarea.focus();
     
     const start = textarea.selectionStart;
@@ -26,11 +29,12 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     textarea.value = text.substring(0, start) + transcript + text.substring(end);
     textarea.selectionStart = textarea.selectionEnd = start + transcript.length;
     
-    // メモリ状態を直接更新
-    state.memos = state.memos.map(m => m.id === state.activeMemoId ? { ...m, content: textarea.value, updated_at: new Date().toISOString() } : m);
+    const paneState = state.panes[listeningPaneId];
+    if (paneState.activeMemoId) {
+      state.memos = state.memos.map(m => m.id === paneState.activeMemoId ? { ...m, content: textarea.value, updated_at: new Date().toISOString() } : m);
+    }
     saveCache();
     
-    // inputイベントを発火させて自動保存とプレビュー更新をトリガーする
     textarea.dispatchEvent(new Event('input'));
     showToast("音声をテキストに変換しました！", 'mic');
   };
@@ -50,7 +54,9 @@ function toggleListening() {
     showToast("音声入力はこのブラウザに対応していません", 'shield-alert');
     return;
   }
-  if (!state.activeMemoId) {
+  const paneId = state.activePaneId;
+  const paneState = state.panes[paneId];
+  if (!paneState.activeMemoId) {
     showToast("音声入力を開始するにはメモを選択してください", 'shield-alert');
     return;
   }
@@ -58,18 +64,23 @@ function toggleListening() {
   if (isListening) {
     stopListening();
   } else {
-    startListening();
+    startListening(paneId);
   }
 }
 
-function startListening() {
+function startListening(paneId = state.activePaneId) {
   isListening = true;
+  listeningPaneId = paneId;
   recognition.start();
-  el.voiceBtn.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
-  el.voiceBtn.style.color = 'var(--danger)';
-  el.voiceBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-  el.voiceBtn.innerHTML = '<i data-lucide="mic-off" style="width:14px; height:14px; color:var(--danger);"></i>音声入力中...';
-  lucide.createIcons();
+  
+  const voiceBtn = el.voiceBtn || document.getElementById('voiceBtn');
+  if (voiceBtn) {
+    voiceBtn.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+    voiceBtn.style.color = 'var(--danger)';
+    voiceBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+    voiceBtn.innerHTML = '<i data-lucide="mic-off" style="width:14px; height:14px; color:var(--danger);"></i>音声入力中...';
+    safeCreateIcons();
+  }
   
   if (window.location.protocol === 'file:') {
     showToast("音声入力開始（※ローカル実行のため毎回許可が必要です。GitHub Pages上では一度のみで記憶されます）", 'mic');
@@ -81,10 +92,14 @@ function startListening() {
 function stopListening() {
   isListening = false;
   recognition.stop();
-  el.voiceBtn.style.backgroundColor = 'transparent';
-  el.voiceBtn.style.color = 'var(--text-main)';
-  el.voiceBtn.style.borderColor = 'var(--panel-border)';
-  el.voiceBtn.innerHTML = '<i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力';
-  lucide.createIcons();
+  
+  const voiceBtn = el.voiceBtn || document.getElementById('voiceBtn');
+  if (voiceBtn) {
+    voiceBtn.style.backgroundColor = 'transparent';
+    voiceBtn.style.color = 'var(--text-main)';
+    voiceBtn.style.borderColor = 'var(--panel-border)';
+    voiceBtn.innerHTML = '<i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力';
+    safeCreateIcons();
+  }
   showToast("音声入力を終了しました", 'mic');
 }
