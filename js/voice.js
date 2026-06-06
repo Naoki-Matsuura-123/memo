@@ -73,13 +73,13 @@ function startListening(paneId = state.activePaneId) {
   listeningPaneId = paneId;
   recognition.start();
   
-  const pel = getPaneEl(listeningPaneId);
-  if (pel.voiceBtn) {
-    pel.voiceBtn.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
-    pel.voiceBtn.style.color = 'var(--danger)';
-    pel.voiceBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-    pel.voiceBtn.innerHTML = '<i data-lucide="mic-off" style="width:14px; height:14px; color:var(--danger);"></i>音声入力中...';
-    lucide.createIcons();
+  const voiceBtn = el.voiceBtn || document.getElementById('voiceBtn');
+  if (voiceBtn) {
+    voiceBtn.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+    voiceBtn.style.color = 'var(--danger)';
+    voiceBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+    voiceBtn.innerHTML = '<i data-lucide="mic-off" style="width:14px; height:14px; color:var(--danger);"></i>音声入力中...';
+    safeCreateIcons();
   }
   
   if (window.location.protocol === 'file:') {
@@ -93,13 +93,13 @@ function stopListening() {
   isListening = false;
   recognition.stop();
   
-  const pel = getPaneEl(listeningPaneId);
-  if (pel.voiceBtn) {
-    pel.voiceBtn.style.backgroundColor = 'transparent';
-    pel.voiceBtn.style.color = 'var(--text-main)';
-    pel.voiceBtn.style.borderColor = 'var(--panel-border)';
-    pel.voiceBtn.innerHTML = '<i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力';
-    lucide.createIcons();
+  const voiceBtn = el.voiceBtn || document.getElementById('voiceBtn');
+  if (voiceBtn) {
+    voiceBtn.style.backgroundColor = 'transparent';
+    voiceBtn.style.color = 'var(--text-main)';
+    voiceBtn.style.borderColor = 'var(--panel-border)';
+    voiceBtn.innerHTML = '<i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力';
+    safeCreateIcons();
   }
   showToast("音声入力を終了しました", 'mic');
 }

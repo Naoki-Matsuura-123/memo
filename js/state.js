@@ -171,6 +171,7 @@ const el = {
   shareModal: document.getElementById('shareModal'),
   shareTypeSelect: document.getElementById('shareTypeSelect'),
   shareTargetInput: document.getElementById('shareTargetInput'),
+  shareUserDatalist: document.getElementById('shareUserDatalist'),
   sharePermissionSelect: document.getElementById('sharePermissionSelect'),
   addShareBtn: document.getElementById('addShareBtn'),
   shareList: document.getElementById('shareList'),

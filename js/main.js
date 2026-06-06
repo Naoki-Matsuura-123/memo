@@ -661,9 +661,6 @@ function copyMemoLink() {
 function setupPaneEvents(paneId) {
   const pel = getPaneEl(paneId);
   
-  if (pel.themeSelect) {
-    pel.themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
-  }
   
   if (pel.deleteBtn) {
     pel.deleteBtn.addEventListener('click', () => {
@@ -771,12 +768,7 @@ function setupPaneEvents(paneId) {
     });
   }
   
-  if (pel.voiceBtn) {
-    pel.voiceBtn.addEventListener('click', () => {
-      selectPane(paneId);
-      toggleListening();
-    });
-  }
+  
   
   if (pel.shareBtn) {
     pel.shareBtn.addEventListener('click', () => {
@@ -889,6 +881,9 @@ function setupPaneEvents(paneId) {
 function setupEvents() {
   if (el.themeSelect) {
     el.themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
+  }
+  if (el.voiceBtn) {
+    el.voiceBtn.addEventListener('click', toggleListening);
   }
   el.createBtn.addEventListener('click', createMemo);
   
@@ -1098,10 +1093,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (el.themeSelect) {
     el.themeSelect.value = savedTheme;
   }
-  const leftThemeSelect = document.getElementById('left-themeSelect');
-  if (leftThemeSelect) leftThemeSelect.value = savedTheme;
-  const rightThemeSelect = document.getElementById('right-themeSelect');
-  if (rightThemeSelect) rightThemeSelect.value = savedTheme;
 
   // エディタ最大幅の復元
   const savedWidth = localStorage.getItem('naomemo_editor_max_width') || '800';

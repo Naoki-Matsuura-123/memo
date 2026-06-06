@@ -221,6 +221,30 @@ async function openShareModal() {
   el.shareModal.classList.add('active');
   
   await fetchShareList();
+  await populateUserSuggestions();
+}
+
+async function populateUserSuggestions() {
+  if (!el.shareUserDatalist) return;
+  el.shareUserDatalist.innerHTML = '';
+  try {
+    const res = await fetch(`${API_URL}/users`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (res.ok) {
+      const users = await res.json();
+      const filtered = users.filter(u => 
+        u.username !== 'anonymous' && 
+        (!state.currentUser || u.username !== state.currentUser.username)
+      );
+      filtered.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.username;
+        opt.textContent = `${u.display_name} (@${u.username})`;
+        el.shareUserDatalist.appendChild(opt);
+      });
+    }
+  } catch (e) {
+    console.error("Failed to load user suggestions:", e);
+  }
 }
 
 async function fetchShareList() {

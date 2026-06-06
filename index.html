@@ -14,7 +14,12 @@
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
-<body>
+
+  <!-- ブラウザの自動補完（オートフィル）が検索バーへ誤爆するのを防ぐためのダミー入力 -->
+  <div style="position: absolute; top: -1000px; left: -1000px; width: 1px; height: 1px; overflow: hidden; pointer-events: none;">
+    <input type="text" autocomplete="username" tabindex="-1">
+    <input type="password" autocomplete="current-password" tabindex="-1">
+  </div>
 
   <div class="toast-container" id="toastContainer"></div>
 
@@ -40,7 +45,7 @@
           <i data-lucide="plus" style="width:16px; height:16px;"></i>新規作成
         </button>
         <div style="display:flex; gap:0.5rem; width:100%;">
-          <input type="text" class="search-input" id="searchBar" placeholder="メモを検索..." style="flex: 1;">
+          <input type="search" class="search-input" id="searchBar" placeholder="メモを検索..." style="flex: 1;" autocomplete="off">
           <select class="theme-select" id="sortSelect" style="width: auto; padding: 0.35rem 0.5rem;" title="並び替え">
             <option value="updated">🕒 更新順</option>
             <option value="created">📅 作成順</option>
@@ -113,6 +118,27 @@
     <main class="editor-area">
       <!-- グローバルヘッダー（画面分割コントロールなど） -->
       <div class="editor-global-header" style="display:flex; justify-content:flex-end; padding:0.5rem 1rem; border-bottom:1px solid var(--panel-border); background:var(--sidebar-bg); gap:0.5rem; align-items:center; height:40px; box-sizing:border-box;">
+        
+        <!-- テーマデザインの選択 -->
+        <select class="theme-select" id="themeSelect" style="height: 28px; padding: 0.2rem 0.5rem; font-size: 0.75rem; border-radius: 4px; cursor: pointer;">
+          <option value="theme-dark">🌌 モダンダーク</option>
+          <option value="theme-light">☀️ クリーンライト</option>
+          <option value="theme-sepia">☕ セピアブラウン</option>
+          <option value="theme-nord">❄️ ノルディック</option>
+        </select>
+
+        <!-- 操作ヘルプボタン -->
+        <button class="btn-secondary" id="helpBtn" title="操作ヘルプと記法ガイド" style="padding:0.25rem 0.6rem; font-size:0.75rem; height:28px; display:flex; align-items:center; gap:0.3rem;">
+          <i data-lucide="help-circle" style="width:14px; height:14px;"></i>
+          <span>ヘルプ</span>
+        </button>
+
+        <!-- 音声入力ボタン -->
+        <button class="btn-secondary" id="voiceBtn" title="音声入力" style="padding:0.25rem 0.6rem; font-size:0.75rem; height:28px; display:flex; align-items:center; gap:0.3rem;">
+          <i data-lucide="mic" style="width:14px; height:14px;"></i>
+          <span>音声入力</span>
+        </button>
+
         <button class="btn-secondary" id="splitViewBtn" style="padding:0.25rem 0.6rem; font-size:0.75rem; height:28px; display:flex; align-items:center; gap:0.3rem;">
           <i data-lucide="columns" style="width:14px; height:14px;"></i>
           <span id="splitViewBtnText">画面分割 (左右)</span>
@@ -157,30 +183,17 @@
               </div>
               
               <div class="editor-controls">
-                <select class="theme-select" id="left-themeSelect">
-                  <option value="theme-dark">🌌 モダンダーク</option>
-                  <option value="theme-light">☀️ クリーンライト</option>
-                  <option value="theme-sepia">☕ セピアブラウン</option>
-                  <option value="theme-nord">❄️ ノルディック</option>
-                </select>
-
                 <button class="btn-secondary" id="left-linkCopyBtn" title="メモリンクをコピー" style="display: none;">
-                  <i data-lucide="link" style="width:14px; height:14px;"></i>リンクをコピー
-                </button>
-                <button class="btn-secondary" id="helpBtn" title="操作ヘルプと記法ガイド">
-                  <i data-lucide="help-circle" style="width:14px; height:14px;"></i>ヘルプ
-                </button>
-                <button class="btn-secondary" id="left-voiceBtn" title="音声入力">
-                  <i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力
+                  <i data-lucide="link" style="width:14px; height:14px;"></i><span>リンクをコピー</span>
                 </button>
                 <button class="btn-secondary" id="left-shareBtn" title="メモの共有設定" style="display: none;">
-                  <i data-lucide="share-2" style="width:14px; height:14px;"></i>共有
+                  <i data-lucide="share-2" style="width:14px; height:14px;"></i><span>共有</span>
                 </button>
                 <button class="btn-secondary" id="left-previewBtn">
-                  <i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー
+                  <i data-lucide="eye" style="width:14px; height:14px;"></i><span>プレビュー</span>
                 </button>
                 <button class="btn-secondary" id="left-deleteBtn" style="color:var(--danger); border-color:rgba(239, 68, 68, 0.2);">
-                  <i data-lucide="trash-2" style="width:14px; height:14px;"></i>削除
+                  <i data-lucide="trash-2" style="width:14px; height:14px;"></i><span>削除</span>
                 </button>
               </div>
             </div>
@@ -281,27 +294,17 @@
               </div>
               
               <div class="editor-controls">
-                <select class="theme-select" id="right-themeSelect">
-                  <option value="theme-dark">🌌 モダンダーク</option>
-                  <option value="theme-light">☀️ クリーンライト</option>
-                  <option value="theme-sepia">☕ セピアブラウン</option>
-                  <option value="theme-nord">❄️ ノルディック</option>
-                </select>
-
                 <button class="btn-secondary" id="right-linkCopyBtn" title="メモリンクをコピー" style="display: none;">
-                  <i data-lucide="link" style="width:14px; height:14px;"></i>リンクをコピー
-                </button>
-                <button class="btn-secondary" id="right-voiceBtn" title="音声入力">
-                  <i data-lucide="mic" style="width:14px; height:14px;"></i>音声入力
+                  <i data-lucide="link" style="width:14px; height:14px;"></i><span>リンクをコピー</span>
                 </button>
                 <button class="btn-secondary" id="right-shareBtn" title="メモの共有設定" style="display: none;">
-                  <i data-lucide="share-2" style="width:14px; height:14px;"></i>共有
+                  <i data-lucide="share-2" style="width:14px; height:14px;"></i><span>共有</span>
                 </button>
                 <button class="btn-secondary" id="right-previewBtn">
-                  <i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー
+                  <i data-lucide="eye" style="width:14px; height:14px;"></i><span>プレビュー</span>
                 </button>
                 <button class="btn-secondary" id="right-deleteBtn" style="color:var(--danger); border-color:rgba(239, 68, 68, 0.2);">
-                  <i data-lucide="trash-2" style="width:14px; height:14px;"></i>削除
+                  <i data-lucide="trash-2" style="width:14px; height:14px;"></i><span>削除</span>
                 </button>
               </div>
             </div>
@@ -757,7 +760,8 @@
           <option value="user">👤 ユーザー</option>
           <option value="role">👥 ロール</option>
         </select>
-        <input type="text" class="form-input" id="shareTargetInput" placeholder="ユーザー名を入力..." style="flex:1;">
+        <input type="text" class="form-input" id="shareTargetInput" placeholder="ユーザー名を入力..." style="flex:1;" list="shareUserDatalist">
+        <datalist id="shareUserDatalist"></datalist>
         <select class="form-input" id="sharePermissionSelect" style="width:110px; cursor:pointer;">
           <option value="read">👀 閲覧のみ</option>
           <option value="write">✏️ 編集可能</option>
