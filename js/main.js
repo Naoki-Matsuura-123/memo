@@ -757,6 +757,43 @@ function setupPaneEvents(paneId) {
 
   if (pel.memoTitle) {
     pel.memoTitle.addEventListener('input', () => triggerAutosave(paneId));
+    
+    // 題名をダブルクリックした際、閲覧専用でない場合に限り編集可能にしてフォーカスを当てる
+    pel.memoTitle.addEventListener('dblclick', () => {
+      const paneState = state.panes[paneId];
+      if (!paneState.activeMemoId) return;
+      const activeMemo = state.memos.find(m => m.id === paneState.activeMemoId);
+      if (!activeMemo || activeMemo.permission === 'read') return;
+
+      // プレビューモードであっても一時的にタイトルだけ編集できるようにする
+      pel.memoTitle.readOnly = false;
+      pel.memoTitle.disabled = false;
+      pel.memoTitle.classList.remove('readonly-title');
+      pel.memoTitle.focus();
+      pel.memoTitle.select();
+    });
+
+    // Enterキー押下で編集を終了する
+    pel.memoTitle.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        pel.memoTitle.blur();
+      }
+    });
+
+    // フォーカスが外れた際、プレビューモードであれば非活性（読み取り専用）に戻して自動保存
+    pel.memoTitle.addEventListener('blur', () => {
+      const paneState = state.panes[paneId];
+      if (!paneState.activeMemoId) return;
+      const activeMemo = state.memos.find(m => m.id === paneState.activeMemoId);
+      if (!activeMemo || activeMemo.permission === 'read') return;
+
+      if (paneState.isPreviewActive) {
+        pel.memoTitle.readOnly = true;
+        pel.memoTitle.classList.add('readonly-title');
+      }
+      triggerAutosave(paneId);
+    });
   }
   
   if (pel.previewBtn) {
