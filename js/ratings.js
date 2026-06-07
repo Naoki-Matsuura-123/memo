@@ -46,18 +46,17 @@ async function loadRatingsForMemo(memoId, paneId = state.activePaneId) {
 function renderRatingPanel(paneId = state.activePaneId) {
   const pel = getPaneEl(paneId);
   if (!pel.ratingPanel) return;
-  pel.ratingPanel.style.display = 'block'; // パネルを明示的に表示
   const container = pel.ratingAxesList;
   if (!container) return;
   container.innerHTML = '';
 
   if (state.currentAxes.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:0.75rem; color:var(--text-muted); font-size:0.8rem;">
-      評価軸がありません。<button onclick="openAxisModal()" style="background:transparent; border:none; color:var(--accent); cursor:pointer; font-weight:600; font-family:inherit; font-size:0.8rem;">+ 追加</button>
-    </div>`;
+    pel.ratingPanel.style.display = 'none';
     if (pel.ratingSummaryRow) pel.ratingSummaryRow.style.display = 'none';
     return;
   }
+  
+  pel.ratingPanel.style.display = 'block';
 
   const paneState = state.panes[paneId];
   const activeMemo = state.memos.find(m => m.id === paneState.activeMemoId);
