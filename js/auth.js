@@ -23,6 +23,7 @@ function handleAuthRequired() {
   
   // Show fullscreen blurred login modal
   el.loginModal.style.display = 'flex';
+  if (el.adminBtn) el.adminBtn.style.display = 'none';
 }
 
 // Update sidebar profile with current user info
@@ -60,6 +61,11 @@ async function loginUser(username, password) {
       updateSidebarProfile(data.user);
       
       el.loginModal.style.display = 'none';
+      if (data.user && data.user.is_admin) {
+        if (el.adminBtn) el.adminBtn.style.display = 'flex';
+      } else {
+        if (el.adminBtn) el.adminBtn.style.display = 'none';
+      }
       showToast(`${data.user.display_name}さん、サインインしました！`, 'check');
       
       // Load app data
@@ -91,6 +97,11 @@ async function guestLogin() {
       updateSidebarProfile(data.user);
       
       el.loginModal.style.display = 'none';
+      if (data.user && data.user.is_admin) {
+        if (el.adminBtn) el.adminBtn.style.display = 'flex';
+      } else {
+        if (el.adminBtn) el.adminBtn.style.display = 'none';
+      }
       showToast(`ゲストとしてサインインしました！`, 'check');
       
       // Load app data
@@ -121,6 +132,8 @@ async function registerUser(username, displayName, password) {
     return;
   }
   
+  const inviteCode = el.registerInviteCode ? el.registerInviteCode.value.trim() : "";
+  
   try {
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
@@ -128,7 +141,12 @@ async function registerUser(username, displayName, password) {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true'
       },
-      body: JSON.stringify({ username, display_name: displayName, password })
+      body: JSON.stringify({ 
+        username, 
+        display_name: displayName, 
+        password,
+        invite_code: inviteCode || null
+      })
     });
     
     if (res.ok) {
@@ -138,6 +156,7 @@ async function registerUser(username, displayName, password) {
       // Pre-fill username
       el.loginUsername.value = username;
       el.loginPassword.value = '';
+      if (el.registerInviteCode) el.registerInviteCode.value = '';
     } else {
       const err = await res.json();
       showToast(err.detail || "アカウント作成に失敗しました", 'shield-alert');
@@ -186,6 +205,11 @@ async function initAuth() {
       const user = await res.json();
       state.currentUser = user;
       updateSidebarProfile(user);
+      if (user && user.is_admin) {
+        if (el.adminBtn) el.adminBtn.style.display = 'flex';
+      } else {
+        if (el.adminBtn) el.adminBtn.style.display = 'none';
+      }
       el.loginModal.style.display = 'none';
       
       // Load initial app data
@@ -428,4 +452,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     el.shareTargetInput.value = '';
   });
+  
+  // Admin handlers
+  if (el.adminBtn) {
+    el.adminBtn.addEventListener('click', openAdminModal);
+  }
+  if (el.closeAdminBtn) {
+    el.closeAdminBtn.addEventListener('click', () => el.adminModal.classList.remove('active'));
+  }
 });
+
+// --- Admin User Management (Admin Only) ---
+// Moved to js/admin.js

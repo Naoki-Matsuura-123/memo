@@ -138,6 +138,11 @@
           <span>音声入力</span>
         </button>
 
+        <button class="btn-secondary" id="adminBtn" title="管理パネル" style="display:none; padding:0.25rem 0.6rem; font-size:0.75rem; height:28px; display:flex; align-items:center; gap:0.3rem; border-color:var(--warning); color:var(--warning);">
+          <i data-lucide="shield" style="width:14px; height:14px;"></i>
+          <span>管理</span>
+        </button>
+
         <button class="btn-secondary" id="splitViewBtn" style="padding:0.25rem 0.6rem; font-size:0.75rem; height:28px; display:flex; align-items:center; gap:0.3rem;">
           <i data-lucide="columns" style="width:14px; height:14px;"></i>
           <span id="splitViewBtnText">画面分割 (左右)</span>
@@ -725,9 +730,13 @@
           <label class="form-label" for="registerDisplayName">表示名 (ニックネーム)</label>
           <input type="text" class="form-input" id="registerDisplayName" placeholder="表示名を入力...">
         </div>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
+        <div class="form-group" style="margin-bottom: 1rem;">
           <label class="form-label" for="registerPassword">パスワード (4文字以上)</label>
           <input type="password" class="form-input" id="registerPassword" placeholder="パスワードを入力..." autocomplete="new-password">
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" for="registerInviteCode">招待コード (必要な場合のみ)</label>
+          <input type="text" class="form-input" id="registerInviteCode" placeholder="招待コードを入力...">
         </div>
         <button class="btn-primary" id="registerSubmitBtn" style="width: 100%; height: 40px; font-weight: 600; background-color: var(--success); cursor:pointer;">アカウント作成</button>
         <div style="text-align: center; margin-top: 1rem; font-size: 0.8rem; color: var(--text-sub);">
@@ -770,6 +779,233 @@
 
       <div class="modal-actions" style="border-top:1px solid var(--panel-border); padding-top:0.75rem;">
         <button class="btn-secondary" id="closeShareBtn">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理者用 総合管理モーダル -->
+  <div class="modal" id="adminModal">
+    <div class="modal-content" style="width: 750px; max-width: 95%; max-height: 85vh; display: flex; flex-direction: column; padding: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--panel-border);">
+      <!-- モーダルヘッダー -->
+      <div style="display:flex; align-items:center; gap:0.5rem; border-bottom:1px solid var(--panel-border); padding:1rem 1.5rem; background: var(--bg-glass);">
+        <i data-lucide="shield" style="color:var(--warning); width:20px; height:20px;"></i>
+        <span style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">管理パネル (管理者専用)</span>
+      </div>
+      
+      <!-- モーダルボディ（サイドバー分割レイアウト） -->
+      <div style="display: flex; flex: 1; min-height: 350px; overflow: hidden;">
+        <!-- 管理メニュー (左側縦タブ) -->
+        <div class="admin-sidebar" style="width: 180px; border-right: 1px solid var(--panel-border); background: var(--sidebar-bg); padding: 1rem 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+          <button class="admin-menu-item active" onclick="switchAdminTab('dashboard')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-main); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="bar-chart-3" style="width: 14px; height: 14px;"></i>
+            <span>利用統計</span>
+          </button>
+          <button class="admin-menu-item" onclick="switchAdminTab('users')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="users" style="width: 14px; height: 14px;"></i>
+            <span>ユーザー管理</span>
+          </button>
+          <button class="admin-menu-item" onclick="switchAdminTab('registration')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+            <span>新規登録制限</span>
+          </button>
+          <button class="admin-menu-item" onclick="switchAdminTab('shares')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="share-2" style="width: 14px; height: 14px;"></i>
+            <span>共有アクセス監査</span>
+          </button>
+          <button class="admin-menu-item" onclick="switchAdminTab('backup')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="database" style="width: 14px; height: 14px;"></i>
+            <span>バックアップ管理</span>
+          </button>
+          <button class="admin-menu-item" onclick="switchAdminTab('maintenance')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+            <span>メンテナンス</span>
+          </button>
+        </div>
+        
+        <!-- コンテンツエリア (右側) -->
+        <div class="admin-content-area" style="flex: 1; padding: 1.5rem; overflow-y: auto; background: var(--main-bg);">
+          
+          <!-- 1. 利用統計タブ -->
+          <div id="adminTab-dashboard" class="admin-tab-content">
+            <div style="margin-bottom: 1.25rem; color:var(--text-sub); font-size: 0.85rem;">
+              稼働中のデータベースの基本ステータスおよび利用統計です。
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+              <div style="background: var(--sidebar-bg); padding: 1rem; border: 1px solid var(--panel-border); border-radius: 8px; display: flex; flex-direction: column; gap: 0.25rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">登録ユーザー数</span>
+                <span id="statUsersCount" style="font-weight: 700; color: var(--text-main); font-size: 1.5rem;">-</span>
+              </div>
+              <div style="background: var(--sidebar-bg); padding: 1rem; border: 1px solid var(--panel-border); border-radius: 8px; display: flex; flex-direction: column; gap: 0.25rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">総メモ数</span>
+                <span id="statMemosCount" style="font-weight: 700; color: var(--text-main); font-size: 1.5rem;">-</span>
+              </div>
+              <div style="background: var(--sidebar-bg); padding: 1rem; border: 1px solid var(--panel-border); border-radius: 8px; display: flex; flex-direction: column; gap: 0.25rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">総フォルダ数</span>
+                <span id="statFoldersCount" style="font-weight: 700; color: var(--text-main); font-size: 1.5rem;">-</span>
+              </div>
+              <div style="background: var(--sidebar-bg); padding: 1rem; border: 1px solid var(--panel-border); border-radius: 8px; display: flex; flex-direction: column; gap: 0.25rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">総評価数</span>
+                <span id="statRatingsCount" style="font-weight: 700; color: var(--text-main); font-size: 1.5rem;">-</span>
+              </div>
+            </div>
+
+            <div style="background: var(--sidebar-bg); padding: 1rem; border: 1px solid var(--panel-border); border-radius: 8px; display: flex; flex-direction: column; gap: 0.5rem;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">データベース詳細</span>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem;">
+                <span style="color:var(--text-sub);">SQLite ファイルサイズ:</span>
+                <span id="statDbSize" style="font-weight:600; color:var(--text-main);">- KB</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; border-top:1px solid rgba(128,128,128,0.1); padding-top:0.5rem;">
+                <span style="color:var(--text-sub);">接続APIサーバー:</span>
+                <span id="statApiServer" style="font-family:var(--font-mono); color:var(--text-main); word-break:break-all; text-align:right;">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. ユーザー管理タブ -->
+          <div id="adminTab-users" class="admin-tab-content" style="display: none;">
+            <div style="margin-bottom: 1rem; color:var(--text-sub); font-size: 0.85rem; line-height: 1.5;">
+              登録されている一般ユーザーアカウントおよび関連データを完全に削除できます。<br>
+              <span style="color:var(--danger); font-weight:600;">※警告: ユーザーを削除すると、そのユーザーが作成したメモ、フォルダ、および評価データもすべて完全に削除されます。</span>
+            </div>
+            
+            <div style="border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                <thead>
+                  <tr style="background: var(--sidebar-bg); border-bottom: 1px solid var(--panel-border); color: var(--text-main);">
+                    <th style="padding: 0.5rem 0.75rem;">ユーザー名</th>
+                    <th style="padding: 0.5rem 0.75rem;">表示名</th>
+                    <th style="padding: 0.5rem 0.75rem;">権限</th>
+                    <th style="padding: 0.5rem 0.75rem; text-align: right;">アクション</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUserTableBody">
+                  <!-- JavaScriptによって動的にユーザーリストが生成されます -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. 新規登録制限タブ -->
+          <div id="adminTab-registration" class="admin-tab-content" style="display: none;">
+            <div style="margin-bottom: 1.5rem;">
+              <h4 style="font-weight:600; font-size:0.9rem; color:var(--text-main); margin-bottom:0.5rem;">新規ユーザー登録モード</h4>
+              <div style="display:flex; flex-direction:column; gap:0.5rem; background:var(--sidebar-bg); padding:1rem; border:1px solid var(--panel-border); border-radius:8px;">
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; cursor:pointer; color:var(--text-main);">
+                  <input type="radio" name="adminRegMode" value="open" style="cursor:pointer;">
+                  <span>🔓 誰でも登録可能 (制限なし)</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; cursor:pointer; color:var(--text-main);">
+                  <input type="radio" name="adminRegMode" value="invite_only" style="cursor:pointer;">
+                  <span>🔑 招待コード必須 (招待コードを持つユーザーのみ登録可能)</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; cursor:pointer; color:var(--text-main);">
+                  <input type="radio" name="adminRegMode" value="disabled" style="cursor:pointer;">
+                  <span>🚫 新規登録禁止 (完全に新規ユーザー登録を停止)</span>
+                </label>
+                <button class="btn-primary" id="saveAdminRegModeBtn" style="margin-top:0.5rem; align-self:flex-start; height:32px; padding:0 1rem; font-size:0.8rem; cursor:pointer;">設定を保存</button>
+              </div>
+            </div>
+
+            <div>
+              <h4 style="font-weight:600; font-size:0.9rem; color:var(--text-main); margin-bottom:0.5rem;">招待コードの管理</h4>
+              <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+                <input type="text" id="newInviteCodeInput" placeholder="カスタム招待コードを入力 (空白で自動生成)" class="form-input" style="font-size:0.8rem; height:34px; box-sizing:border-box;">
+                <button class="btn-primary" id="createInviteCodeBtn" style="width:auto; padding:0 1rem; height:34px; font-size:0.8rem; cursor:pointer;">コード生成</button>
+              </div>
+
+              <div style="border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden; max-height:180px; overflow-y:auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                  <thead>
+                    <tr style="background: var(--sidebar-bg); border-bottom: 1px solid var(--panel-border); color: var(--text-main);">
+                      <th style="padding: 0.4rem 0.6rem;">招待コード</th>
+                      <th style="padding: 0.4rem 0.6rem;">作成日時</th>
+                      <th style="padding: 0.4rem 0.6rem; text-align: right;">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminInviteTableBody">
+                    <!-- 動的に生成されます -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. 共有アクセス監査タブ -->
+          <div id="adminTab-shares" class="admin-tab-content" style="display: none;">
+            <div style="margin-bottom: 1rem; color:var(--text-sub); font-size: 0.85rem; line-height: 1.5;">
+              システム内で共有設定されているメモを監視し、管理者が強制的に共有を解除できます。
+            </div>
+
+            <div style="border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                <thead>
+                  <tr style="background: var(--sidebar-bg); border-bottom: 1px solid var(--panel-border); color: var(--text-main);">
+                    <th style="padding: 0.5rem 0.6rem;">メモタイトル</th>
+                    <th style="padding: 0.5rem 0.6rem;">所有者</th>
+                    <th style="padding: 0.5rem 0.6rem;">共有先</th>
+                    <th style="padding: 0.5rem 0.6rem;">権限</th>
+                    <th style="padding: 0.5rem 0.6rem; text-align: right;">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="adminShareTableBody">
+                  <!-- 動的に生成されます -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 5. バックアップ管理タブ -->
+          <div id="adminTab-backup" class="admin-tab-content" style="display: none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+              <div style="color:var(--text-sub); font-size: 0.85rem;">
+                データベースの手動バックアップを作成、または過去のバックアップから復元できます。
+              </div>
+              <button class="btn-primary" id="runBackupManualBtn" style="font-size:0.8rem; height:32px; padding:0 0.75rem; cursor:pointer;">
+                <i data-lucide="plus" style="width:14px; height:14px; display:inline; vertical-align:middle; margin-right:4px;"></i>バックアップ実行
+              </button>
+            </div>
+
+            <div style="border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden; max-height: 250px; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                <thead>
+                  <tr style="background: var(--sidebar-bg); border-bottom: 1px solid var(--panel-border); color: var(--text-main);">
+                    <th style="padding: 0.5rem 0.6rem;">バックアップファイル名</th>
+                    <th style="padding: 0.5rem 0.6rem;">サイズ</th>
+                    <th style="padding: 0.5rem 0.6rem;">作成日時</th>
+                    <th style="padding: 0.5rem 0.6rem; text-align: right;">アクション</th>
+                  </tr>
+                </thead>
+                <tbody id="adminBackupTableBody">
+                  <!-- 動的に生成されます -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 6. データベースメンテナンス（最適化）タブ -->
+          <div id="adminTab-maintenance" class="admin-tab-content" style="display: none;">
+            <div style="margin-bottom: 1.5rem; color:var(--text-sub); font-size: 0.85rem; line-height: 1.5;">
+              データベースのパフォーマンス向上および不要データのクリーンアップを実行します。<br>
+              <strong>1. 未使用タグの削除:</strong> メモとリンクされていない空のタグを完全に削除します。<br>
+              <strong>2. SQLite VACUUMの実行:</strong> 削除済みデータの空き領域をクリーンアップし、データベースファイルの容量を縮小します。
+            </div>
+
+            <div style="background: var(--sidebar-bg); border: 1px solid var(--panel-border); padding: 1.5rem; border-radius: 8px; text-align:center;">
+              <button class="btn-primary" id="runDatabaseCleanupBtn" style="font-weight:600; cursor:pointer; background-color:var(--accent); border-color:var(--accent); padding:0.5rem 1.5rem; height:auto; display:inline-flex; align-items:center; gap:0.5rem;">
+                <i data-lucide="refresh-cw" style="width:16px; height:16px;"></i>データベースのクリーンアップ & 最適化を実行
+              </button>
+              <div id="cleanupResult" style="margin-top:1rem; font-size:0.85rem; color:var(--success); font-weight:500;"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      
+      <!-- モーダルフッター -->
+      <div class="modal-actions" style="border-top:1px solid var(--panel-border); padding:1rem 1.5rem; margin-top:0; background: var(--bg-glass);">
+        <button class="btn-secondary" id="closeAdminBtn">閉じる</button>
       </div>
     </div>
   </div>
@@ -819,6 +1055,7 @@
   <script src="js/state.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/admin.js"></script>
   <script src="js/markdown.js"></script>
   <script src="js/voice.js"></script>
   <script src="js/commands.js"></script>

@@ -161,6 +161,7 @@ const el = {
   registerPassword: document.getElementById('registerPassword'),
   registerSubmitBtn: document.getElementById('registerSubmitBtn'),
   toLoginLink: document.getElementById('toLoginLink'),
+  registerInviteCode: document.getElementById('registerInviteCode'),
   
   sidebarUserFooter: document.getElementById('sidebarUserFooter'),
   userDisplayName: document.getElementById('userDisplayName'),
@@ -176,6 +177,12 @@ const el = {
   addShareBtn: document.getElementById('addShareBtn'),
   shareList: document.getElementById('shareList'),
   closeShareBtn: document.getElementById('closeShareBtn'),
+  
+  // 管理者用
+  adminBtn: document.getElementById('adminBtn'),
+  adminModal: document.getElementById('adminModal'),
+  closeAdminBtn: document.getElementById('closeAdminBtn'),
+  adminUserTableBody: document.getElementById('adminUserTableBody'),
   
   // スプリットビュー
   splitViewBtn: document.getElementById('splitViewBtn'),

@@ -1860,3 +1860,12 @@
       padding: 0.4rem;
       border-radius: 4px;
     }
+
+    /* 管理者用ダッシュボードの縦メニュー項目ホバー・アクティブ定義 */
+    .admin-menu-item:hover {
+      background: rgba(128, 128, 128, 0.1) !important;
+    }
+    .admin-menu-item.active {
+      background: var(--accent-glow) !important;
+      color: var(--accent) !important;
+    }
