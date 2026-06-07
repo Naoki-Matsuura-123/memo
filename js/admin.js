@@ -499,6 +499,52 @@ async function runDatabaseCleanup() {
   }
 }
 
+// 管理者パスワード変更
+async function changeAdminPassword() {
+  const newPwdEl = document.getElementById('adminNewPassword');
+  const confirmPwdEl = document.getElementById('adminConfirmPassword');
+  
+  const newPassword = newPwdEl.value;
+  const confirmPassword = confirmPwdEl.value;
+  
+  if (!newPassword || !confirmPassword) {
+    showToast("すべての項目を入力してください", "shield-alert");
+    return;
+  }
+  
+  if (newPassword.length < 4) {
+    showToast("パスワードは4文字以上で入力してください", "shield-alert");
+    return;
+  }
+  
+  if (newPassword !== confirmPassword) {
+    showToast("新しいパスワードと確認用パスワードが一致しません", "shield-alert");
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${API_URL}/admin/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+      },
+      body: JSON.stringify({ new_password: newPassword })
+    });
+    
+    if (res.ok) {
+      showToast("管理者のパスワードを変更しました", "check");
+      newPwdEl.value = '';
+      confirmPwdEl.value = '';
+    } else {
+      const err = await res.json();
+      showToast(err.detail || "パスワードの変更に失敗しました", "shield-alert");
+    }
+  } catch (e) {
+    showToast("サーバー通信エラー", "shield-alert");
+  }
+}
+
 // イベントリスニングバインディング
 document.addEventListener('DOMContentLoaded', () => {
   // 管理ボタンのバインド
@@ -532,6 +578,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (runCleanupBtn) {
     runCleanupBtn.onclick = runDatabaseCleanup;
   }
+  
+  // パスワード変更
+  const changePwdBtn = document.getElementById('changeAdminPasswordBtn');
+  if (changePwdBtn) {
+    changePwdBtn.onclick = changeAdminPassword;
+  }
 });
 
 // グローバルスコープに公開
@@ -543,3 +595,4 @@ window.deleteShareByAdmin = deleteShareByAdmin;
 window.downloadBackup = downloadBackup;
 window.restoreBackup = restoreBackup;
 window.deleteBackupFile = deleteBackupFile;
+window.changeAdminPassword = changeAdminPassword;
