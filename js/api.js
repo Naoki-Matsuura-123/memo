@@ -5,7 +5,7 @@
     if (typeof url === 'string' && url.startsWith(API_URL)) {
       options.headers = options.headers || {};
       const token = localStorage.getItem('token');
-      if (token && !url.includes('/auth/login') && !url.includes('/auth/register')) {
+      if (token && !url.includes('/auth/login') && !url.includes('/auth/register') && !url.includes('/auth/guest')) {
         options.headers['Authorization'] = `Bearer ${token}`;
       }
     }
@@ -13,7 +13,8 @@
     try {
       const response = await originalFetch(url, options);
       if (response.status === 401 && typeof url === 'string' && url.startsWith(API_URL)) {
-        if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+        console.warn(`Unauthorized (401) status returned from API: ${url}`);
+        if (!url.includes('/auth/login') && !url.includes('/auth/register') && !url.includes('/auth/guest')) {
           if (typeof handleAuthRequired === 'function') {
             handleAuthRequired();
           }
@@ -21,6 +22,7 @@
       }
       return response;
     } catch (e) {
+      console.error(`Fetch network error on ${url}:`, e);
       throw e;
     }
   };
