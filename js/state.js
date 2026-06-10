@@ -7,6 +7,7 @@ let state = {
   memos: [],
   folders: [], // フォルダ一覧
   tags: [], // タグ一覧
+  collapsedFolderIds: [], // 折りたたまれているフォルダIDのリスト
   activeMemoId: null,
   activeFolderId: 'all', // 'all' | 'uncategorized' | folder_id (number)
   activeTagId: null, // null | tag_id (number)

@@ -436,12 +436,28 @@ function renderFolders() {
   function renderSubTree(foldersList, depth) {
     foldersList.forEach(folder => {
       const count = getFolderMemoCount(folder.id);
+      const children = state.folders.filter(f => f.parent_id === folder.id);
+      const hasChildren = children.length > 0;
+      const isCollapsed = state.collapsedFolderIds.includes(folder.id);
+      
       const item = document.createElement('div');
       item.className = `folder-item ${state.activeFolderId === folder.id ? 'active' : ''}`;
-      item.style.paddingLeft = `${0.5 + depth * 0.75}rem`; // インデント
+      item.style.paddingLeft = `${0.25 + depth * 0.6}rem`; // インデントをコンパクトにしてアコーディオン矢印のスペースを確保
       
+      let toggleHtml = '';
+      if (hasChildren) {
+        toggleHtml = `
+          <button class="folder-toggle-btn" onclick="event.stopPropagation(); toggleFolderCollapse(${folder.id})">
+            <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" style="width:12px; height:12px;"></i>
+          </button>
+        `;
+      } else {
+        toggleHtml = `<span class="folder-toggle-spacer"></span>`;
+      }
+
       item.innerHTML = `
-        <div style="display:flex; align-items:center; gap:0.4rem; flex:1; min-width:0;">
+        <div style="display:flex; align-items:center; gap:0.3rem; flex:1; min-width:0;">
+          ${toggleHtml}
           <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent); flex-shrink: 0;"></i>
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escape(folder.name)}</span>
         </div>
@@ -454,9 +470,8 @@ function renderFolders() {
       item.addEventListener('click', () => selectFolder(folder.id));
       el.folderList.appendChild(item);
       
-      // 子フォルダを再帰描画
-      const children = state.folders.filter(f => f.parent_id === folder.id);
-      if (children.length > 0) {
+      // 子フォルダを再帰描画（自身が折りたたまれていない場合のみ）
+      if (hasChildren && !isCollapsed) {
         renderSubTree(children, depth + 1);
       }
     });
@@ -464,6 +479,17 @@ function renderFolders() {
   
   renderSubTree(roots, 0);
   safeCreateIcons();
+}
+
+function toggleFolderCollapse(folderId) {
+  const isCollapsed = state.collapsedFolderIds.includes(folderId);
+  if (isCollapsed) {
+    state.collapsedFolderIds = state.collapsedFolderIds.filter(id => id !== folderId);
+  } else {
+    state.collapsedFolderIds.push(folderId);
+  }
+  saveCache();
+  renderFolders();
 }
 
 function selectFolder(folderId) {
@@ -630,7 +656,14 @@ window.openCreateFolderModal = () => {
   el.folderModalTitle.textContent = "📁 フォルダを作成";
   el.folderNameInput.value = '';
   populateFolderParentSelect(null);
-  el.folderParentSelect.value = '';
+  
+  // 現在選択中のフォルダがあればそれをデフォルトの親フォルダとする
+  if (state.activeFolderId && typeof state.activeFolderId === 'number') {
+    el.folderParentSelect.value = state.activeFolderId;
+  } else {
+    el.folderParentSelect.value = '';
+  }
+  
   el.folderModal.classList.add('active');
   setTimeout(() => el.folderNameInput.focus(), 80);
 };
@@ -1223,6 +1256,7 @@ window.executeCommand = executeCommand;
 window.openCreateFolderModal = window.openCreateFolderModal; // ratings.js 内で定義されている
 window.openEditFolderModal = window.openEditFolderModal;
 window.openDeleteFolderModal = window.openDeleteFolderModal;
+window.toggleFolderCollapse = toggleFolderCollapse;
 
 // --- 縦タブ & ペイン制御ロジック ---
 function renderPaneTabs(paneId) {
