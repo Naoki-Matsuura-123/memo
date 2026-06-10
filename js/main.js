@@ -107,6 +107,9 @@ function renderList() {
 }
 
 function selectMemo(id, paneId = state.activePaneId) {
+  if (typeof paneId !== 'string') {
+    paneId = state.activePaneId;
+  }
   // 指定されたペインの開いているタブ情報を更新
   const paneState = state.panes[paneId];
   if (!paneState.openMemoIds.includes(id)) {
@@ -264,6 +267,9 @@ function closeWorkspace() {
 }
 
 function createMemo(paneId = state.activePaneId) {
+  if (typeof paneId !== 'string') {
+    paneId = state.activePaneId;
+  }
   const tempId = 'offline_' + Date.now();
   const nowStr = new Date().toISOString();
   
