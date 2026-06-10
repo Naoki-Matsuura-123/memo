@@ -459,6 +459,15 @@ function renderFolders() {
         toggleHtml = `<span class="folder-toggle-spacer"></span>`;
       }
 
+      const canManage = (state.currentUser && (state.currentUser.is_admin || folder.user_id === state.currentUser.id));
+      let actionButtonsHtml = '';
+      if (canManage) {
+        actionButtonsHtml = `
+          <button class="folder-action-btn" onclick="event.stopPropagation(); openEditFolderModal(${folder.id}, '${escape(folder.name)}')"><i data-lucide="edit-2" style="width:10px; height:10px;"></i></button>
+          <button class="folder-action-btn delete" onclick="event.stopPropagation(); openDeleteFolderModal(${folder.id})"><i data-lucide="trash-2" style="width:10px; height:10px;"></i></button>
+        `;
+      }
+
       item.innerHTML = `
         <div style="display:flex; align-items:center; gap:0.3rem; flex:1; min-width:0;">
           ${toggleHtml}
@@ -467,8 +476,7 @@ function renderFolders() {
         </div>
         <div style="display:flex; align-items:center; gap:0.3rem;">
           <span class="count">${count}</span>
-          <button class="folder-action-btn" onclick="event.stopPropagation(); openEditFolderModal(${folder.id}, '${escape(folder.name)}')"><i data-lucide="edit-2" style="width:10px; height:10px;"></i></button>
-          <button class="folder-action-btn delete" onclick="event.stopPropagation(); openDeleteFolderModal(${folder.id})"><i data-lucide="trash-2" style="width:10px; height:10px;"></i></button>
+          ${actionButtonsHtml}
         </div>
       `;
       item.addEventListener('click', () => selectFolder(folder.id));
