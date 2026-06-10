@@ -208,6 +208,9 @@
                 <button class="btn-secondary" id="left-toggleGridBtn" title="評価の表示設定" style="display: none;">
                   <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i><span>評価の確認</span>
                 </button>
+                <button class="btn-secondary" id="left-downloadBtn" title="メモをZIP(画像付き)でダウンロード" style="display: none;">
+                  <i data-lucide="download" style="width:14px; height:14px;"></i><span>ダウンロード</span>
+                </button>
                 <button class="btn-secondary" id="left-previewBtn">
                   <i data-lucide="eye" style="width:14px; height:14px;"></i><span>プレビュー</span>
                 </button>
@@ -315,6 +318,9 @@
                 </button>
                 <button class="btn-secondary" id="right-toggleGridBtn" title="評価の表示設定" style="display: none;">
                   <i data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i><span>評価の確認</span>
+                </button>
+                <button class="btn-secondary" id="right-downloadBtn" title="メモをZIP(画像付き)でダウンロード" style="display: none;">
+                  <i data-lucide="download" style="width:14px; height:14px;"></i><span>ダウンロード</span>
                 </button>
                 <button class="btn-secondary" id="right-previewBtn">
                   <i data-lucide="eye" style="width:14px; height:14px;"></i><span>プレビュー</span>
@@ -814,6 +820,14 @@
             <i data-lucide="users" style="width: 14px; height: 14px;"></i>
             <span>ユーザー管理</span>
           </button>
+          <button class="admin-menu-item" onclick="switchAdminTab('memos')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+            <span>全メモ管理</span>
+          </button>
+          <button class="admin-menu-item" onclick="switchAdminTab('roles')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
+            <span>ロール管理</span>
+          </button>
           <button class="admin-menu-item" onclick="switchAdminTab('registration')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
             <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
             <span>新規登録制限</span>
@@ -825,6 +839,10 @@
           <button class="admin-menu-item" onclick="switchAdminTab('backup')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
             <i data-lucide="database" style="width: 14px; height: 14px;"></i>
             <span>バックアップ管理</span>
+          </button>
+          <button class="admin-menu-item" onclick="switchAdminTab('audit')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i>
+            <span>管理操作ログ</span>
           </button>
           <button class="admin-menu-item" onclick="switchAdminTab('maintenance')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
             <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
@@ -876,7 +894,7 @@
           <!-- 2. ユーザー管理タブ -->
           <div id="adminTab-users" class="admin-tab-content" style="display: none;">
             <div style="margin-bottom: 1rem; color:var(--text-sub); font-size: 0.85rem; line-height: 1.5;">
-              登録されている一般ユーザーアカウントおよび関連データを完全に削除できます。<br>
+              登録されている一般ユーザーアカウントを管理（凍結、解除、削除）できます。<br>
               <span style="color:var(--danger); font-weight:600;">※警告: ユーザーを削除すると、そのユーザーが作成したメモ、フォルダ、および評価データもすべて完全に削除されます。</span>
             </div>
             
@@ -886,12 +904,74 @@
                   <tr style="background: var(--sidebar-bg); border-bottom: 1px solid var(--panel-border); color: var(--text-main);">
                     <th style="padding: 0.5rem 0.75rem;">ユーザー名</th>
                     <th style="padding: 0.5rem 0.75rem;">表示名</th>
+                    <th style="padding: 0.5rem 0.75rem;">ストレージ使用量</th>
+                    <th style="padding: 0.5rem 0.75rem;">状態</th>
                     <th style="padding: 0.5rem 0.75rem;">権限</th>
                     <th style="padding: 0.5rem 0.75rem; text-align: right;">アクション</th>
                   </tr>
                 </thead>
                 <tbody id="adminUserTableBody">
                   <!-- JavaScriptによって動的にユーザーリストが生成されます -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 全メモ管理タブ -->
+          <div id="adminTab-memos" class="admin-tab-content" style="display: none;">
+            <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+              <input type="text" id="adminMemoSearchInput" class="form-input" placeholder="メモのタイトルまたは本文で検索..." style="font-size:0.8rem; height:34px;">
+              <button class="btn-primary" id="adminMemoSearchBtn" style="width:auto; padding:0 1rem; height:34px; font-size:0.8rem;">検索</button>
+            </div>
+            <div style="border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden; max-height: 300px; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                <thead>
+                  <tr style="background: var(--sidebar-bg); border-bottom: 1px solid var(--panel-border); color: var(--text-main);">
+                    <th style="padding: 0.5rem 0.6rem;">タイトル</th>
+                    <th style="padding: 0.5rem 0.6rem;">所有者</th>
+                    <th style="padding: 0.5rem 0.6rem;">作成日時</th>
+                    <th style="padding: 0.5rem 0.6rem; text-align: right;">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="adminMemoTableBody">
+                  <!-- JavaScriptで動的に生成 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ロール管理タブ -->
+          <div id="adminTab-roles" class="admin-tab-content" style="display: none;">
+            <div style="margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; background: var(--sidebar-bg); padding: 1rem; border: 1px solid var(--panel-border); border-radius: 8px;">
+              <h4 style="font-weight:600; font-size:0.9rem; color:var(--text-main); margin:0;">新規ロールの作成</h4>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="newRoleNameInput" class="form-input" placeholder="ロール名 (例: editor)" style="font-size:0.8rem; height:34px;">
+                <input type="text" id="newRoleDescInput" class="form-input" placeholder="説明 (例: 編集者グループ)" style="font-size:0.8rem; height:34px;">
+                <button class="btn-primary" id="createRoleBtn" style="width:auto; padding:0 1rem; height:34px; font-size:0.8rem;">作成</button>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+              <div style="flex: 1;">
+                <h4 style="font-weight:600; font-size:0.9rem; color:var(--text-main); margin-bottom: 0.5rem;">所属ユーザーの追加</h4>
+                <div style="display: flex; gap: 0.5rem;">
+                  <select id="adminRoleSelect" class="form-input" style="font-size:0.8rem; height:34px;"></select>
+                  <input type="text" id="adminRoleUsernameInput" class="form-input" placeholder="ユーザー名を入力..." style="font-size:0.8rem; height:34px;">
+                  <button class="btn-primary" id="adminAddUserToRoleBtn" style="width:auto; padding:0 1rem; height:34px; font-size:0.8rem;">追加</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden; max-height: 250px; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                <thead>
+                  <tr style="background: var(--sidebar-bg); border-bottom: 1px solid var(--panel-border); color: var(--text-main);">
+                    <th style="padding: 0.5rem 0.6rem;">ロール名</th>
+                    <th style="padding: 0.5rem 0.6rem;">所属メンバー</th>
+                  </tr>
+                </thead>
+                <tbody id="adminRoleTableBody">
+                  <!-- JavaScriptで動的に生成 -->
                 </tbody>
               </table>
             </div>
@@ -994,6 +1074,29 @@
             </div>
           </div>
 
+          <!-- 管理操作ログタブ -->
+          <div id="adminTab-audit" class="admin-tab-content" style="display: none;">
+            <div style="margin-bottom: 1rem; color:var(--text-sub); font-size: 0.85rem;">
+              管理者アカウントによる過去のセキュリティ・管理アクションの監査ログです。
+            </div>
+            <div style="border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden; max-height: 300px; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                <thead>
+                  <tr style="background: var(--sidebar-bg); border-bottom: 1px solid var(--panel-border); color: var(--text-main);">
+                    <th style="padding: 0.5rem 0.6rem; width: 140px;">日時</th>
+                    <th style="padding: 0.5rem 0.6rem; width: 80px;">管理者</th>
+                    <th style="padding: 0.5rem 0.6rem; width: 120px;">アクション</th>
+                    <th style="padding: 0.5rem 0.6rem; width: 100px;">対象</th>
+                    <th style="padding: 0.5rem 0.6rem;">詳細</th>
+                  </tr>
+                </thead>
+                <tbody id="adminAuditTableBody">
+                  <!-- JavaScriptで動的に生成 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <!-- 6. データベースメンテナンス（最適化）タブ -->
           <div id="adminTab-maintenance" class="admin-tab-content" style="display: none;">
             <div style="margin-bottom: 1.5rem; color:var(--text-sub); font-size: 0.85rem; line-height: 1.5;">
@@ -1002,11 +1105,14 @@
               <strong>2. SQLite VACUUMの実行:</strong> 削除済みデータの空き領域をクリーンアップし、データベースファイルの容量を縮小します。
             </div>
 
-            <div style="background: var(--sidebar-bg); border: 1px solid var(--panel-border); padding: 1.5rem; border-radius: 8px; text-align:center; margin-bottom: 1.5rem;">
+            <div style="background: var(--sidebar-bg); border: 1px solid var(--panel-border); padding: 1.5rem; border-radius: 8px; text-align:center; margin-bottom: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; justify-content: center;">
               <button class="btn-primary" id="runDatabaseCleanupBtn" style="font-weight:600; cursor:pointer; background-color:var(--accent); border-color:var(--accent); padding:0.5rem 1.5rem; height:auto; display:inline-flex; align-items:center; gap:0.5rem;">
                 <i data-lucide="refresh-cw" style="width:16px; height:16px;"></i>データベースのクリーンアップ & 最適化を実行
               </button>
-              <div id="cleanupResult" style="margin-top:1rem; font-size:0.85rem; color:var(--success); font-weight:500;"></div>
+              <button class="btn-primary" id="runUploadsCleanupBtn" style="font-weight:600; cursor:pointer; background-color:var(--warning); border-color:var(--warning); padding:0.5rem 1.5rem; height:auto; display:inline-flex; align-items:center; gap:0.5rem;">
+                <i data-lucide="image" style="width:16px; height:16px;"></i>不要（孤立）画像の物理削除を実行
+              </button>
+              <div id="cleanupResult" style="margin-top:0.5rem; font-size:0.85rem; color:var(--success); font-weight:500;"></div>
             </div>
 
             <hr style="border:0; border-top:1px solid var(--panel-border); margin: 1.5rem 0;">
@@ -1033,6 +1139,23 @@
       <!-- モーダルフッター -->
       <div class="modal-actions" style="border-top:1px solid var(--panel-border); padding:1rem 1.5rem; margin-top:0; background: var(--bg-glass);">
         <button class="btn-secondary" id="closeAdminBtn">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 所有権移転モーダル -->
+  <div class="modal" id="transferOwnershipModal">
+    <div class="modal-content" style="width: 380px;">
+      <div class="modal-title">メモの所有権を移転</div>
+      <div style="margin:1rem 0;">
+        <div class="form-group">
+          <label class="form-label" for="transferTargetUserSelect">移転先ユーザー</label>
+          <select class="form-input" id="transferTargetUserSelect" style="width:100%; cursor:pointer;"></select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="cancelTransferBtn">キャンセル</button>
+        <button class="btn-primary" id="confirmTransferBtn">移転する</button>
       </div>
     </div>
   </div>

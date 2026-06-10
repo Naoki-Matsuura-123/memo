@@ -203,6 +203,7 @@ function getPaneEl(paneId) {
     shareBtn: document.getElementById(`${paneId}-shareBtn`),
     previewBtn: document.getElementById(`${paneId}-previewBtn`),
     deleteBtn: document.getElementById(`${paneId}-deleteBtn`),
+    downloadBtn: document.getElementById(`${paneId}-downloadBtn`),
     memoFolderContainer: document.getElementById(`${paneId}-memoFolderContainer`),
     memoFolderSelect: document.getElementById(`${paneId}-memoFolderSelect`),
     memoTagContainer: document.getElementById(`${paneId}-memoTagContainer`),

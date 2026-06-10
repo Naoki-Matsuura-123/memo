@@ -1,10 +1,15 @@
 function processAndPasteImage(file, qualitySetting) {
+  // 1. オフラインのチェック
+  if (!state.isOnline) {
+    const dummySvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23f0f0f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%23a0a0a0">オフライン仮画像</text></svg>`;
+    insertImageMarkdown(dummySvg);
+    showToast("オフラインのため仮画像を挿入しました。レイアウト調整用です。", 'image');
+    return;
+  }
+
+  // 2. オンライン時のアップロード処理
   if (qualitySetting === 'original') {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      insertImageMarkdown(event.target.result);
-    };
-    reader.readAsDataURL(file);
+    uploadImageFile(file, file.name || 'image.jpg');
     return;
   }
 
@@ -13,16 +18,14 @@ function processAndPasteImage(file, qualitySetting) {
   reader.onload = (event) => {
     const img = new Image();
     img.onload = () => {
-      // デフォルトおよびカスタム（高画質例外）サイズの設定値
-      let maxWidth = 1000;
-      let quality = 0.65; // 軽量標準: JPEG品質 65% 非可逆圧縮
+      let maxWidth = 1200;
+      let quality = 0.75;
       
       if (qualitySetting === 'high') {
         maxWidth = 2000;
-        quality = 0.82; // 高画質設定: JPEG品質 82%
+        quality = 0.85;
       }
 
-      // アスペクト比を維持したリサイズ計算
       let width = img.width;
       let height = img.height;
       if (width > maxWidth) {
@@ -30,41 +33,88 @@ function processAndPasteImage(file, qualitySetting) {
         width = maxWidth;
       }
 
-      // HTML5 Canvasによる圧縮エンコード
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       
-      // 白背景で塗りつぶす (PNG透過時の黒化防止)
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, width, height);
       
       ctx.drawImage(img, 0, 0, width, height);
 
-      // 非可逆JPEGデータURLとして出力
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-      insertImageMarkdown(compressedDataUrl);
+      canvas.toBlob((blob) => {
+        if (blob) {
+          uploadImageFile(blob, file.name || 'compressed_image.jpg');
+        } else {
+          showToast("画像圧縮に失敗しました", 'shield-alert');
+        }
+      }, 'image/jpeg', quality);
     };
     img.src = event.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-function insertImageMarkdown(dataUrl) {
+function uploadImageFile(blob, filename) {
+  if (!state.token) {
+    showToast("ログインセッションが見つかりません", 'shield-alert');
+    return;
+  }
+
+  showToast("画像をアップロード中...", 'refresh-cw');
+
+  const formData = new FormData();
+  formData.append('file', blob, filename);
+
+  fetch(`${API_URL}/uploads`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${state.token}`,
+      'ngrok-skip-browser-warning': 'true'
+    },
+    body: formData
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Upload failed");
+    return res.json();
+  })
+  .then(data => {
+    if (data && data.url) {
+      insertImageMarkdown(data.url);
+      showToast("画像のアップロードが完了しました！", 'check');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    showToast("画像のアップロードに失敗しました", 'shield-alert');
+  });
+}
+
+function insertImageMarkdown(imageUrl) {
   const textarea = el.memoContent;
   textarea.focus();
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
   const text = textarea.value;
   
-  const markdownTag = `\n![貼り付け画像](${dataUrl})\n`;
-  textarea.value = text.substring(0, start) + markdownTag + text.substring(end);
-  textarea.selectionStart = textarea.selectionEnd = start + markdownTag.length;
+  const selectedText = text.substring(start, end).trim();
+  let markdownTag = `![貼り付け画像|fit](${imageUrl})`;
   
-  // inputイベントを手動で発火して自動保存とプレビュー更新を即トリガー
+  if (selectedText.startsWith('![') && selectedText.includes('](')) {
+    const altMatch = selectedText.match(/!\[(.*?)\]/);
+    const altText = altMatch ? altMatch[1] : '貼り付け画像|fit';
+    markdownTag = `![${altText}](${imageUrl})`;
+    
+    textarea.value = text.substring(0, start) + markdownTag + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + markdownTag.length;
+  } else {
+    const fullTag = `\n${markdownTag}\n`;
+    textarea.value = text.substring(0, start) + fullTag + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + fullTag.length;
+  }
+  
   textarea.dispatchEvent(new Event('input'));
-  showToast("画像を非可逆圧縮し、超軽量データとして埋め込みました！", 'image');
 }
 
 function syncPreviewUI(paneId = state.activePaneId) {
@@ -192,19 +242,73 @@ function compileMarkdown(paneId = state.activePaneId) {
   });
 
   // 後処理: 画像のサイズ指定 ![alt|width](url)
+  // まず、memo-grid 内の img を包んでいる不要な p タグを取り除く（marked.jsの仕様対策）
+  const gridImages = pel.markdownPreview.querySelectorAll('.memo-grid img');
+  gridImages.forEach(img => {
+    const parent = img.parentElement;
+    if (parent && parent.tagName === 'P') {
+      parent.replaceWith(img);
+    }
+  });
+
   const images = pel.markdownPreview.querySelectorAll('img');
   images.forEach(img => {
     const alt = img.getAttribute('alt') || '';
-    img.style.cssText = "max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0.75rem 0; display: block;";
     
-    if (alt.includes('|')) {
-      const parts = alt.split('|');
-      const realAlt = parts[0].trim();
-      const width = parts[1].trim();
+    // この画像がグリッド段組テンプレート内にあるかどうかチェック
+    const inGrid = img.closest('.memo-grid') !== null;
+    
+    if (inGrid) {
+      // すでにラップ済み（再描画時）なら多重ラップを防ぐ
+      if (img.parentElement.classList.contains('grid-card-img-container')) {
+        return;
+      }
       
-      img.setAttribute('alt', realAlt);
-      const w = /^\d+$/.test(width) ? `${width}px` : width;
-      img.style.width = w;
+      let realAlt = alt;
+      let widthSetting = 'fit';
+      if (alt.includes('|')) {
+        const parts = alt.split('|');
+        realAlt = parts[0].trim();
+        widthSetting = parts[1].trim();
+      }
+      
+      // カード構成要素の動的生成
+      const card = document.createElement('div');
+      card.className = 'grid-card';
+      
+      const imgContainer = document.createElement('div');
+      imgContainer.className = 'grid-card-img-container';
+      
+      // DOM操作: 画像をコンテナとカードでラップ
+      img.parentNode.insertBefore(card, img);
+      imgContainer.appendChild(img);
+      card.appendChild(imgContainer);
+      
+      // システムのデフォルトプレースホルダーテキストや fit キーワードを除外して説明文のみを表示
+      const cleanText = realAlt.replace(/^(貼り付け画像|仮画像|ここに説明テキストを入力)$/, '').trim();
+      if (cleanText) {
+        const p = document.createElement('p');
+        p.className = 'card-text';
+        p.textContent = cleanText;
+        card.appendChild(p);
+      }
+      
+      // グリッド内の画像はCSSの object-fit: contain で制御するため、スタイルの個別初期化
+      img.style.cssText = "";
+      img.setAttribute('alt', cleanText);
+    } else {
+      // 通常の画像レイアウト（block表示）
+      img.style.cssText = "max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 0.75rem 0; display: block;";
+      
+      if (alt.includes('|')) {
+        const parts = alt.split('|');
+        const realAlt = parts[0].trim();
+        const width = parts[1].trim();
+        
+        img.setAttribute('alt', realAlt);
+        const w = /^\d+$/.test(width) ? `${width}px` : width;
+        img.style.width = w;
+      }
     }
   });
 

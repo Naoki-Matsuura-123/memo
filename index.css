@@ -1967,3 +1967,98 @@
       background: rgba(128, 128, 128, 0.08);
       border-color: rgba(128, 128, 128, 0.2);
     }
+
+    /* --- グリッド段組テンプレート用スタイル --- */
+    .memo-grid {
+      display: grid;
+      gap: 1rem;
+      margin: 1.25rem 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .memo-grid.grid-cols-1 {
+      grid-template-columns: 1fr;
+    }
+    .memo-grid.grid-cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .memo-grid.grid-cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-card {
+      display: flex;
+      flex-direction: column;
+      border-radius: 8px;
+      border: 1px solid var(--panel-border);
+      overflow: hidden;
+      background-color: rgba(128, 128, 128, 0.04);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .grid-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+    body.theme-light .grid-card {
+      background-color: #f6f8fa;
+      border-color: #d0d7de;
+    }
+
+    /* アスペクト比ロックコンテナ */
+    .grid-card-img-container {
+      width: 100%;
+      position: relative;
+      background-color: rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    body.theme-light .grid-card-img-container {
+      background-color: #eaeff2;
+    }
+
+    /* 各比率定義 */
+    .aspect-standard .grid-card-img-container {
+      aspect-ratio: 4 / 3;
+    }
+    .aspect-portrait .grid-card-img-container {
+      aspect-ratio: 9 / 16;
+    }
+    .aspect-landscape .grid-card-img-container {
+      aspect-ratio: 3 / 1;
+    }
+
+    /* 画像のcontainフィットと背景余白 */
+    .grid-card-img-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* カードテキスト */
+    .card-text {
+      padding: 0.6rem 0.85rem;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      margin: 0 !important;
+      color: var(--text-sub) !important;
+      background: rgba(0, 0, 0, 0.1);
+      border-top: 1px solid var(--panel-border);
+      box-sizing: border-box;
+      
+      /* 2行制限 & はみ出しカット */
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    body.theme-light .card-text {
+      background: #ffffff;
+      border-top-color: #d0d7de;
+    }
