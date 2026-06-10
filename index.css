@@ -1895,3 +1895,75 @@
       display: inline-block;
       flex-shrink: 0;
     }
+
+    /* --- 共有モードトグルスイッチのプレミアムデザイン --- */
+    .share-toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+      vertical-align: middle;
+    }
+    .share-toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .share-toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(128, 128, 128, 0.2);
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 20px;
+      border: 1px solid var(--panel-border);
+    }
+    .share-toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background-color: var(--text-sub);
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    .share-toggle-switch input:checked + .share-toggle-slider {
+      background-color: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .share-toggle-switch input:checked + .share-toggle-slider:before {
+      transform: translateX(20px);
+      background-color: var(--danger);
+    }
+    .share-toggle-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      white-space: nowrap;
+      transition: color 0.2s;
+      width: 50px;
+      display: inline-block;
+      user-select: none;
+    }
+    .share-mode-toggle-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.5rem;
+      background: rgba(128, 128, 128, 0.04);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      height: 32px;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+    .share-mode-toggle-wrapper:hover {
+      background: rgba(128, 128, 128, 0.08);
+      border-color: rgba(128, 128, 128, 0.2);
+    }

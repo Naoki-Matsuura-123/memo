@@ -329,6 +329,18 @@ function renderShareList(shares) {
           <i data-lucide="x" style="width:14px; height:14px;"></i>
         </button>
       `;
+    } else if (share.type === 'everyone') {
+      infoHtml = `
+        <div class="share-user-info">
+          <span class="share-user-display" style="color: var(--warning);">🌐 全体（全員）</span>
+          <span class="share-user-name">（全員に適用）</span>
+        </div>
+      `;
+      removeBtnHtml = `
+        <button class="btn-remove-share" title="共有を解除" onclick="removeShare('everyone', 0)">
+          <i data-lucide="x" style="width:14px; height:14px;"></i>
+        </button>
+      `;
     }
     
     row.innerHTML = `
@@ -348,7 +360,7 @@ async function addShare() {
   const target = el.shareTargetInput.value.trim();
   const permission = el.sharePermissionSelect.value;
   
-  if (!target) {
+  if (type !== 'everyone' && !target) {
     showToast(type === 'user' ? "共有先のユーザー名を入力してください" : "共有先のロール名を入力してください", 'shield-alert');
     return;
   }
@@ -356,8 +368,10 @@ async function addShare() {
   const reqBody = { permission };
   if (type === 'user') {
     reqBody.username = target;
-  } else {
+  } else if (type === 'role') {
     reqBody.role_name = target;
+  } else if (type === 'everyone') {
+    reqBody.everyone = true;
   }
   
   try {
@@ -371,7 +385,8 @@ async function addShare() {
     });
     
     if (res.ok) {
-      showToast(`${target} とメモを共有しました！`, 'check');
+      const msg = type === 'everyone' ? "全員とメモを共有しました！" : `${target} とメモを共有しました！`;
+      showToast(msg, 'check');
       el.shareTargetInput.value = '';
       await fetchShareList();
     } else {
@@ -384,11 +399,16 @@ async function addShare() {
 }
 
 async function removeShare(type, targetId) {
-  const confirmMsg = type === 'user' ? "このユーザーとの共有を解除しますか？" : "このロールとの共有を解除しますか？";
+  const confirmMsg = type === 'user' ? "このユーザーとの共有を解除しますか？" : 
+                     type === 'role' ? "このロールとの共有を解除しますか？" : 
+                     "全員との共有を解除しますか？";
   if (!confirm(confirmMsg)) return;
   
   try {
-    const endpoint = `${API_URL}/memos/${state.activeMemoId}/shares/${type}/${targetId}`;
+    const endpoint = type === 'everyone' 
+      ? `${API_URL}/memos/${state.activeMemoId}/shares/everyone`
+      : `${API_URL}/memos/${state.activeMemoId}/shares/${type}/${targetId}`;
+      
     const res = await fetch(endpoint, {
       method: 'DELETE',
       headers: { 'ngrok-skip-browser-warning': 'true' }
@@ -447,8 +467,13 @@ document.addEventListener('DOMContentLoaded', () => {
   el.shareTypeSelect.addEventListener('change', () => {
     if (el.shareTypeSelect.value === 'user') {
       el.shareTargetInput.placeholder = 'ユーザー名を入力...';
-    } else {
+      el.shareTargetInput.style.display = 'block';
+    } else if (el.shareTypeSelect.value === 'role') {
       el.shareTargetInput.placeholder = 'ロール名を入力...';
+      el.shareTargetInput.style.display = 'block';
+    } else if (el.shareTypeSelect.value === 'everyone') {
+      el.shareTargetInput.placeholder = '全員（入力不要）';
+      el.shareTargetInput.style.display = 'none';
     }
     el.shareTargetInput.value = '';
   });

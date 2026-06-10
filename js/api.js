@@ -151,7 +151,7 @@ async function processSyncQueue() {
             'Content-Type': 'application/json',
             'ngrok-skip-browser-warning': 'true'
           },
-          body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id, tags: item.tags || [] })
+          body: JSON.stringify({ title: item.title, content: item.content, folder_id: item.folder_id, tags: item.tags || [], share_mode: item.share_mode || 'blacklist' })
         });
         if (res.ok) {
           const resData = await res.json();
@@ -218,7 +218,7 @@ async function processSyncQueue() {
   }
 }
 
-function addQueue(type, id, title = '', content = '', folderId = null, tags = []) {
+function addQueue(type, id, title = '', content = '', folderId = null, tags = [], shareMode = 'blacklist') {
   if (type === 'UPDATE') {
     const idx = state.syncQueue.findIndex(q => q.id === id && q.type === 'UPDATE');
     if (idx !== -1) {
@@ -226,11 +226,12 @@ function addQueue(type, id, title = '', content = '', folderId = null, tags = []
       state.syncQueue[idx].content = content;
       state.syncQueue[idx].folder_id = folderId;
       state.syncQueue[idx].tags = tags;
+      if (shareMode) state.syncQueue[idx].share_mode = shareMode;
       saveCache();
       return;
     }
   }
-  state.syncQueue.push({ type, id, title, content, folder_id: folderId, tags: tags });
+  state.syncQueue.push({ type, id, title, content, folder_id: folderId, tags: tags, share_mode: shareMode });
   saveCache();
 }
 

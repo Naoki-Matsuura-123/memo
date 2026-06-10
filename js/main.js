@@ -275,12 +275,16 @@ function createMemo(paneId = state.activePaneId) {
   
   const preFolderId = (state.activeFolderId !== 'all' && state.activeFolderId !== 'uncategorized') ? state.activeFolderId : null;
 
+  const shareModeToggle = document.getElementById('defaultShareModeToggle');
+  const shareMode = (shareModeToggle && shareModeToggle.checked) ? 'whitelist' : 'blacklist';
+
   const newMemo = {
     id: tempId,
     title: '新規メモ',
     content: '',
     folder_id: preFolderId,
     tags: [],
+    share_mode: shareMode,
     created_at: nowStr,
     updated_at: nowStr
   };
@@ -297,7 +301,7 @@ function createMemo(paneId = state.activePaneId) {
   syncPreviewUI(paneId);
 
   // 同期キュー登録
-  addQueue('CREATE', tempId, newMemo.title, newMemo.content, preFolderId);
+  addQueue('CREATE', tempId, newMemo.title, newMemo.content, preFolderId, [], shareMode);
 
   if (state.isOnline) {
     processSyncQueue();
@@ -964,6 +968,20 @@ function setupEvents() {
     el.voiceBtn.addEventListener('click', toggleListening);
   }
   el.createBtn.addEventListener('click', createMemo);
+  
+  const shareToggle = document.getElementById('defaultShareModeToggle');
+  const shareLabel = document.getElementById('defaultShareModeLabel');
+  if (shareToggle && shareLabel) {
+    shareToggle.addEventListener('change', () => {
+      if (shareToggle.checked) {
+        shareLabel.textContent = '非公開';
+        shareLabel.style.color = 'var(--danger)';
+      } else {
+        shareLabel.textContent = '全員公開';
+        shareLabel.style.color = 'var(--text-sub)';
+      }
+    });
+  }
   
   el.cancelDeleteBtn.addEventListener('click', () => el.deleteModal.classList.remove('active'));
   el.confirmDeleteBtn.addEventListener('click', confirmDelete);

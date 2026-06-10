@@ -40,9 +40,18 @@
 
       <!-- アクション・検索・並び替え -->
       <div class="sidebar-actions">
-        <button class="btn-primary" id="createBtn">
-          <i data-lucide="plus" style="width:16px; height:16px;"></i>新規作成
-        </button>
+        <div class="create-action-row" style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; width:100%; margin-bottom:0.5rem;">
+          <button class="btn-primary" id="createBtn" style="flex:1;">
+            <i data-lucide="plus" style="width:16px; height:16px;"></i>新規作成
+          </button>
+          <div class="share-mode-toggle-wrapper" title="新規メモ作成時のデフォルト共有モード（ブラックリスト＝全員公開 / ホワイトリスト＝非公開）" style="display:flex; align-items:center; gap:0.3rem; flex-shrink:0;">
+            <label class="share-toggle-switch">
+              <input type="checkbox" id="defaultShareModeToggle">
+              <span class="share-toggle-slider"></span>
+            </label>
+            <span id="defaultShareModeLabel" class="share-toggle-label">全員公開</span>
+          </div>
+        </div>
         <div style="display:flex; gap:0.5rem; width:100%;">
           <input type="search" class="search-input" id="searchBar" placeholder="メモを検索..." style="flex: 1;" autocomplete="off">
           <select class="theme-select" id="sortSelect" style="width: auto; padding: 0.35rem 0.5rem;" title="並び替え">
@@ -761,6 +770,7 @@
         <select class="form-input" id="shareTypeSelect" style="width:110px; cursor:pointer;">
           <option value="user">👤 ユーザー</option>
           <option value="role">👥 ロール</option>
+          <option value="everyone">🌐 全体（全員）</option>
         </select>
         <input type="text" class="form-input" id="shareTargetInput" placeholder="ユーザー名を入力..." style="flex:1;" list="shareUserDatalist">
         <datalist id="shareUserDatalist"></datalist>
