@@ -14,6 +14,77 @@ async function fetchCurrentUser() {
   }
 }
 
+// ユーザー・ロール情報を非同期でロード・キャッシュする
+async function ensureUsersAndRolesLoaded() {
+  if (state.cachedUsers && state.cachedUsers.length > 0) return;
+  try {
+    const usersRes = await fetch(`${API_URL}/users`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (usersRes.ok) {
+      state.cachedUsers = await usersRes.json();
+    }
+    const rolesRes = await fetch(`${API_URL}/roles`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (rolesRes.ok) {
+      state.cachedRoles = await rolesRes.json();
+      state.cachedRoleUsers = {};
+      for (const role of state.cachedRoles) {
+        const membersRes = await fetch(`${API_URL}/roles/${role.id}/users`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        if (membersRes.ok) {
+          const members = await membersRes.json();
+          state.cachedRoleUsers[role.id] = members.map(m => m.id);
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load users/roles for filter", e);
+  }
+}
+
+// フィルターのセレクトボックスの選択肢を動的に構築する
+function populateRatingFilterSelect(paneId) {
+  const pel = getPaneEl(paneId);
+  if (!pel.ratingFilterSelect) return;
+  const currentVal = state.panes[paneId].ratingFilter || 'all';
+
+  pel.ratingFilterSelect.innerHTML = '<option value="all">全員</option><option value="me">自分のみ</option>';
+
+  if (state.cachedRoles && state.cachedRoles.length > 0) {
+    const optGroupRoles = document.createElement('optgroup');
+    optGroupRoles.label = "ロール別";
+    state.cachedRoles.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = `role_${r.id}`;
+      opt.textContent = `${r.name}`;
+      optGroupRoles.appendChild(opt);
+    });
+    pel.ratingFilterSelect.appendChild(optGroupRoles);
+  }
+
+  if (state.cachedUsers && state.cachedUsers.length > 0) {
+    const optGroupUsers = document.createElement('optgroup');
+    optGroupUsers.label = "ユーザー別";
+    state.cachedUsers.forEach(u => {
+      if (u.id !== state.currentUserId) {
+        const opt = document.createElement('option');
+        opt.value = `user_${u.id}`;
+        opt.textContent = `${u.display_name} (@${u.username})`;
+        optGroupUsers.appendChild(opt);
+      }
+    });
+    pel.ratingFilterSelect.appendChild(optGroupUsers);
+  }
+
+  pel.ratingFilterSelect.value = currentVal;
+}
+
+// フィルター変更ハンドラー
+function changeRatingFilter(paneId) {
+  const pel = getPaneEl(paneId);
+  if (!pel.ratingFilterSelect) return;
+  state.panes[paneId].ratingFilter = pel.ratingFilterSelect.value;
+  renderRatingSummary(paneId);
+}
+window.changeRatingFilter = changeRatingFilter;
+
 async function loadRatingsForMemo(memoId, paneId = state.activePaneId) {
   const pel = getPaneEl(paneId);
   if (!state.isOnline || typeof memoId === 'string' || !memoId) {
@@ -31,11 +102,17 @@ async function loadRatingsForMemo(memoId, paneId = state.activePaneId) {
     if (ratingsRes.ok) {
       state.currentRatings = await ratingsRes.json();
     }
-    // 3. サマリーのロード
-    const summaryRes = await fetch(`${API_URL}/memos/${memoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-    if (summaryRes.ok) {
-      state.currentSummary = await summaryRes.json();
+    // 3. 可視性(トグルグリッド)設定のロード
+    const visRes = await fetch(`${API_URL}/memos/${memoId}/visibility`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (visRes.ok) {
+      const visData = await visRes.json();
+      state.currentVisibilityGrid = visData.grid || [];
     }
+    
+    // 4. ユーザー・ロール情報のキャッシュロードとドロップダウン設定
+    await ensureUsersAndRolesLoaded();
+    populateRatingFilterSelect(paneId);
+
     renderRatingPanel(paneId);
   } catch (e) {
     console.error('Load ratings error:', e);
@@ -44,6 +121,9 @@ async function loadRatingsForMemo(memoId, paneId = state.activePaneId) {
 }
 
 function renderRatingPanel(paneId = state.activePaneId) {
+  if (!state.currentUserId && state.currentUser) {
+    state.currentUserId = state.currentUser.id;
+  }
   const pel = getPaneEl(paneId);
   if (!pel.ratingPanel) return;
   const container = pel.ratingAxesList;
@@ -186,6 +266,9 @@ function renderNumericInput(container, axisId, myRating, paneId) {
 
 // 評価を送信（upsert）
 async function submitRating(axisId, rawValue, paneId = state.activePaneId) {
+  if (!state.currentUserId && state.currentUser) {
+    state.currentUserId = state.currentUser.id;
+  }
   if (!state.isOnline) {
     showToast('オフライン時は評価を送信できません', 'shield-alert');
     return;
@@ -268,36 +351,86 @@ async function saveAxis() {
 }
 
 // 集計バッジのレンダリング
-function renderRatingSummary() {
-  const row = el.ratingSummaryRow;
-  if (state.currentSummary.length === 0) {
+function renderRatingSummary(paneId = state.activePaneId) {
+  if (typeof paneId !== 'string') {
+    paneId = state.activePaneId;
+  }
+  const pel = getPaneEl(paneId);
+  const row = pel.ratingSummaryRow;
+  if (!row) return;
+
+  if (state.currentAxes.length === 0) {
     row.style.display = 'none';
     return;
   }
   row.style.display = 'flex';
   row.innerHTML = '';
 
-  state.currentSummary.forEach(s => {
-    const badge = document.createElement('div');
-    badge.className = 'rating-summary-badge';
+  const filterVal = state.panes[paneId].ratingFilter || 'all';
 
-    let displayValue = '—';
-    if (s.average_score !== null && s.average_score !== undefined) {
-      if (s.method === 'star') {
-        displayValue = `★${s.average_score.toFixed(1)}`;
-      } else if (s.method === 'tier') {
-        if (s.tier_distribution) {
-          const maxTier = Object.entries(s.tier_distribution).sort((a, b) => b[1] - a[1])[0];
-          displayValue = maxTier ? maxTier[0] : '—';
-        } else {
-          displayValue = `${s.average_score.toFixed(1)}`;
-        }
-      } else {
-        displayValue = `${s.average_score.toFixed(1)}`;
+  state.currentAxes.forEach(axis => {
+    const axisData = state.currentRatings.find(r => r.axis && r.axis.id === axis.id);
+    const allRatings = axisData ? axisData.ratings : [];
+
+    // ① 可視性設定(トグルグリッド)と、② 集計フィルターで対象ユーザーを絞り込む
+    const filteredRatings = allRatings.filter(r => {
+      // 可視性トグルグリッドのチェック
+      // 自分の評価は常にON。他人の評価は vis.visible !== 0 の場合のみ表示
+      if (r.user_id !== state.currentUserId) {
+        const userVis = state.currentVisibilityGrid ? state.currentVisibilityGrid.find(g => g.user_id === r.user_id) : null;
+        const isVisible = !userVis || userVis.axes[String(axis.id)] !== 0;
+        if (!isVisible) return false;
+      }
+
+      // 集計対象フィルター(ドロップダウン)のチェック
+      if (filterVal === 'all') {
+        return true;
+      } else if (filterVal === 'me') {
+        return r.user_id === state.currentUserId;
+      } else if (filterVal.startsWith('role_')) {
+        const roleId = parseInt(filterVal.substring(5), 10);
+        const memberIds = state.cachedRoleUsers[roleId] || [];
+        return memberIds.includes(r.user_id);
+      } else if (filterVal.startsWith('user_')) {
+        const targetUserId = parseInt(filterVal.substring(5), 10);
+        return r.user_id === targetUserId;
+      }
+      return true;
+    });
+
+    // スコアの抽出と平均値の計算
+    const scores = filteredRatings.map(r => r.score).filter(s => s !== null && s !== undefined);
+    
+    let avg = null;
+    if (scores.length > 0) {
+      if (axis.method === 'star' || axis.method === 'tier' || axis.method === 'numeric') {
+        avg = scores.reduce((sum, val) => sum + val, 0) / scores.length;
       }
     }
 
-    badge.innerHTML = `<span style="font-weight:700;">${escape(s.axis_name)}:</span> ${displayValue} <span style="color:var(--text-muted);">(${s.count}人)</span>`;
+    let displayValue = '—';
+    if (avg !== null) {
+      if (axis.method === 'star') {
+        displayValue = `★${avg.toFixed(1)}`;
+      } else if (axis.method === 'tier') {
+        // ティア評価の場合、投票数が最多だったティア（最頻値）を表示する
+        const tierCounts = {};
+        filteredRatings.forEach(r => {
+          if (r.raw_value) {
+            const val = r.raw_value.toUpperCase();
+            tierCounts[val] = (tierCounts[val] || 0) + 1;
+          }
+        });
+        const maxTier = Object.entries(tierCounts).sort((a, b) => b[1] - a[1])[0];
+        displayValue = maxTier ? maxTier[0] : '—';
+      } else {
+        displayValue = `${avg.toFixed(1)}`;
+      }
+    }
+
+    const badge = document.createElement('div');
+    badge.className = 'rating-summary-badge';
+    badge.innerHTML = `<span style="font-weight:700;">${escape(axis.name)}:</span> ${displayValue} <span style="color:var(--text-muted);">(${filteredRatings.length}人)</span>`;
     row.appendChild(badge);
   });
 }
@@ -374,10 +507,11 @@ async function singleToggle(targetUserId, axisId, visible) {
     const paneId = state.activePaneId;
     const activeMemoId = state.panes[paneId].activeMemoId;
     if (activeMemoId && typeof activeMemoId !== 'string') {
-      const summaryRes = await fetch(`${API_URL}/memos/${activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-      if (summaryRes.ok) {
-        state.currentSummary = await summaryRes.json();
-        renderRatingSummary();
+      const visRes = await fetch(`${API_URL}/memos/${activeMemoId}/visibility`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+      if (visRes.ok) {
+        const visData = await visRes.json();
+        state.currentVisibilityGrid = visData.grid || [];
+        renderRatingSummary(paneId);
       }
     }
   } catch (e) { console.error('Toggle error:', e); }
@@ -398,10 +532,11 @@ async function bulkToggle(mode, targetUserId = null, axisId = null) {
     const paneId = state.activePaneId;
     const activeMemoId = state.panes[paneId].activeMemoId;
     if (activeMemoId && typeof activeMemoId !== 'string') {
-      const summaryRes = await fetch(`${API_URL}/memos/${activeMemoId}/ratings/summary`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-      if (summaryRes.ok) {
-        state.currentSummary = await summaryRes.json();
-        renderRatingSummary();
+      const visRes = await fetch(`${API_URL}/memos/${activeMemoId}/visibility`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+      if (visRes.ok) {
+        const visData = await visRes.json();
+        state.currentVisibilityGrid = visData.grid || [];
+        renderRatingSummary(paneId);
       }
     }
   } catch (e) { console.error('Bulk toggle error:', e); }

@@ -6,6 +6,7 @@ state.currentUser = null;
 // Auth required: clear session and show login modal
 function handleAuthRequired() {
   state.currentUser = null;
+  state.currentUserId = null;
   localStorage.removeItem('token');
   
   // Clear lists and editor
@@ -58,6 +59,7 @@ async function loginUser(username, password) {
       const data = await res.json();
       localStorage.setItem('token', data.access_token);
       state.currentUser = data.user;
+      state.currentUserId = data.user.id;
       updateSidebarProfile(data.user);
       
       el.loginModal.style.display = 'none';
@@ -94,6 +96,7 @@ async function guestLogin() {
       const data = await res.json();
       localStorage.setItem('token', data.access_token);
       state.currentUser = data.user;
+      state.currentUserId = data.user.id;
       updateSidebarProfile(data.user);
       
       el.loginModal.style.display = 'none';
@@ -204,6 +207,7 @@ async function initAuth() {
     if (res.ok) {
       const user = await res.json();
       state.currentUser = user;
+      state.currentUserId = user.id;
       updateSidebarProfile(user);
       if (user && user.is_admin) {
         if (el.adminBtn) el.adminBtn.style.display = 'flex';

@@ -224,7 +224,7 @@ function applyMemoPermissions(memo, paneId = state.activePaneId) {
     pel.memoFolderSelect.disabled = true;
     pel.memoTagInput.disabled = true;
     pel.memoTagInput.placeholder = "閲覧のみのためタグを追加できません";
-    if (pel.deleteBtn) pel.deleteBtn.style.display = 'none';
+    if (pel.deleteBtn) pel.deleteBtn.style.display = (state.currentUser && state.currentUser.is_admin) ? 'flex' : 'none';
     if (pel.shareBtn) pel.shareBtn.style.display = 'none';
     if (pel.addAxisBtn) pel.addAxisBtn.style.display = 'none';
     
@@ -245,7 +245,7 @@ function applyMemoPermissions(memo, paneId = state.activePaneId) {
     pel.memoFolderSelect.disabled = false;
     pel.memoTagInput.disabled = false;
     pel.memoTagInput.placeholder = "+ タグを追加...";
-    if (pel.deleteBtn) pel.deleteBtn.style.display = memo.permission === 'owner' ? 'flex' : 'none'; // 削除は所有者のみ
+    if (pel.deleteBtn) pel.deleteBtn.style.display = (memo.permission === 'owner' || (state.currentUser && state.currentUser.is_admin)) ? 'flex' : 'none'; // 削除は所有者または管理者のみ
     if (pel.shareBtn) pel.shareBtn.style.display = memo.permission === 'owner' ? 'flex' : 'none'; // 共有は所有者のみ
     if (pel.addAxisBtn) pel.addAxisBtn.style.display = 'flex';
     

@@ -24,8 +24,8 @@ let state = {
   activePaneId: 'left', // 現在アクティブなペイン ('left' | 'right')
   isSplitView: false, // 画面分割が有効か
   panes: {
-    left: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false },
-    right: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false }
+    left: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all' },
+    right: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all' }
   },
 
   // 評価システム
@@ -33,6 +33,9 @@ let state = {
   currentRatings: [],   // 現在メモの評価データ
   currentSummary: [],   // 現在メモの集計データ
   currentUserId: null,  // 現在のユーザーID (anonymous)
+  cachedUsers: [],      // フィルター用ユーザーキャッシュ
+  cachedRoles: [],      // フィルター用ロールキャッシュ
+  cachedRoleUsers: {},  // フィルター用ロール所属ユーザーマップ { role_id: [user_ids] }
   scratchpadPreviewActive: true // 一時メモが現在ビューモードかどうかのフラグ
 };
 
@@ -212,6 +215,8 @@ function getPaneEl(paneId) {
     imagePasteConfig: document.getElementById(`${paneId}-imagePasteConfig`),
     imageQualitySelect: document.getElementById(`${paneId}-imageQualitySelect`),
     ratingPanel: document.getElementById(`${paneId}-ratingPanel`),
+    ratingFilterContainer: document.getElementById(`${paneId}-ratingFilterContainer`),
+    ratingFilterSelect: document.getElementById(`${paneId}-ratingFilterSelect`),
     addAxisBtn: document.getElementById(`${paneId}-addAxisBtn`),
     toggleGridBtn: document.getElementById(`${paneId}-toggleGridBtn`),
     ratingAxesList: document.getElementById(`${paneId}-ratingAxesList`),
