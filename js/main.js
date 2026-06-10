@@ -438,7 +438,7 @@ function renderFolders() {
       const count = getFolderMemoCount(folder.id);
       const children = state.folders.filter(f => f.parent_id === folder.id);
       const hasChildren = children.length > 0;
-      const isCollapsed = state.collapsedFolderIds.includes(folder.id);
+      const isCollapsed = !state.expandedFolderIds.includes(folder.id);
       
       const item = document.createElement('div');
       item.className = `folder-item ${state.activeFolderId === folder.id ? 'active' : ''}`;
@@ -482,11 +482,11 @@ function renderFolders() {
 }
 
 function toggleFolderCollapse(folderId) {
-  const isCollapsed = state.collapsedFolderIds.includes(folderId);
-  if (isCollapsed) {
-    state.collapsedFolderIds = state.collapsedFolderIds.filter(id => id !== folderId);
+  const isExpanded = state.expandedFolderIds.includes(folderId);
+  if (isExpanded) {
+    state.expandedFolderIds = state.expandedFolderIds.filter(id => id !== folderId);
   } else {
-    state.collapsedFolderIds.push(folderId);
+    state.expandedFolderIds.push(folderId);
   }
   saveCache();
   renderFolders();

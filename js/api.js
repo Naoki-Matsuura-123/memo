@@ -44,20 +44,20 @@ function loadCache() {
     state.folders = JSON.parse(localStorage.getItem('folders_cache') || '[]');
     state.tags = JSON.parse(localStorage.getItem('tags_cache') || '[]');
     state.syncQueue = JSON.parse(localStorage.getItem('sync_queue') || '[]');
-    state.collapsedFolderIds = JSON.parse(localStorage.getItem('collapsed_folder_ids') || '[]');
+    state.expandedFolderIds = JSON.parse(localStorage.getItem('expanded_folder_ids') || '[]');
     
     if (!Array.isArray(state.memos)) state.memos = [];
     if (!Array.isArray(state.folders)) state.folders = [];
     if (!Array.isArray(state.tags)) state.tags = [];
     if (!Array.isArray(state.syncQueue)) state.syncQueue = [];
-    if (!Array.isArray(state.collapsedFolderIds)) state.collapsedFolderIds = [];
+    if (!Array.isArray(state.expandedFolderIds)) state.expandedFolderIds = [];
   } catch (e) {
     console.error("キャッシュ読込エラー", e);
     state.memos = [];
     state.folders = [];
     state.tags = [];
     state.syncQueue = [];
-    state.collapsedFolderIds = [];
+    state.expandedFolderIds = [];
   }
 }
 
@@ -67,7 +67,7 @@ function saveCache() {
     localStorage.setItem('folders_cache', JSON.stringify(state.folders));
     localStorage.setItem('tags_cache', JSON.stringify(state.tags));
     localStorage.setItem('sync_queue', JSON.stringify(state.syncQueue));
-    localStorage.setItem('collapsed_folder_ids', JSON.stringify(state.collapsedFolderIds || []));
+    localStorage.setItem('expanded_folder_ids', JSON.stringify(state.expandedFolderIds || []));
   } catch (e) {
     console.error("キャッシュ保存エラー", e);
   }
