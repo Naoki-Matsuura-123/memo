@@ -1,7 +1,6 @@
 function processAndPasteImage(file, qualitySetting) {
-  // 1. オフラインのチェック
   if (!state.isOnline) {
-    const dummySvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23f0f0f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%23a0a0a0">オフライン仮画像</text></svg>`;
+    const dummySvg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2EwYTBhMCI+44Kq44OV44Op44Kk44Oz5Luu55S75YOPPC90ZXh0Pjwvc3ZnPg==";
     insertImageMarkdown(dummySvg);
     showToast("オフラインのため仮画像を挿入しました。レイアウト調整用です。", 'image');
     return;
