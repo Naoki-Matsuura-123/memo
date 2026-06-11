@@ -11,6 +11,10 @@ let state = {
   activeMemoId: null,
   activeFolderId: 'all', // 'all' | 'uncategorized' | folder_id (number)
   activeTagId: null, // null | tag_id (number)
+  activeTags: [], // 選択されたタグ名 (string) の配列
+  tagQueryFormula: '', // 入力された数式文字列
+  tagSearchMode: 'simple', // 'simple' | 'advanced'
+  isAdvancedPopoverOpen: false, // 高度な検索ポップオーバーが開いているか
   activeTab: 'folders', // 'folders' | 'tags'
   searchQuery: '',
   sortBy: 'updated', // 'updated' | 'created' | 'title'
@@ -36,7 +40,15 @@ let state = {
   cachedUsers: [],      // フィルター用ユーザーキャッシュ
   cachedRoles: [],      // フィルター用ロールキャッシュ
   cachedRoleUsers: {},  // フィルター用ロール所属ユーザーマップ { role_id: [user_ids] }
-  scratchpadPreviewActive: true // 一時メモが現在ビューモードかどうかのフラグ
+  scratchpadPreviewActive: true, // 一時メモが現在ビューモードかどうかのフラグ
+  
+  // 偏差補正平均用の一時状態
+  adjustedRatingFilterDraft: {
+    included_role_ids: [],
+    excluded_role_ids: [],
+    included_user_ids: [],
+    excluded_user_ids: []
+  }
 };
 
 // フォルダ操作用グローバル変数
@@ -83,6 +95,10 @@ const el = {
   folderSection: document.getElementById('folderSection'),
   tagSection: document.getElementById('tagSection'),
   tagList: document.getElementById('tagList'),
+  advancedTagSearchToggle: document.getElementById('advancedTagSearchToggle'),
+  advancedTagSearchContainer: document.getElementById('advancedTagSearchContainer'),
+  btnOpenAdvancedSearch: document.getElementById('btnOpenAdvancedSearch'),
+  activeFormulaIndicator: document.getElementById('activeFormulaIndicator'),
 
   // フォルダ操作用
   createFolderBtn: document.getElementById('createFolderBtn'),
@@ -191,7 +207,14 @@ const el = {
   // スプリットビュー
   splitViewBtn: document.getElementById('splitViewBtn'),
   splitViewBtnText: document.getElementById('splitViewBtnText'),
-  panesContainer: document.getElementById('panesContainer')
+  panesContainer: document.getElementById('panesContainer'),
+  
+  // 偏差補正平均用
+  adjustedRatingModal: document.getElementById('adjustedRatingModal'),
+  adjRoleSelect: document.getElementById('adjRoleSelect'),
+  adjUserSelect: document.getElementById('adjUserSelect'),
+  adjSelectedRolesList: document.getElementById('adjSelectedRolesList'),
+  adjSelectedUsersList: document.getElementById('adjSelectedUsersList')
 };
 
 // ペイン固有のDOM要素へのアクセスヘルパー

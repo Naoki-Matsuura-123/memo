@@ -92,10 +92,28 @@
 
       <!-- タグ一覧セクション -->
       <div class="folder-section" id="tagSection" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; position: relative;">
           <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub); display: flex; align-items: center; gap: 0.3rem;">
             <i data-lucide="tag" style="width: 14px; height: 14px;"></i> タグ
           </span>
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <label style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; color: var(--text-sub); cursor: pointer; user-select: none;" title="タグの高度な集合演算を行います">
+              <input type="checkbox" id="advancedTagSearchToggle" style="cursor: pointer;">
+              <span>高度な検索</span>
+            </label>
+            <button id="btnOpenAdvancedSearch" class="btn-icon" style="display: none; padding: 2px; border-radius: 4px; border: 1px solid var(--panel-border);" title="数式を編集">
+              <i data-lucide="edit-3" style="width: 12px; height: 12px; color: var(--accent);"></i>
+            </button>
+          </div>
+          <!-- フローティングポップオーバー -->
+          <div id="advancedTagSearchContainer" class="advanced-tag-popover">
+            <!-- ここに電卓UIが動的レンダリングされます -->
+          </div>
+        </div>
+        <!-- 適用中数式インジケーター -->
+        <div id="activeFormulaIndicator" style="display: none; align-items: center; justify-content: space-between; font-size: 0.7rem; background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.15); padding: 0.25rem 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; color: var(--text-main); font-family: inherit;">
+          <span class="formula-text" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%; font-family: var(--font-mono); font-size: 0.65rem;">式: -</span>
+          <span style="cursor: pointer; color: var(--text-muted); font-size: 0.8rem; font-weight: bold; padding: 0 2px;" onclick="clearFormulaAndSearch()" title="条件をクリア">×</span>
         </div>
         <div id="tagList" style="display: flex; flex-direction: column; gap: 0.25rem; max-height: 180px; overflow-y: auto;">
           <!-- 動的にタグリストが生成されます -->
@@ -220,34 +238,53 @@
               </div>
             </div>
 
-            <div class="rating-panel" id="left-ratingPanel" style="display:none;">
-              <div class="rating-panel-header" onclick="toggleRatingPanel('left')" style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="rating-panel-title" style="display: flex; align-items: center;">
-                  <span class="rating-toggle-icon" id="left-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
-                  <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
-                  <span>評価</span>
-                </div>
-                <div id="left-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
-                  <span>集計対象:</span>
-                  <select id="left-ratingFilterSelect" onchange="changeRatingFilter('left')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
-                    <option value="all">全員</option>
-                  </select>
-                </div>
-              </div>
-              <div class="rating-panel-content" id="left-ratingPanelContent">
-                <div id="left-ratingAxesList"></div>
-                <div class="rating-summary-row" id="left-ratingSummaryRow" style="display:none;"></div>
-              </div>
-            </div>
-
             <!-- 入力 / プレビュー表示 -->
             <div class="editor-viewport">
-              <div id="left-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+              <div class="rating-panel" id="left-ratingPanel" style="display:none;">
+                <div class="rating-panel-header" onclick="toggleRatingPanel('left')" style="display: flex; justify-content: space-between; align-items: center;">
+                  <div class="rating-panel-title" style="display: flex; align-items: center;">
+                    <span class="rating-toggle-icon" id="left-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
+                    <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
+                    <span>評価</span>
+                  </div>
+                  <div id="left-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
+                    <span>集計対象:</span>
+                    <select id="left-ratingFilterSelect" onchange="changeRatingFilter('left')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
+                      <option value="all">全員</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="rating-panel-content" id="left-ratingPanelContent">
+                  <div id="left-ratingAxesList"></div>
+                  <div class="rating-summary-row" id="left-ratingSummaryRow" style="display:none;"></div>
+                  <div id="left-adjustedRatingContainer" class="adjusted-rating-container" style="display: none; justify-content: space-between; align-items: center; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--panel-border); font-size: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                      <i data-lucide="trending-up" style="width:13px; height:13px; color: var(--accent);"></i>
+                      <span style="font-weight: 600;">偏差補正平均:</span>
+                      <span id="left-adjustedRatingValue" style="color: var(--accent); font-weight: bold;">未計算</span>
+                    </div>
+                    <button type="button" class="btn-icon" id="left-btnOpenAdjustedRating" onclick="openAdjustedRatingModal('left')" title="偏差補正評価を計算" style="padding: 2px 6px; font-size: 0.7rem; border: 1px solid var(--panel-border); border-radius: 4px; display: flex; align-items: center; gap: 0.2rem;">
+                      <i data-lucide="settings" style="width:11px; height:11px;"></i>
+                      <span>補正計算</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="left-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub); position:relative;">
                 <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
                 <span>所属フォルダ:</span>
-                <select id="left-memoFolderSelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
-                  <option value="">(分類なし / ルート)</option>
-                </select>
+                <select id="left-memoFolderSelect" style="display:none;"></select>
+                <div class="custom-dropdown" id="left-folderDropdown">
+                  <button type="button" class="dropdown-trigger" id="left-folderDropdownTrigger">
+                    <span class="trigger-label">📁 (分類なし / ルート)</span>
+                    <i data-lucide="chevron-down" style="width:12px; height:12px; color:var(--text-muted);"></i>
+                  </button>
+                  <div class="dropdown-panel" id="left-folderDropdownPanel">
+                    <input type="text" class="dropdown-search" id="left-folderDropdownSearch" placeholder="🔍 フォルダを検索...">
+                    <div class="dropdown-options" id="left-folderDropdownOptions"></div>
+                  </div>
+                </div>
               </div>
 
               <div id="left-memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
@@ -340,34 +377,53 @@
               </div>
             </div>
 
-            <div class="rating-panel" id="right-ratingPanel" style="display:none;">
-              <div class="rating-panel-header" onclick="toggleRatingPanel('right')" style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="rating-panel-title" style="display: flex; align-items: center;">
-                  <span class="rating-toggle-icon" id="right-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
-                  <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
-                  <span>評価</span>
-                </div>
-                <div id="right-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
-                  <span>集計対象:</span>
-                  <select id="right-ratingFilterSelect" onchange="changeRatingFilter('right')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
-                    <option value="all">全員</option>
-                  </select>
-                </div>
-              </div>
-              <div class="rating-panel-content" id="right-ratingPanelContent">
-                <div id="right-ratingAxesList"></div>
-                <div class="rating-summary-row" id="right-ratingSummaryRow" style="display:none;"></div>
-              </div>
-            </div>
-
             <!-- 入力 / プレビュー表示 -->
             <div class="editor-viewport">
-              <div id="right-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+              <div class="rating-panel" id="right-ratingPanel" style="display:none;">
+                <div class="rating-panel-header" onclick="toggleRatingPanel('right')" style="display: flex; justify-content: space-between; align-items: center;">
+                  <div class="rating-panel-title" style="display: flex; align-items: center;">
+                    <span class="rating-toggle-icon" id="right-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
+                    <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
+                    <span>評価</span>
+                  </div>
+                  <div id="right-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
+                    <span>集計対象:</span>
+                    <select id="right-ratingFilterSelect" onchange="changeRatingFilter('right')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
+                      <option value="all">全員</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="rating-panel-content" id="right-ratingPanelContent">
+                  <div id="right-ratingAxesList"></div>
+                  <div class="rating-summary-row" id="right-ratingSummaryRow" style="display:none;"></div>
+                  <div id="right-adjustedRatingContainer" class="adjusted-rating-container" style="display: none; justify-content: space-between; align-items: center; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--panel-border); font-size: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                      <i data-lucide="trending-up" style="width:13px; height:13px; color: var(--accent);"></i>
+                      <span style="font-weight: 600;">偏差補正平均:</span>
+                      <span id="right-adjustedRatingValue" style="color: var(--accent); font-weight: bold;">未計算</span>
+                    </div>
+                    <button type="button" class="btn-icon" id="right-btnOpenAdjustedRating" onclick="openAdjustedRatingModal('right')" title="偏差補正評価を計算" style="padding: 2px 6px; font-size: 0.7rem; border: 1px solid var(--panel-border); border-radius: 4px; display: flex; align-items: center; gap: 0.2rem;">
+                      <i data-lucide="settings" style="width:11px; height:11px;"></i>
+                      <span>補正計算</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="right-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub); position:relative;">
                 <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
                 <span>所属フォルダ:</span>
-                <select id="right-memoFolderSelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
-                  <option value="">(分類なし / ルート)</option>
-                </select>
+                <select id="right-memoFolderSelect" style="display:none;"></select>
+                <div class="custom-dropdown" id="right-folderDropdown">
+                  <button type="button" class="dropdown-trigger" id="right-folderDropdownTrigger">
+                    <span class="trigger-label">📁 (分類なし / ルート)</span>
+                    <i data-lucide="chevron-down" style="width:12px; height:12px; color:var(--text-muted);"></i>
+                  </button>
+                  <div class="dropdown-panel" id="right-folderDropdownPanel">
+                    <input type="text" class="dropdown-search" id="right-folderDropdownSearch" placeholder="🔍 フォルダを検索...">
+                    <div class="dropdown-options" id="right-folderDropdownOptions"></div>
+                  </div>
+                </div>
               </div>
 
               <div id="right-memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
@@ -1178,6 +1234,53 @@
     </div>
   </div>
 
+  <!-- 偏差補正平均の計算設定モーダル -->
+  <div class="modal" id="adjustedRatingModal">
+    <div class="modal-content" style="width: 480px;">
+      <div class="modal-title">📐 偏差補正平均の計算</div>
+      <div style="margin: 1rem 0; display: flex; flex-direction: column; gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 4px;">
+        
+        <!-- 対象ロールの追加/除外 -->
+        <div class="form-group">
+          <label class="form-label" style="font-weight: 600; display: flex; align-items: center; gap: 0.25rem;">
+            <i data-lucide="users" style="width: 14px; height: 14px;"></i> 対象ロール
+          </label>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <select class="form-input" id="adjRoleSelect" style="flex: 1; cursor: pointer; height: 32px; font-size: 0.8rem;"></select>
+            <button class="btn-primary" type="button" onclick="addAdjFilter('role', 'include')" style="padding: 0 0.75rem; height: 32px; font-size: 0.75rem;">+ 含む</button>
+            <button class="btn-secondary" type="button" onclick="addAdjFilter('role', 'exclude')" style="padding: 0 0.75rem; height: 32px; font-size: 0.75rem; border-color: var(--danger); color: var(--danger);">+ 除く</button>
+          </div>
+          <div id="adjSelectedRolesList" style="display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 24px; padding: 0.25rem; border: 1px dashed var(--panel-border); border-radius: 4px;">
+            <!-- 選択されたロールチップがここに入ります -->
+          </div>
+        </div>
+
+        <!-- 対象ユーザーの追加/除外 -->
+        <div class="form-group" style="position: relative;">
+          <label class="form-label" style="font-weight: 600; display: flex; align-items: center; gap: 0.25rem;">
+            <i data-lucide="user" style="width: 14px; height: 14px;"></i> 対象ユーザー
+          </label>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <select class="form-input" id="adjUserSelect" style="flex: 1; cursor: pointer; height: 32px; font-size: 0.8rem;"></select>
+            <button class="btn-primary" type="button" onclick="addAdjFilter('user', 'include')" style="padding: 0 0.75rem; height: 32px; font-size: 0.75rem;">+ 含む</button>
+            <button class="btn-secondary" type="button" onclick="addAdjFilter('user', 'exclude')" style="padding: 0 0.75rem; height: 32px; font-size: 0.75rem; border-color: var(--danger); color: var(--danger);">+ 除く</button>
+          </div>
+          <div id="adjSelectedUsersList" style="display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 24px; padding: 0.25rem; border: 1px dashed var(--panel-border); border-radius: 4px;">
+            <!-- 選択されたユーザーチップがここに入ります -->
+          </div>
+        </div>
+        
+        <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; border-left: 2px solid var(--accent); padding-left: 0.5rem; margin-top: 0.5rem;">
+          💡 <strong>優先順位</strong>: ロールメンバー ➔ ロール除外 ➔ ユーザー含む ➔ ユーザー除く (最優先)。<br>
+          例えば、ロール「一般」を追加し、ユーザー「Aさん」を除外に設定すると、一般ロールの全員からAさんのみを除いた対象で補正計算が行われます。
+        </div>
+
+      </div>
+      <div class="modal-actions" style="margin-top: 1.5rem;">
+        <button class="btn-secondary" onclick="closeAdjustedRatingModal()">キャンセル</button>
+        <button class="btn-primary" onclick="runAdjustedRatingCalculation()">📐 計算＆確定</button>
+      </div>
+    </div>
   <!-- 一時フローティングメモ (Scratchpad) -->
   <div id="scratchpadWidget" class="scratchpad-widget">
     <div id="scratchpadHeader" class="scratchpad-header">
@@ -1228,6 +1331,7 @@
   <script src="js/voice.js"></script>
   <script src="js/commands.js"></script>
   <script src="js/ratings.js"></script>
+  <script src="js/adjusted_ratings.js"></script>
   <script src="js/scratchpad.js"></script>
   <script src="js/tags.js"></script>
   <script src="js/main.js"></script>

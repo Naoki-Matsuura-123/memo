@@ -163,6 +163,19 @@ async function processSyncQueue() {
               state.activeMemoId = resData.id;
               updateActiveDbBadge(resData.id);
             }
+            // 左右ペインのアクティブIDおよび開いているタブIDリスト内の一時IDを本IDに置換
+            ['left', 'right'].forEach(paneId => {
+              const paneState = state.panes[paneId];
+              if (paneState) {
+                if (paneState.activeMemoId === item.id) {
+                  paneState.activeMemoId = resData.id;
+                  updateActiveDbBadge(resData.id, paneId);
+                }
+                if (Array.isArray(paneState.openMemoIds)) {
+                  paneState.openMemoIds = paneState.openMemoIds.map(id => id === item.id ? resData.id : id);
+                }
+              }
+            });
           }
         } else {
           failed.push(item);

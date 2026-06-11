@@ -17,6 +17,17 @@ function getAllSubfolderIds(folderId) {
   return ids;
 }
 
+function adjustTextareaHeight(textarea) {
+  if (!textarea) return;
+  textarea.style.height = 'auto';
+  textarea.style.height = textarea.scrollHeight + 'px';
+}
+
+window.addEventListener('resize', () => {
+  adjustTextareaHeight(document.getElementById('left-memoContent'));
+  adjustTextareaHeight(document.getElementById('right-memoContent'));
+});
+
 // --- レンダリング ---
 function renderList() {
   if (!el.memoList) return;
@@ -28,8 +39,46 @@ function renderList() {
   
   // フォルダ/タグフィルタ
   let filtered = state.memos;
-  if (state.activeTagId) {
-    filtered = state.memos.filter(m => m && m.tags && m.tags.some(t => t && t.name === state.activeTagId));
+  if (state.activeTags && state.activeTags.length > 0) {
+    if (state.tagSearchMode === 'advanced' && state.tagQueryFormula.trim()) {
+      const formula = state.tagQueryFormula;
+      filtered = filtered.filter(m => {
+        if (!m) return false;
+        const memoTags = (m.tags || []).map(t => t.name.toLowerCase());
+        
+        // 1. 各 [タグ名] を true/false に置換
+        let replacedStr = formula.replace(/\[([^\]]+)\]/g, (match, tagName) => {
+          return memoTags.includes(tagName.toLowerCase()) ? 'true' : 'false';
+        });
+        
+        // 2. JavaScriptの論理演算子に置換
+        replacedStr = replacedStr.toLowerCase()
+          .replace(/and/g, '&&')
+          .replace(/or/g, '||')
+          .replace(/not/g, '!');
+        
+        // 3. 安全性バリデーション (ホワイトリスト文字のみ)
+        const safeRegex = /^[true|false|&|\||!|\(|\)|\s]+$/;
+        if (!safeRegex.test(replacedStr)) {
+          return false; // 不正な式はマッチしないとみなす
+        }
+        
+        // 4. 評価
+        try {
+          const evalResult = new Function('return ' + replacedStr)();
+          return !!evalResult;
+        } catch (e) {
+          return false; // 評価エラー時は不適合
+        }
+      });
+    } else {
+      // 通常の AND 検索
+      filtered = filtered.filter(m => {
+        if (!m) return false;
+        const memoTags = (m.tags || []).map(t => t.name.toLowerCase());
+        return state.activeTags.every(t => memoTags.includes(t.toLowerCase()));
+      });
+    }
   } else if (state.activeFolderId === 'uncategorized') {
     filtered = state.memos.filter(m => m && !m.folder_id);
   } else if (state.activeFolderId !== 'all') {
@@ -173,6 +222,7 @@ function selectMemo(id, paneId = state.activePaneId) {
   pel.emptyState.style.display = 'none';
   pel.memoTitle.value = memo.title;
   pel.memoContent.value = memo.content;
+  adjustTextareaHeight(pel.memoContent);
   
   // 編集エリア初期表示
   pel.memoTitle.style.display = 'block';
@@ -206,6 +256,11 @@ function selectMemo(id, paneId = state.activePaneId) {
   // 評価パネルロード
   loadRatingsForMemo(id, paneId);
 
+  // 偏差補正平均値の表示更新
+  if (typeof updateAdjustedRatingDisplay === 'function') {
+    updateAdjustedRatingDisplay(paneId, memo);
+  }
+
   // タブリストを再描画
   renderPaneTabs(paneId);
 }
@@ -222,6 +277,8 @@ function applyMemoPermissions(memo, paneId = state.activePaneId) {
     pel.memoTitle.disabled = true;
     pel.memoContent.disabled = true;
     pel.memoFolderSelect.disabled = true;
+    const trigger = document.getElementById(`${paneId}-folderDropdownTrigger`);
+    if (trigger) trigger.disabled = true;
     pel.memoTagInput.disabled = true;
     pel.memoTagInput.placeholder = "閲覧のみのためタグを追加できません";
     if (pel.deleteBtn) pel.deleteBtn.style.display = (state.currentUser && state.currentUser.is_admin) ? 'flex' : 'none';
@@ -243,6 +300,8 @@ function applyMemoPermissions(memo, paneId = state.activePaneId) {
     pel.memoTitle.disabled = false;
     pel.memoContent.disabled = false;
     pel.memoFolderSelect.disabled = false;
+    const trigger = document.getElementById(`${paneId}-folderDropdownTrigger`);
+    if (trigger) trigger.disabled = false;
     pel.memoTagInput.disabled = false;
     pel.memoTagInput.placeholder = "+ タグを追加...";
     if (pel.deleteBtn) pel.deleteBtn.style.display = (memo.permission === 'owner' || (state.currentUser && state.currentUser.is_admin)) ? 'flex' : 'none'; // 削除は所有者または管理者のみ
@@ -545,6 +604,79 @@ function updateFolderSelectOptions(paneId = state.activePaneId) {
     opt.textContent = getFolderSelectText(f);
     pel.memoFolderSelect.appendChild(opt);
   });
+
+  // カスタムドロップダウンの選択肢も再構築
+  updateCustomFolderDropdown(paneId);
+}
+
+function updateCustomFolderDropdown(paneId, searchQuery = '') {
+  const triggerLabel = document.querySelector(`#${paneId}-folderDropdownTrigger .trigger-label`);
+  const optionsContainer = document.getElementById(`${paneId}-folderDropdownOptions`);
+  if (!optionsContainer) return;
+
+  optionsContainer.innerHTML = '';
+
+  const paneState = state.panes[paneId];
+  const activeMemo = state.memos.find(m => String(m.id) === String(paneState.activeMemoId));
+  const currentFolderId = activeMemo ? activeMemo.folder_id : null;
+
+  // 「分類なし / ルート」のレンダリング
+  const rootOpt = document.createElement('div');
+  rootOpt.className = 'dropdown-option';
+  rootOpt.textContent = '📁 (分類なし / ルート)';
+  if (currentFolderId === null) {
+    rootOpt.classList.add('selected');
+    if (triggerLabel) triggerLabel.textContent = '📁 (分類なし / ルート)';
+  }
+  rootOpt.addEventListener('click', () => selectFolderForMemo(null, paneId));
+
+  const q = searchQuery.toLowerCase().trim();
+  if (!q || '分類なし ルート'.includes(q)) {
+    optionsContainer.appendChild(rootOpt);
+  }
+
+  // 各フォルダのレンダリング
+  getFoldersTreeSorted().forEach(f => {
+    const pathText = getFolderSelectText(f);
+    if (q && !pathText.toLowerCase().includes(q)) return; // 検索フィルタ
+
+    const opt = document.createElement('div');
+    opt.className = 'dropdown-option';
+    opt.textContent = '📁 ' + pathText;
+    opt.title = pathText;
+    if (currentFolderId === f.id) {
+      opt.classList.add('selected');
+      if (triggerLabel) triggerLabel.textContent = '📁 ' + pathText;
+    }
+    opt.addEventListener('click', () => selectFolderForMemo(f.id, paneId));
+    optionsContainer.appendChild(opt);
+  });
+}
+
+async function selectFolderForMemo(folderId, paneId) {
+  const paneState = state.panes[paneId];
+  if (!paneState.activeMemoId) return;
+
+  state.memos = state.memos.map(m => String(m.id) === String(paneState.activeMemoId) ? { ...m, folder_id: folderId, updated_at: new Date().toISOString() } : m);
+  saveCache();
+  renderFolders();
+  renderList();
+
+  const active = state.memos.find(m => String(m.id) === String(paneState.activeMemoId));
+  if (active) {
+    const tagNames = active.tags ? active.tags.map(t => t.name) : [];
+    addQueue('UPDATE', paneState.activeMemoId, active.title, active.content, folderId, tagNames);
+    if (state.isOnline) {
+      await processSyncQueue();
+      showToast("所属フォルダを変更しました！", 'check');
+    } else {
+      updateStatusUI('offline');
+    }
+  }
+
+  updateCustomFolderDropdown(paneId);
+  const panel = document.getElementById(`${paneId}-folderDropdownPanel`);
+  if (panel) panel.classList.remove('active');
 }
 
 // フォルダのパス風の文字列表現を生成 (例: "親フォルダ / 子フォルダ")
@@ -861,6 +993,7 @@ function setupPaneEvents(paneId) {
     });
 
     pel.memoContent.addEventListener('input', () => {
+      adjustTextareaHeight(pel.memoContent);
       triggerAutosave(paneId);
       const paneState = state.panes[paneId];
       if (paneState.isPreviewActive) compileMarkdown(paneId);
@@ -979,19 +1112,55 @@ function setupPaneEvents(paneId) {
       const val = e.target.value;
       const folderId = val ? parseInt(val, 10) : null;
 
-      state.memos = state.memos.map(m => m.id === paneState.activeMemoId ? { ...m, folder_id: folderId, updated_at: new Date().toISOString() } : m);
+      // 型不整合を防ぐため String 変換して ID を比較する
+      state.memos = state.memos.map(m => String(m.id) === String(paneState.activeMemoId) ? { ...m, folder_id: folderId, updated_at: new Date().toISOString() } : m);
       saveCache();
       renderFolders();
       renderList();
 
-      const active = state.memos.find(m => m.id === paneState.activeMemoId);
-      addQueue('UPDATE', paneState.activeMemoId, active.title, active.content, folderId);
-      if (state.isOnline) {
-        await processSyncQueue();
-        showToast("所属フォルダを変更しました！", 'check');
-      } else {
-        updateStatusUI('offline');
+      const active = state.memos.find(m => String(m.id) === String(paneState.activeMemoId));
+      if (active) {
+        const tagNames = active.tags ? active.tags.map(t => t.name) : [];
+        addQueue('UPDATE', paneState.activeMemoId, active.title, active.content, folderId, tagNames);
+        if (state.isOnline) {
+          await processSyncQueue();
+          showToast("所属フォルダを変更しました！", 'check');
+        } else {
+          updateStatusUI('offline');
+        }
       }
+    });
+  }
+
+  // 検索可能な所属フォルダドロップダウンの制御
+  const trigger = document.getElementById(`${paneId}-folderDropdownTrigger`);
+  const panel = document.getElementById(`${paneId}-folderDropdownPanel`);
+  const searchInput = document.getElementById(`${paneId}-folderDropdownSearch`);
+
+  if (trigger && panel) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // 他の開いているドロップダウンを閉じる
+      document.querySelectorAll('.dropdown-panel').forEach(p => {
+        if (p !== panel) p.classList.remove('active');
+      });
+      panel.classList.toggle('active');
+      if (panel.classList.contains('active')) {
+        if (searchInput) {
+          searchInput.value = '';
+          updateCustomFolderDropdown(paneId, '');
+          setTimeout(() => searchInput.focus(), 50);
+        }
+      }
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      updateCustomFolderDropdown(paneId, e.target.value);
+    });
+    searchInput.addEventListener('click', (e) => {
+      e.stopPropagation();
     });
   }
 
@@ -1057,6 +1226,21 @@ function setupEvents() {
   }
   el.createBtn.addEventListener('click', createMemo);
   
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('.dropdown-panel').forEach(p => p.classList.remove('active'));
+    
+    // 高度な検索ポップオーバー外クリックで閉じる処理
+    if (state.isAdvancedPopoverOpen) {
+      const isClickInsidePopover = el.advancedTagSearchContainer && el.advancedTagSearchContainer.contains(e.target);
+      const isClickOnOpenBtn = el.btnOpenAdvancedSearch && el.btnOpenAdvancedSearch.contains(e.target);
+      const isClickOnToggle = el.advancedTagSearchToggle && el.advancedTagSearchToggle.contains(e.target);
+      if (!isClickInsidePopover && !isClickOnOpenBtn && !isClickOnToggle) {
+        state.isAdvancedPopoverOpen = false;
+        renderAdvancedTagSearchUI();
+      }
+    }
+  });
+  
   const shareToggle = document.getElementById('defaultShareModeToggle');
   const shareLabel = document.getElementById('defaultShareModeLabel');
   if (shareToggle && shareLabel) {
@@ -1081,6 +1265,33 @@ function setupEvents() {
 
   el.folderTabBtn.addEventListener('click', () => switchTab('folders'));
   el.tagTabBtn.addEventListener('click', () => switchTab('tags'));
+
+  if (el.advancedTagSearchToggle) {
+    el.advancedTagSearchToggle.addEventListener('change', (e) => {
+      state.tagSearchMode = e.target.checked ? 'advanced' : 'simple';
+      
+      // 高度な検索をONにしたとき、式が空であればデフォルトで選択タグのAND式を構築
+      if (state.tagSearchMode === 'advanced') {
+        state.isAdvancedPopoverOpen = true; // ONに切り替えたときはポップオーバーを開く
+        if (!state.tagQueryFormula.trim() && state.activeTags.length > 0) {
+          state.tagQueryFormula = state.activeTags.map(t => `[${t}]`).join(' and ');
+        }
+      } else {
+        state.isAdvancedPopoverOpen = false;
+        state.tagQueryFormula = ''; // OFF時は式をクリア
+      }
+      
+      renderAdvancedTagSearchUI();
+      renderList();
+    });
+  }
+
+  if (el.btnOpenAdvancedSearch) {
+    el.btnOpenAdvancedSearch.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAdvancedPopover();
+    });
+  }
 
   el.settingsBtn.addEventListener('click', () => {
     const savedUrl = localStorage.getItem('naomemo_api_url');
@@ -1178,6 +1389,14 @@ function setupEvents() {
       closeCommandPalette();
     }
   });
+
+  if (el.adjustedRatingModal) {
+    el.adjustedRatingModal.addEventListener('click', (e) => {
+      if (e.target === el.adjustedRatingModal) {
+        closeAdjustedRatingModal();
+      }
+    });
+  }
 
   el.helpBtn.addEventListener('click', () => {
     el.helpModal.classList.add('active');
