@@ -24,8 +24,8 @@ let state = {
   activePaneId: 'left', // 現在アクティブなペイン ('left' | 'right')
   isSplitView: false, // 画面分割が有効か
   panes: {
-    left: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: true },
-    right: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: true }
+    left: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: false },
+    right: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: false }
   },
 
   // 評価システム
