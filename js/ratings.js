@@ -85,6 +85,28 @@ function changeRatingFilter(paneId) {
 }
 window.changeRatingFilter = changeRatingFilter;
 
+// 評価パネルのアコーディオン開閉トグル
+function toggleRatingPanel(paneId) {
+  if (typeof paneId !== 'string') {
+    paneId = state.activePaneId;
+  }
+  const paneState = state.panes[paneId];
+  paneState.ratingExpanded = !paneState.ratingExpanded;
+  
+  const pel = getPaneEl(paneId);
+  if (pel.ratingPanelContent && pel.ratingToggleIcon) {
+    if (paneState.ratingExpanded) {
+      pel.ratingPanelContent.classList.remove('collapsed');
+      pel.ratingToggleIcon.classList.remove('collapsed');
+    } else {
+      pel.ratingPanelContent.classList.add('collapsed');
+      pel.ratingToggleIcon.classList.add('collapsed');
+    }
+  }
+}
+window.toggleRatingPanel = toggleRatingPanel;
+
+
 async function loadRatingsForMemo(memoId, paneId = state.activePaneId) {
   const pel = getPaneEl(paneId);
   if (!state.isOnline || typeof memoId === 'string' || !memoId) {
@@ -179,6 +201,17 @@ function renderRatingPanel(paneId = state.activePaneId) {
 
   safeCreateIcons();
   renderRatingSummary(paneId);
+
+  // 現在の開閉状態（ratingExpanded）をDOMに反映させる
+  if (pel.ratingPanelContent && pel.ratingToggleIcon) {
+    if (paneState.ratingExpanded) {
+      pel.ratingPanelContent.classList.remove('collapsed');
+      pel.ratingToggleIcon.classList.remove('collapsed');
+    } else {
+      pel.ratingPanelContent.classList.add('collapsed');
+      pel.ratingToggleIcon.classList.add('collapsed');
+    }
+  }
 }
 
 // 星評価UIの描画
@@ -547,3 +580,4 @@ window.deleteAxis = deleteAxis;
 window.openAxisModal = openAxisModal;
 window.singleToggle = singleToggle;
 window.bulkToggle = bulkToggle;
+window.toggleRatingPanel = toggleRatingPanel;

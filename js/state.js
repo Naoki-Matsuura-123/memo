@@ -24,8 +24,8 @@ let state = {
   activePaneId: 'left', // 現在アクティブなペイン ('left' | 'right')
   isSplitView: false, // 画面分割が有効か
   panes: {
-    left: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all' },
-    right: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all' }
+    left: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: true },
+    right: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: true }
   },
 
   // 評価システム
@@ -215,6 +215,8 @@ function getPaneEl(paneId) {
     imagePasteConfig: document.getElementById(`${paneId}-imagePasteConfig`),
     imageQualitySelect: document.getElementById(`${paneId}-imageQualitySelect`),
     ratingPanel: document.getElementById(`${paneId}-ratingPanel`),
+    ratingPanelContent: document.getElementById(`${paneId}-ratingPanelContent`),
+    ratingToggleIcon: document.getElementById(`${paneId}-ratingToggleIcon`),
     ratingFilterContainer: document.getElementById(`${paneId}-ratingFilterContainer`),
     ratingFilterSelect: document.getElementById(`${paneId}-ratingFilterSelect`),
     addAxisBtn: document.getElementById(`${paneId}-addAxisBtn`),

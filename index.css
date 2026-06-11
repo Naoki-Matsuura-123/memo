@@ -2062,3 +2062,41 @@
       background: #ffffff;
       border-top-color: #d0d7de;
     }
+/* --- 評価パネルのアコーディオン拡張 --- */
+.rating-panel-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+.rating-panel-header:hover {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+.rating-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.4rem;
+  transition: transform 0.2s ease;
+  color: var(--text-muted);
+}
+
+.rating-toggle-icon.collapsed {
+  transform: rotate(-90deg);
+}
+
+.rating-panel-content {
+  max-height: 1000px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.2s ease, padding 0.3s ease;
+}
+
+.rating-panel-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-top: none !important;
+  pointer-events: none;
+}

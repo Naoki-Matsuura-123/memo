@@ -221,20 +221,23 @@
             </div>
 
             <div class="rating-panel" id="left-ratingPanel" style="display:none;">
-              <div class="rating-panel-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="rating-panel-title">
-                  <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
+              <div class="rating-panel-header" onclick="toggleRatingPanel('left')" style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="rating-panel-title" style="display: flex; align-items: center;">
+                  <span class="rating-toggle-icon" id="left-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
+                  <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
                   <span>評価</span>
                 </div>
-                <div id="left-ratingFilterContainer" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
+                <div id="left-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
                   <span>集計対象:</span>
                   <select id="left-ratingFilterSelect" onchange="changeRatingFilter('left')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
                     <option value="all">全員</option>
                   </select>
                 </div>
               </div>
-              <div id="left-ratingAxesList"></div>
-              <div class="rating-summary-row" id="left-ratingSummaryRow" style="display:none;"></div>
+              <div class="rating-panel-content" id="left-ratingPanelContent">
+                <div id="left-ratingAxesList"></div>
+                <div class="rating-summary-row" id="left-ratingSummaryRow" style="display:none;"></div>
+              </div>
             </div>
 
             <!-- 入力 / プレビュー表示 -->
@@ -338,20 +341,23 @@
             </div>
 
             <div class="rating-panel" id="right-ratingPanel" style="display:none;">
-              <div class="rating-panel-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="rating-panel-title">
-                  <i data-lucide="star" style="width:14px; height:14px; color:var(--warning);"></i>
+              <div class="rating-panel-header" onclick="toggleRatingPanel('right')" style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="rating-panel-title" style="display: flex; align-items: center;">
+                  <span class="rating-toggle-icon" id="right-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
+                  <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
                   <span>評価</span>
                 </div>
-                <div id="right-ratingFilterContainer" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
+                <div id="right-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
                   <span>集計対象:</span>
                   <select id="right-ratingFilterSelect" onchange="changeRatingFilter('right')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
                     <option value="all">全員</option>
                   </select>
                 </div>
               </div>
-              <div id="right-ratingAxesList"></div>
-              <div class="rating-summary-row" id="right-ratingSummaryRow" style="display:none;"></div>
+              <div class="rating-panel-content" id="right-ratingPanelContent">
+                <div id="right-ratingAxesList"></div>
+                <div class="rating-summary-row" id="right-ratingSummaryRow" style="display:none;"></div>
+              </div>
             </div>
 
             <!-- 入力 / プレビュー表示 -->
