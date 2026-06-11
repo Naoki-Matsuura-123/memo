@@ -7,7 +7,9 @@ const commandsList = [
   { id: 'download', name: '/download', desc: 'このメモを画像付きのZIPパッケージ（Markdown + 画像）としてダウンロードします', shortcut: '📥 Download', action: () => downloadMemo(state.activePaneId) },
   { id: 'grid', name: '/grid', desc: 'グリッド段組テンプレート (1〜3列) を挿入します', shortcut: '📊 Grid', action: () => openGridTemplateModal() },
   { id: 'image', name: '/image', desc: 'アップロード済み画像の一覧から選択して再利用します', shortcut: '🖼️ Image', action: () => openImageReuseModal() },
+  { id: 'uploads', name: '/uploads', desc: '一時画像一覧を表示し、選択した圧縮画像URLを挿入します', shortcut: '🖼️ Uploads', action: () => { if (el.uploadsTabBtn) el.uploadsTabBtn.style.display = 'flex'; switchTab('uploads'); } },
   { id: 'collapse', name: '/collapse', desc: '折りたたみブロック（アコーディオン）を挿入します', shortcut: '➕ Fold', action: () => insertAccordion() },
+
   { id: 'delete', name: '/delete', desc: '現在編集中のメモをデータベースから完全に消去します', shortcut: 'Trash Button', action: () => { const paneState = state.panes[state.activePaneId]; if (paneState.activeMemoId) el.deleteModal.classList.add('active'); } },
   { id: 'folder-new', name: '/folder-new', desc: '新しくフォルダを作成するためのダイアログを起動します', shortcut: '+ Folder', action: () => window.openCreateFolderModal() },
   { id: 'rate', name: '/rate', desc: '評価パネルにフォーカスします（メモ選択時）', shortcut: '⭐ Rating', action: () => { const paneId = state.activePaneId; const paneState = state.panes[paneId]; if (paneState.activeMemoId) { const pel = getPaneEl(paneId); if (pel.ratingPanel) { pel.ratingPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); } } else { showToast('メモを先に選択してください', 'shield-alert'); } } },
@@ -17,6 +19,8 @@ const commandsList = [
   { id: 'theme-dark', name: '/theme-dark', desc: '画面テーマを高級感のある「モダンダーク」に変更します', shortcut: 'Dark Theme', action: () => { applyTheme('theme-dark'); const lt = document.getElementById('left-themeSelect'); if (lt) lt.value = 'theme-dark'; const rt = document.getElementById('right-themeSelect'); if (rt) rt.value = 'theme-dark'; } },
   { id: 'theme-sepia', name: '/theme-sepia', desc: '画面テーマを優しく暖かい「セピアブラウン」に変更します', shortcut: 'Sepia Theme', action: () => { applyTheme('theme-sepia'); const lt = document.getElementById('left-themeSelect'); if (lt) lt.value = 'theme-sepia'; const rt = document.getElementById('right-themeSelect'); if (rt) rt.value = 'theme-sepia'; } },
   { id: 'theme-nord', name: '/theme-nord', desc: '画面テーマを落ち着きある「ノルディック」に変更します', shortcut: 'Nord Theme', action: () => { applyTheme('theme-nord'); const lt = document.getElementById('left-themeSelect'); if (lt) lt.value = 'theme-nord'; const rt = document.getElementById('right-themeSelect'); if (rt) rt.value = 'theme-nord'; } },
+  { id: 'rate-get', name: '/rate-get', desc: '評価サマリーを取得しクリップボードにコピーします', shortcut: '📋 Get Ratings', action: () => getRatingsCommand() },
+  { id: 'rate-show', name: '/rate-show', desc: '現在の評価サマリーをエディタに挿入します', shortcut: '📊 Show Ratings', action: () => showRatingsCommand() },
   { id: 'clear', name: '/clear', desc: 'エディタ表示を閉じ、現在のメモの選択状態をクリアします', shortcut: 'Close View', action: () => closeWorkspace() }
 ];
 
@@ -102,11 +106,11 @@ function insertGridTemplate(cols, aspect) {
   const aspectClass = `aspect-${aspect}`;
   const colsClass = `grid-cols-${cols}`;
   
-  const dummySvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="100%" height="100%" fill="%23f0f0f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%23a0a0a0">仮画像</text></svg>`;
+  const dummyImgUrl = '/uploads/placeholder.png';
 
   let itemsHtml = '';
   for (let i = 1; i <= cols; i++) {
-    itemsHtml += `  ![ここに説明テキストを入力|fit](${dummySvg})\n`;
+    itemsHtml += `  [card: ${dummyImgUrl} | ここに説明テキストを入力]\n`;
   }
   
   const template = `<div class="memo-grid ${colsClass} ${aspectClass}">\n${itemsHtml}</div>\n`;
@@ -173,9 +177,10 @@ function openImageReuseModal() {
       card.className = 'grid-card';
       card.style.cssText = "cursor:pointer; border-radius:6px; overflow:hidden; border:1px solid var(--panel-border); background-color: rgba(128, 128, 128, 0.05); height: 100px;";
       
+      const fullImgUrl = img.url.startsWith('/uploads/') ? API_URL + img.url : img.url;
       card.innerHTML = `
         <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; background-color: rgba(0, 0, 0, 0.15);">
-          <img src="${img.url}" style="width:100%; height:100%; object-fit:cover;" />
+          <img src="${fullImgUrl}" style="width:100%; height:100%; object-fit:cover;" />
         </div>
       `;
       
@@ -291,12 +296,13 @@ function executeCommand(cmdId) {
     const caretPos = textarea.selectionStart;
     
     // 直前がスラッシュであれば、それを削除
-    if (textarea === document.activeElement && caretPos > 0 && text.substring(caretPos - 1, caretPos) === '/') {
+    if (caretPos > 0 && text.substring(caretPos - 1, caretPos) === '/') {
       textarea.value = text.substring(0, caretPos - 1) + text.substring(caretPos);
       textarea.selectionStart = textarea.selectionEnd = caretPos - 1;
       // オートセーブをトリガー
-      textarea.dispatchEvent(new Event('input'));
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
     }
+
   }
 
   // 3. アクションを遅延実行
@@ -305,4 +311,192 @@ function executeCommand(cmdId) {
     showToast(`コマンド「${cmd.name}」を実行しました`, 'terminal');
     setTimeout(() => cmd.action(), 50);
   }
+}
+
+// 評価 Markdown の生成
+function generateRatingsMarkdown(paneId) {
+  const paneState = state.panes[paneId];
+  if (!paneState || !paneState.activeMemoId || typeof paneState.activeMemoId === 'string') {
+    return '';
+  }
+
+  if (!state.currentAxes || state.currentAxes.length === 0) {
+    return '評価データはありません。';
+  }
+
+  const filterVal = paneState.ratingFilter || 'all';
+
+  // フィルター名の取得
+  let filterLabel = '全員';
+  if (filterVal === 'me') {
+    filterLabel = '自分のみ';
+  } else if (filterVal.startsWith('role_')) {
+    const roleId = parseInt(filterVal.substring(5), 10);
+    const roleObj = state.cachedRoles ? state.cachedRoles.find(r => r.id === roleId) : null;
+    filterLabel = roleObj ? `ロール: ${roleObj.name}` : filterVal;
+  } else if (filterVal.startsWith('user_')) {
+    const targetUserId = parseInt(filterVal.substring(5), 10);
+    const userObj = state.cachedUsers ? state.cachedUsers.find(u => u.id === targetUserId) : null;
+    filterLabel = userObj ? `ユーザー: ${userObj.display_name} (@${userObj.username})` : filterVal;
+  }
+
+  let md = `### 評価サマリー (集計対象: ${filterLabel})\n\n`;
+  md += `| 評価軸 | 評価方式 | 評価値 | 投票数 |\n`;
+  md += `| --- | --- | --- | --- |\n`;
+
+  const methodLabels = { star: '星評価', tier: 'ティア評価', numeric: '数値評価' };
+
+  state.currentAxes.forEach(axis => {
+    const axisData = state.currentRatings ? state.currentRatings.find(r => r.axis && r.axis.id === axis.id) : null;
+    const allRatings = axisData ? axisData.ratings : [];
+
+    // ① 可視性設定(トグルグリッド)と、② 集計フィルターで対象ユーザーを絞り込む
+    const filteredRatings = allRatings.filter(r => {
+      // 可視性トグルグリッドのチェック
+      // 自分の評価は常にON。他人の評価は vis.visible !== 0 の場合のみ表示
+      if (r.user_id !== state.currentUserId) {
+        const userVis = state.currentVisibilityGrid ? state.currentVisibilityGrid.find(g => g.user_id === r.user_id) : null;
+        const isVisible = !userVis || userVis.axes[String(axis.id)] !== 0;
+        if (!isVisible) return false;
+      }
+
+      // 集計対象フィルター(ドロップダウン)のチェック
+      if (filterVal === 'all') {
+        return true;
+      } else if (filterVal === 'me') {
+        return r.user_id === state.currentUserId;
+      } else if (filterVal.startsWith('role_')) {
+        const roleId = parseInt(filterVal.substring(5), 10);
+        const memberIds = state.cachedRoleUsers ? state.cachedRoleUsers[roleId] || [] : [];
+        return memberIds.includes(r.user_id);
+      } else if (filterVal.startsWith('user_')) {
+        const targetUserId = parseInt(filterVal.substring(5), 10);
+        return r.user_id === targetUserId;
+      }
+      return true;
+    });
+
+    const scores = filteredRatings.map(r => r.score).filter(s => s !== null && s !== undefined);
+    
+    let avg = null;
+    if (scores.length > 0) {
+      avg = scores.reduce((sum, val) => sum + val, 0) / scores.length;
+    }
+
+    let displayValue = '—';
+    if (avg !== null) {
+      if (axis.method === 'star') {
+        displayValue = `★${avg.toFixed(1)}`;
+      } else if (axis.method === 'tier') {
+        // ティア評価の場合、投票数が最多だったティア（最頻値）を表示する
+        const tierCounts = {};
+        filteredRatings.forEach(r => {
+          if (r.raw_value) {
+            const val = r.raw_value.toUpperCase();
+            tierCounts[val] = (tierCounts[val] || 0) + 1;
+          }
+        });
+        const maxTier = Object.entries(tierCounts).sort((a, b) => b[1] - a[1])[0];
+        displayValue = maxTier ? maxTier[0] : '—';
+      } else {
+        displayValue = `${avg.toFixed(1)}`;
+      }
+    }
+
+    const methodName = methodLabels[axis.method] || axis.method;
+    md += `| ${axis.name} | ${methodName} | ${displayValue} | ${filteredRatings.length}人 |\n`;
+  });
+
+  const memo = state.memos.find(m => m.id === paneState.activeMemoId);
+  if (memo && memo.adjusted_rating !== undefined && memo.adjusted_rating !== null) {
+    let dateStr = "";
+    if (memo.adjusted_rating_calculated_at) {
+      try {
+        const d = new Date(memo.adjusted_rating_calculated_at);
+        const pad = n => String(n).padStart(2, '0');
+        dateStr = ` (算出日時: ${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())})`;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    md += `\n**偏差補正評価平均 (Zスコア):** ${memo.adjusted_rating}点${dateStr}\n`;
+  }
+
+  return md;
+}
+
+function getRatingsCommand() {
+  const paneId = state.activePaneId;
+  const paneState = state.panes[paneId];
+  if (!paneState || !paneState.activeMemoId || typeof paneState.activeMemoId === 'string') {
+    showToast('メモを先に選択してください', 'shield-alert');
+    return;
+  }
+  const md = generateRatingsMarkdown(paneId);
+  if (!md) {
+    showToast('評価データを取得できませんでした', 'shield-alert');
+    return;
+  }
+  
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(md)
+      .then(() => {
+        showToast('評価サマリーをクリップボードにコピーしました！', 'check');
+      })
+      .catch(err => {
+        console.error('Clipboard copy error:', err);
+        fallbackCopyTextToClipboard(md);
+      });
+  } else {
+    fallbackCopyTextToClipboard(md);
+  }
+}
+
+function fallbackCopyTextToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";  // avoid scrolling to bottom
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showToast('評価サマリーをクリップボードにコピーしました！', 'check');
+    } else {
+      showToast('コピーに失敗しました', 'shield-alert');
+    }
+  } catch (err) {
+    showToast('コピーに失敗しました', 'shield-alert');
+  }
+  document.body.removeChild(textArea);
+}
+
+function showRatingsCommand() {
+  const paneId = state.activePaneId;
+  const paneState = state.panes[paneId];
+  if (!paneState || !paneState.activeMemoId || typeof paneState.activeMemoId === 'string') {
+    showToast('メモを先に選択してください', 'shield-alert');
+    return;
+  }
+  const md = generateRatingsMarkdown(paneId);
+  if (!md) {
+    showToast('評価データを取得できませんでした', 'shield-alert');
+    return;
+  }
+
+  const pel = getPaneEl(paneId);
+  const textarea = pel.memoContent;
+  if (!textarea) return;
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const val = textarea.value;
+
+  textarea.value = val.substring(0, start) + md + val.substring(end);
+  textarea.selectionStart = textarea.selectionEnd = start + md.length;
+
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  textarea.focus();
+  showToast('評価サマリーを挿入しました！', 'check');
 }

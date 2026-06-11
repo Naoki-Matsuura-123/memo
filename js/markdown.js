@@ -1,14 +1,14 @@
-function processAndPasteImage(file, qualitySetting) {
+function processAndPasteImage(file, qualitySetting, paneId = state.activePaneId) {
   if (!state.isOnline) {
     const dummySvg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2EwYTBhMCI+44Kq44OV44Op44Kk44Oz5Luu55S75YOPPC90ZXh0Pjwvc3ZnPg==";
-    insertImageMarkdown(dummySvg);
+    insertImageMarkdown(dummySvg, paneId);
     showToast("オフラインのため仮画像を挿入しました。レイアウト調整用です。", 'image');
     return;
   }
 
   // 2. オンライン時のアップロード処理
   if (qualitySetting === 'original') {
-    uploadImageFile(file, file.name || 'image.jpg');
+    uploadImageFile(file, file.name || 'image.jpg', paneId);
     return;
   }
 
@@ -44,7 +44,7 @@ function processAndPasteImage(file, qualitySetting) {
 
       canvas.toBlob((blob) => {
         if (blob) {
-          uploadImageFile(blob, file.name || 'compressed_image.jpg');
+          uploadImageFile(blob, file.name || 'compressed_image.jpg', paneId);
         } else {
           showToast("画像圧縮に失敗しました", 'shield-alert');
         }
@@ -55,7 +55,7 @@ function processAndPasteImage(file, qualitySetting) {
   reader.readAsDataURL(file);
 }
 
-function uploadImageFile(blob, filename) {
+function uploadImageFile(blob, filename, paneId = state.activePaneId) {
   if (!state.token) {
     showToast("ログインセッションが見つかりません", 'shield-alert');
     return;
@@ -80,18 +80,24 @@ function uploadImageFile(blob, filename) {
   })
   .then(data => {
     if (data && data.url) {
-      insertImageMarkdown(data.url);
+      insertImageMarkdown(data.url, paneId);
       showToast("画像のアップロードが完了しました！", 'check');
+      if (state.activeTab === 'uploads' && typeof renderUploads === 'function') {
+        renderUploads();
+      }
     }
   })
+
   .catch(err => {
     console.error(err);
     showToast("画像のアップロードに失敗しました", 'shield-alert');
   });
 }
 
-function insertImageMarkdown(imageUrl) {
-  const textarea = el.memoContent;
+function insertImageMarkdown(imageUrl, paneId = state.activePaneId) {
+  const pel = getPaneEl(paneId);
+  const textarea = pel.memoContent;
+  if (!textarea) return;
   textarea.focus();
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
@@ -116,27 +122,64 @@ function insertImageMarkdown(imageUrl) {
   textarea.dispatchEvent(new Event('input'));
 }
 
-function syncPreviewUI(paneId = state.activePaneId) {
+function syncPreviewUI(paneId = state.activePaneId, forceScrollAdjust = false) {
   const pel = getPaneEl(paneId);
   const paneState = state.panes[paneId];
   const activeMemo = state.memos.find(m => m.id === paneState.activeMemoId);
   const isReadOnlyByACL = activeMemo && activeMemo.permission === 'read';
+  const viewport = pel.container ? pel.container.querySelector('.editor-viewport') : null;
+  const textarea = pel.memoContent;
+
+  // 切り替え前の状態を取得 (forceScrollAdjust が true のときのみ)
+  let caretY = 0;
+  let editorScrollHeight = 1;
+  if (forceScrollAdjust && textarea && viewport && textarea.style.display !== 'none') {
+    const position = textarea.selectionStart || 0;
+    const coords = getCaretCoordinates(textarea, position);
+    const textareaOffsetTop = textarea.offsetTop;
+    caretY = textareaOffsetTop + coords.top;
+    editorScrollHeight = viewport.scrollHeight || 1;
+  }
 
   if (paneState.isPreviewActive) {
+    // 編集 -> プレビュー
+    const ratio = (forceScrollAdjust && textarea && viewport && textarea.style.display !== 'none') ? (caretY / editorScrollHeight) : 0;
+
     pel.previewBtn.innerHTML = '<i data-lucide="edit-3" style="width:14px; height:14px;"></i>編集';
     pel.memoContent.style.display = 'none';
     pel.markdownPreview.classList.add('active');
     pel.memoTitle.readOnly = true;
     pel.memoTitle.classList.add('readonly-title');
     compileMarkdown(paneId);
+
+    // プレビュー表示後のスクロール位置調整
+    if (forceScrollAdjust && viewport && ratio > 0) {
+      const previewScrollHeight = viewport.scrollHeight || 1;
+      const targetScrollTop = ratio * previewScrollHeight - 80;
+      viewport.scrollTop = Math.max(0, targetScrollTop);
+    }
   } else {
+    // プレビュー -> 編集
     pel.previewBtn.innerHTML = '<i data-lucide="eye" style="width:14px; height:14px;"></i>プレビュー';
     pel.memoContent.style.display = 'block';
+    if (typeof adjustTextareaHeight === 'function') {
+      adjustTextareaHeight(textarea);
+    }
     pel.markdownPreview.classList.remove('active');
     
     if (!isReadOnlyByACL) {
       pel.memoTitle.readOnly = false;
       pel.memoTitle.classList.remove('readonly-title');
+    }
+
+    // 編集表示後のスクロール位置調整
+    if (forceScrollAdjust && textarea && viewport) {
+      const position = textarea.selectionStart || 0;
+      const coords = getCaretCoordinates(textarea, position);
+      const textareaOffsetTop = textarea.offsetTop;
+      const caretYAfter = textareaOffsetTop + coords.top;
+      const targetScrollTop = caretYAfter - 80;
+      viewport.scrollTop = Math.max(0, targetScrollTop);
     }
   }
   
@@ -150,6 +193,7 @@ function syncPreviewUI(paneId = state.activePaneId) {
   safeCreateIcons();
 }
 
+
 function togglePreview(paneId = state.activePaneId) {
   if (typeof paneId !== 'string') {
     // クリックイベントハンドラから直接呼ばれた場合、thisやeventオブジェクトが渡る可能性があるため防ぐ
@@ -160,25 +204,71 @@ function togglePreview(paneId = state.activePaneId) {
   if (activeMemo && activeMemo.permission === 'read') {
     paneState.isPreviewActive = true;
     paneState.isEditModeExplicit = false;
-    syncPreviewUI(paneId);
+    syncPreviewUI(paneId, true);
     return;
   }
 
   paneState.isEditModeExplicit = !paneState.isEditModeExplicit;
   paneState.isPreviewActive = !paneState.isEditModeExplicit;
-  syncPreviewUI(paneId);
+  syncPreviewUI(paneId, true);
 }
+
 
 function compileMarkdown(paneId = state.activePaneId) {
   const pel = getPaneEl(paneId);
   const raw = pel.memoContent.value || '';
   
-  if (typeof marked === 'undefined') {
-    pel.markdownPreview.innerHTML = `<p>${escape(raw).replace(/\n/g, '<br>')}</p>`;
-    return;
-  }
+  // [card: url | text] 記法を解析前にHTMLに置換する処理
+  let processedRaw = raw;
   
-  let html = marked.parse(raw);
+  // 1. 画像あり、または空白/テキストカード: [card: url | text]
+  processedRaw = processedRaw.replace(/\[card:\s*([^|\]]*?)\s*\|\s*([^\]]*?)\]/g, (match, url, text) => {
+    url = url.trim();
+    text = text.trim();
+    
+    // A. 空白（blank / empty / 空欄）の判定
+    if (url === '' || url.toLowerCase() === 'blank' || url.toLowerCase() === 'empty') {
+      return `<div class="grid-card" style="background: transparent !important; border: none !important; box-shadow: none !important; pointer-events: none;">` +
+             `<div class="grid-card-img-container empty-img-container" style="background: transparent !important; border: none !important; box-shadow: none !important; display: block;">` +
+             `</div>` +
+             (text ? `<p class="card-text" style="background: transparent !important; border-top: none !important; color: var(--text-muted) !important;">${escape(text)}</p>` : '') +
+             `</div>`;
+    }
+    
+    // B. 文字列指定 (text: 任意の文字列) の判定
+    if (url.toLowerCase().startsWith('text:')) {
+      const displayStr = url.substring(5).trim();
+      return `<div class="grid-card">` +
+             `<div class="grid-card-img-container string-card-container" style="background-color:rgba(128,128,128,0.1); border:1px dashed var(--panel-border); display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:1.15rem; font-weight:700; text-align:center; padding:0.5rem; box-sizing:border-box;">` +
+             `<span>${escape(displayStr)}</span>` +
+             `</div>` +
+             `<p class="card-text">${escape(text)}</p>` +
+             `</div>`;
+    }
+    
+    // C. 通常の画像URLとしての処理
+    const fullUrl = url.startsWith('/uploads/') ? API_URL + url : url;
+    return `<div class="grid-card">` +
+           `<div class="grid-card-img-container">` +
+           `<img src="${fullUrl}" alt="${escape(text)}" style="width:100%; height:100%; object-fit:contain; display:block;" />` +
+           `</div>` +
+           `<p class="card-text">${escape(text)}</p>` +
+           `</div>`;
+  });
+
+  // 2. 画像なし（文章のみ、No Image表示）: [card: text]
+  processedRaw = processedRaw.replace(/\[card:\s*([^|\]]+?)\]/g, (match, text) => {
+    text = text.trim();
+    return `<div class="grid-card">` +
+           `<div class="grid-card-img-container empty-img-container" style="background-color:rgba(128,128,128,0.15); display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:0.75rem;">` +
+           `<span>No Image</span>` +
+           `</div>` +
+           `<p class="card-text">${escape(text)}</p>` +
+           `</div>`;
+  });
+
+
+  let html = marked.parse(processedRaw);
   pel.markdownPreview.innerHTML = html;
 
   // 後処理: YouTube動画埋め込み ＆ memo://ジャンプリンク・バッジ付与
@@ -240,7 +330,6 @@ function compileMarkdown(paneId = state.activePaneId) {
     a.style.cssText = "color: var(--accent); text-decoration: underline;";
   });
 
-  // 後処理: 画像のサイズ指定 ![alt|width](url)
   // まず、memo-grid 内の img を包んでいる不要な p タグを取り除く（marked.jsの仕様対策）
   const gridImages = pel.markdownPreview.querySelectorAll('.memo-grid img');
   gridImages.forEach(img => {
@@ -250,8 +339,21 @@ function compileMarkdown(paneId = state.activePaneId) {
     }
   });
 
+  // 新規追加: memo-grid 内の grid-card を包んでいる不要な p タグを取り除く
+  const gridCards = pel.markdownPreview.querySelectorAll('.memo-grid .grid-card');
+  gridCards.forEach(card => {
+    const parent = card.parentElement;
+    if (parent && parent.tagName === 'P') {
+      parent.replaceWith(card);
+    }
+  });
+
   const images = pel.markdownPreview.querySelectorAll('img');
   images.forEach(img => {
+    let src = img.getAttribute('src');
+    if (src && src.startsWith('/uploads/')) {
+      img.setAttribute('src', API_URL + src);
+    }
     const alt = img.getAttribute('alt') || '';
     
     // この画像がグリッド段組テンプレート内にあるかどうかチェック
@@ -369,4 +471,165 @@ function compileMarkdown(paneId = state.activePaneId) {
   });
 
   safeCreateIcons();
+}
+
+// ==========================================
+// キャレット座標計算・画像選択/挿入・自動スクロール
+// ==========================================
+
+function getCaretCoordinates(element, position) {
+  const properties = [
+    'direction',
+    'boxSizing',
+    'width',
+    'height',
+    'overflowX',
+    'overflowY',
+    'borderTopWidth',
+    'borderRightWidth',
+    'borderBottomWidth',
+    'borderLeftWidth',
+    'borderStyle',
+    'paddingTop',
+    'paddingRight',
+    'paddingBottom',
+    'paddingLeft',
+    'fontStyle',
+    'fontVariant',
+    'fontWeight',
+    'fontStretch',
+    'fontSize',
+    'fontSizeAdjust',
+    'lineHeight',
+    'fontFamily',
+    'textAlign',
+    'textTransform',
+    'textIndent',
+    'textDecoration',
+    'letterSpacing',
+    'wordSpacing',
+    'tabSize',
+    'MozTabSize'
+  ];
+
+  const div = document.createElement('div');
+  div.id = 'input-textarea-caret-position-mirror-div';
+  document.body.appendChild(div);
+
+  const style = div.style;
+  const computed = window.getComputedStyle(element);
+
+  style.whiteSpace = 'pre-wrap';
+  style.wordWrap = 'break-word';
+  style.position = 'absolute';
+  style.visibility = 'hidden';
+
+  properties.forEach(prop => {
+    style[prop] = computed[prop];
+  });
+
+  style.width = element.clientWidth + 'px';
+
+  div.textContent = element.value.substring(0, position);
+
+  const span = document.createElement('span');
+  span.textContent = element.value.substring(position, position + 1) || '.';
+  div.appendChild(span);
+
+  const coordinates = {
+    top: span.offsetTop + parseInt(computed.borderTopWidth || '0'),
+    left: span.offsetLeft + parseInt(computed.borderLeftWidth || '0'),
+    height: parseInt(computed.lineHeight || '20')
+  };
+
+  document.body.removeChild(div);
+  return coordinates;
+}
+
+async function fetchUploads() {
+  if (!state.isOnline) return [];
+  try {
+    const res = await fetch(`${API_URL}/uploads/my-images`, {
+      headers: {
+        'Authorization': `Bearer ${state.token}`,
+        'ngrok-skip-browser-warning': 'true'
+      }
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.error("画像一覧の取得失敗", e);
+  }
+  return [];
+}
+
+async function renderUploads() {
+  const images = await fetchUploads();
+  const listEl = el.sidebarUploadsList;
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  
+  if (images.length === 0) {
+    listEl.innerHTML = '<div style="grid-column: span 3; text-align: center; font-size: 0.75rem; color: var(--text-muted); padding: 1rem;">画像がありません</div>';
+    return;
+  }
+  
+  images.forEach(img => {
+    const item = document.createElement('div');
+    item.className = 'sidebar-upload-item';
+    item.style.cssText = `
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid var(--panel-border);
+      background: var(--editor-bg);
+      transition: border-color 0.2s;
+    `;
+    item.addEventListener('mouseenter', () => {
+      item.style.borderColor = 'var(--accent)';
+    });
+    item.addEventListener('mouseleave', () => {
+      item.style.borderColor = 'var(--panel-border)';
+    });
+    
+    const imgEl = document.createElement('img');
+    const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+    imgEl.src = `${baseUrl}${img.url}`;
+    imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+    
+    item.appendChild(imgEl);
+    
+    item.addEventListener('click', () => {
+      insertImageUrl(img.url);
+      showToast("選択した画像のURLを挿入しました", 'check');
+    });
+    
+    listEl.appendChild(item);
+  });
+}
+
+function insertImageUrl(url) {
+  const paneId = state.activePaneId;
+  const pel = getPaneEl(paneId);
+  const textarea = pel.memoContent;
+  
+  if (!textarea) return;
+  
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+  
+  textarea.value = text.substring(0, start) + url + text.substring(end);
+  
+  // カーソルを挿入したURLの直後に進める
+  textarea.selectionStart = textarea.selectionEnd = start + url.length;
+  
+  // 編集を続けられるようにフォーカスをあてる
+  textarea.focus();
+  
+  // inputイベントを発火して自動保存とプレビュー更新をトリガー
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }

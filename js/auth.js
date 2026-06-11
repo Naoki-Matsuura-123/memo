@@ -7,6 +7,7 @@ state.currentUser = null;
 function handleAuthRequired() {
   state.currentUser = null;
   state.currentUserId = null;
+  state.token = null;
   localStorage.removeItem('token');
   
   // Clear lists and editor
@@ -58,6 +59,7 @@ async function loginUser(username, password) {
     if (res.ok) {
       const data = await res.json();
       localStorage.setItem('token', data.access_token);
+      state.token = data.access_token;
       state.currentUser = data.user;
       state.currentUserId = data.user.id;
       updateSidebarProfile(data.user);
@@ -95,6 +97,7 @@ async function guestLogin() {
     if (res.ok) {
       const data = await res.json();
       localStorage.setItem('token', data.access_token);
+      state.token = data.access_token;
       state.currentUser = data.user;
       state.currentUserId = data.user.id;
       updateSidebarProfile(data.user);
@@ -199,6 +202,7 @@ async function initAuth() {
     handleAuthRequired();
     return;
   }
+  state.token = token;
   
   try {
     const res = await fetch(`${API_URL}/users/me`, {

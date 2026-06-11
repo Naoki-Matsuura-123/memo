@@ -455,11 +455,22 @@ function clearFormula() {
 function switchTab(tab) {
   state.activeTab = tab;
   
+  // クラスのクリア
+  el.folderTabBtn.classList.remove('active');
+  el.tagTabBtn.classList.remove('active');
+  if (el.uploadsTabBtn) el.uploadsTabBtn.classList.remove('active');
+
+  // セクションの表示・非表示
+  el.folderSection.style.display = 'none';
+  el.tagSection.style.display = 'none';
+  if (el.uploadsSection) el.uploadsSection.style.display = 'none';
+  
   if (tab === 'folders') {
     el.folderTabBtn.classList.add('active');
-    el.tagTabBtn.classList.remove('active');
     el.folderSection.style.display = 'block';
-    el.tagSection.style.display = 'none';
+    
+    // 他のタブに移る際、画像タブは非表示にする
+    if (el.uploadsTabBtn) el.uploadsTabBtn.style.display = 'none';
     
     // タグタブから切り替える際、タグの絞り込みをクリア
     state.activeTags = [];
@@ -469,11 +480,12 @@ function switchTab(tab) {
     renderAdvancedTagSearchUI();
     renderFolders();
     renderList();
-  } else {
-    el.folderTabBtn.classList.remove('active');
+  } else if (tab === 'tags') {
     el.tagTabBtn.classList.add('active');
-    el.folderSection.style.display = 'none';
     el.tagSection.style.display = 'block';
+    
+    // 他のタブに移る際、画像タブは非表示にする
+    if (el.uploadsTabBtn) el.uploadsTabBtn.style.display = 'none';
     
     // フォルダタブから切り替える際、フォルダの絞り込みを「すべて」にリセット
     state.activeFolderId = 'all';
@@ -481,5 +493,17 @@ function switchTab(tab) {
     renderAdvancedTagSearchUI();
     renderFolders();
     renderList();
+  } else if (tab === 'uploads') {
+    if (el.uploadsTabBtn) {
+      el.uploadsTabBtn.style.display = 'flex';
+      el.uploadsTabBtn.classList.add('active');
+    }
+    if (el.uploadsSection) el.uploadsSection.style.display = 'block';
+    
+    // 画像一覧のレンダリング
+    if (typeof renderUploads === 'function') {
+      renderUploads();
+    }
   }
 }
+

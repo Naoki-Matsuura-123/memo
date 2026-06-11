@@ -18,10 +18,28 @@ function getAllSubfolderIds(folderId) {
 }
 
 function adjustTextareaHeight(textarea) {
-  if (!textarea) return;
-  textarea.style.height = 'auto';
-  textarea.style.height = textarea.scrollHeight + 'px';
+  // 廃止：CSSのflexとoverflow-yによりtextarea自身でスクロールするため何もしない
 }
+
+function isAppUiElement(element) {
+  if (!element) return false;
+  if (typeof element.closest === 'function') {
+    if (
+      element.closest('#commandPaletteModal') ||
+      element.closest('.sidebar') ||
+      element.closest('#uploadsSection') ||
+      element.closest('.rating-panel') ||
+      element.closest('#scratchpadWidget') ||
+      element.closest('.custom-dropdown') ||
+      element.closest('.advanced-tag-popover') ||
+      element.closest('.modal')
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 
 window.addEventListener('resize', () => {
   adjustTextareaHeight(document.getElementById('left-memoContent'));
@@ -222,11 +240,12 @@ function selectMemo(id, paneId = state.activePaneId) {
   pel.emptyState.style.display = 'none';
   pel.memoTitle.value = memo.title;
   pel.memoContent.value = memo.content;
-  adjustTextareaHeight(pel.memoContent);
   
   // 編集エリア初期表示
   pel.memoTitle.style.display = 'block';
   pel.memoContent.style.display = 'block';
+  adjustTextareaHeight(pel.memoContent);
+  applyMetaAccordionDOM(paneId);
   pel.previewBtn.style.display = 'flex';
   if (pel.linkCopyBtn) pel.linkCopyBtn.style.display = 'flex';
   if (pel.downloadBtn) pel.downloadBtn.style.display = 'flex';
@@ -295,6 +314,7 @@ function applyMemoPermissions(memo, paneId = state.activePaneId) {
     banner.style.cssText = "font-size: 0.75rem; color: var(--danger); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.35rem 0.75rem; border-radius: 6px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.3rem;";
     pel.memoTitle.parentNode.insertBefore(banner, pel.memoTitle);
     safeCreateIcons();
+    if (pel.imagePasteConfig) pel.imagePasteConfig.style.display = 'none';
   } else {
     // 所有者または編集可能権限
     pel.memoTitle.disabled = false;
@@ -309,6 +329,7 @@ function applyMemoPermissions(memo, paneId = state.activePaneId) {
     if (pel.addAxisBtn) pel.addAxisBtn.style.display = 'flex';
     
     pel.memoTagList.querySelectorAll('.tag-chip-remove').forEach(btn => btn.style.display = 'flex');
+    if (pel.imagePasteConfig) pel.imagePasteConfig.style.display = 'flex';
   }
 }
 
@@ -521,11 +542,19 @@ function renderFolders() {
 
       const canManage = (state.currentUser && (state.currentUser.is_admin || folder.user_id === state.currentUser.id));
       let actionButtonsHtml = '';
+      
+      const batchTagBtnHtml = state.currentUser ? `
+        <button class="folder-action-btn" onclick="event.stopPropagation(); openBatchTagFolderModal(${folder.id})" title="タグ一括操作"><i data-lucide="tag" style="width:10px; height:10px;"></i></button>
+      ` : '';
+
       if (canManage) {
         actionButtonsHtml = `
+          ${batchTagBtnHtml}
           <button class="folder-action-btn" onclick="event.stopPropagation(); openEditFolderModal(${folder.id}, '${escape(folder.name)}')"><i data-lucide="edit-2" style="width:10px; height:10px;"></i></button>
           <button class="folder-action-btn delete" onclick="event.stopPropagation(); openDeleteFolderModal(${folder.id})"><i data-lucide="trash-2" style="width:10px; height:10px;"></i></button>
         `;
+      } else {
+        actionButtonsHtml = batchTagBtnHtml;
       }
 
       item.innerHTML = `
@@ -829,6 +858,92 @@ window.openDeleteFolderModal = (id) => {
   el.deleteFolderModal.classList.add('active');
 };
 
+window.openBatchTagFolderModal = (id) => {
+  batchTaggingFolderId = id;
+  const folder = state.folders.find(f => f.id === id);
+  el.batchTagFolderName.textContent = folder ? folder.name : '';
+  el.batchTagInput.value = '';
+  el.batchTagActionSelect.value = 'add';
+  el.batchTagRecursive.checked = true;
+  
+  // 確定ボタンのスタイルをリセット
+  el.confirmBatchTagBtn.textContent = '追加';
+  el.confirmBatchTagBtn.style.backgroundColor = 'var(--accent)';
+  el.confirmBatchTagBtn.style.borderColor = 'var(--accent)';
+  
+  el.batchTagFolderModal.classList.add('active');
+  setTimeout(() => el.batchTagInput.focus(), 80);
+};
+
+async function confirmBatchTagFolder() {
+  if (!batchTaggingFolderId) return;
+  
+  // オンラインチェック
+  if (!state.isOnline) {
+    showToast("オフラインのため、一括タグ操作は実行できません", 'shield-alert');
+    return;
+  }
+  
+  const tagName = el.batchTagInput.value.trim();
+  if (!tagName) {
+    showToast("タグ名を入力してください", 'shield-alert');
+    return;
+  }
+  
+  const action = el.batchTagActionSelect.value;
+  const recursive = el.batchTagRecursive.checked;
+  
+  try {
+    const res = await fetch(`${API_URL}/folders/${batchTaggingFolderId}/batch-tag`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+      },
+      body: JSON.stringify({
+        tag_name: tagName,
+        action: action,
+        recursive: recursive
+      })
+    });
+    
+    if (res.ok) {
+      const result = await res.json();
+      const actionText = action === 'add' ? '追加' : '削除';
+      showToast(`タグの一括${actionText}が完了しました！(${result.applied_count}件適用、${result.skipped_count}件スキップ)`, 'check');
+      
+      el.batchTagFolderModal.classList.remove('active');
+      batchTaggingFolderId = null;
+      
+      // データ再ロード
+      await syncMemosAndTags();
+    } else {
+      const err = await res.json();
+      showToast(err.detail || "一括操作に失敗しました", 'shield-alert');
+    }
+  } catch (e) {
+    showToast("サーバー通信エラー", 'shield-alert');
+  }
+}
+
+// 共通リロード関数（メモとタグの再取得と描画更新）
+async function syncMemosAndTags() {
+  if (state.isOnline) {
+    // メモ一覧の再取得
+    const memoRes = await fetch(`${API_URL}/memos`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (memoRes.ok) {
+      state.memos = await memoRes.json();
+    }
+    // タグ一覧の再取得
+    if (typeof fetchTags === 'function') {
+      await fetchTags();
+    }
+    saveCache();
+  }
+  renderList();
+  renderFolders();
+}
+
 // --- Wikiリンクコピー ---
 function copyMemoLink() {
   if (!state.activeMemoId) return;
@@ -999,17 +1114,20 @@ function setupPaneEvents(paneId) {
       if (paneState.isPreviewActive) compileMarkdown(paneId);
     });
 
+
     pel.memoContent.addEventListener('blur', () => {
       setTimeout(() => {
         const paneState = state.panes[paneId];
         if (paneState.activeMemoId && !paneState.isEditModeExplicit && !paneState.isPreviewActive) {
-          if (document.activeElement !== pel.memoContent && document.activeElement !== pel.memoTitle) {
+          const activeEl = document.activeElement;
+          if (activeEl !== pel.memoContent && activeEl !== pel.memoTitle && !isAppUiElement(activeEl)) {
             paneState.isPreviewActive = true;
             syncPreviewUI(paneId);
           }
         }
       }, 200);
     });
+
   }
 
   if (pel.memoTitle) {
@@ -1186,21 +1304,77 @@ function setupPaneEvents(paneId) {
       if (pel.memoContent.disabled) return;
       
       const selection = window.getSelection().toString().trim();
-      const paneState = state.panes[paneId];
-      paneState.isPreviewActive = false;
-      syncPreviewUI(paneId);
+      const blockEl = e.target.closest('h1, h2, h3, h4, h5, h6, p, li, pre, blockquote, tr, td, th');
+      const blockText = blockEl ? (blockEl.innerText || blockEl.textContent || "") : (e.target.innerText || e.target.textContent || "");
       
-      pel.memoContent.focus();
+      const cleanText = (str) => {
+        if (!str) return "";
+        return str.toLowerCase()
+          .replace(/[#*_\-`\[\]()]/g, '') // remove markdown symbols
+          .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'「」『』、。]/g, '') // remove punctuation
+          .replace(/\s+/g, '') // remove whitespace
+          .trim();
+      };
       
-      if (selection) {
-        const text = pel.memoContent.value;
-        const idx = text.indexOf(selection);
-        if (idx !== -1) {
-          pel.memoContent.selectionStart = idx;
-          pel.memoContent.selectionEnd = idx + selection.length;
+      const cleanBlockText = cleanText(blockText);
+      const cleanBlockChars = new Set(cleanBlockText);
+      const text = pel.memoContent.value;
+      const lines = text.split('\n');
+      
+      let bestLineIdx = -1;
+      let maxScore = -1;
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const cleanLine = cleanText(line);
+        
+        let score = 0;
+        if (selection && line.includes(selection)) {
+          score += 10000;
+        }
+        
+        let overlapScore = 0;
+        if (cleanLine.length > 0 && cleanBlockText.length > 0) {
+          if (cleanBlockText.includes(cleanLine) || cleanLine.includes(cleanBlockText)) {
+            overlapScore = Math.min(cleanLine.length, cleanBlockText.length) * 2;
+          } else {
+            let intersection = 0;
+            const cleanLineChars = Array.from(cleanLine);
+            for (const char of cleanLineChars) {
+              if (cleanBlockChars.has(char)) {
+                intersection++;
+              }
+            }
+            overlapScore = intersection;
+          }
+        }
+        score += overlapScore;
+        score -= Math.abs(cleanLine.length - cleanBlockText.length);
+        
+        if (score > maxScore) {
+          maxScore = score;
+          bestLineIdx = i;
         }
       }
+      
+      if (bestLineIdx !== -1) {
+        let charOffset = 0;
+        for (let i = 0; i < bestLineIdx; i++) {
+          charOffset += lines[i].length + 1;
+        }
+        const lineEndOffset = charOffset + lines[bestLineIdx].length;
+        pel.memoContent.selectionStart = lineEndOffset;
+        pel.memoContent.selectionEnd = lineEndOffset;
+      }
+
+      const paneState = state.panes[paneId];
+      paneState.isPreviewActive = false;
+      syncPreviewUI(paneId, true);
+      
+      pel.memoContent.focus();
     });
+
+
   }
 
   if (pel.addAxisBtn) {
@@ -1214,6 +1388,55 @@ function setupPaneEvents(paneId) {
       selectPane(paneId);
       openToggleGrid();
     });
+  }
+
+  // 新規追加：画像アップロードボタン＆インプットのバインド
+  if (pel.imageUploadBtn && pel.imageUploadInput) {
+    pel.imageUploadBtn.addEventListener('click', () => {
+      pel.imageUploadInput.click();
+    });
+
+    pel.imageUploadInput.addEventListener('change', (e) => {
+      const files = e.target.files;
+      if (files.length > 0) {
+        const file = files[0];
+        const qualitySetting = pel.imageQualitySelect.value || 'standard';
+        selectPane(paneId);
+        processAndPasteImage(file, qualitySetting);
+        e.target.value = ''; // 選択クリア
+      }
+    });
+  }
+
+  // メタ情報アコーディオンのトグルイベント登録
+  const metaToggleBtn = document.getElementById(`${paneId}-metaToggleBtn`);
+  if (metaToggleBtn) {
+    metaToggleBtn.addEventListener('click', () => {
+      selectPane(paneId);
+      toggleMetaAccordion(paneId);
+    });
+  }
+}
+
+function toggleMetaAccordion(paneId) {
+  const paneState = state.panes[paneId];
+  paneState.metaExpanded = !paneState.metaExpanded;
+  applyMetaAccordionDOM(paneId);
+}
+
+function applyMetaAccordionDOM(paneId) {
+  const paneState = state.panes[paneId];
+  const content = document.getElementById(`${paneId}-metaAccordionContent`);
+  const icon = document.getElementById(`${paneId}-metaToggleIcon`);
+  
+  if (content && icon) {
+    if (paneState.metaExpanded) {
+      content.classList.remove('collapsed');
+      icon.classList.remove('collapsed');
+    } else {
+      content.classList.add('collapsed');
+      icon.classList.add('collapsed');
+    }
   }
 }
 
@@ -1265,6 +1488,10 @@ function setupEvents() {
 
   el.folderTabBtn.addEventListener('click', () => switchTab('folders'));
   el.tagTabBtn.addEventListener('click', () => switchTab('tags'));
+  if (el.uploadsTabBtn) {
+    el.uploadsTabBtn.addEventListener('click', () => switchTab('uploads'));
+  }
+
 
   if (el.advancedTagSearchToggle) {
     el.advancedTagSearchToggle.addEventListener('change', (e) => {
@@ -1353,6 +1580,34 @@ function setupEvents() {
   el.cancelDeleteFolderBtn.addEventListener('click', () => el.deleteFolderModal.classList.remove('active'));
   el.deleteFolderOnlyBtn.addEventListener('click', () => deleteFolder(false));
   el.deleteFolderAllBtn.addEventListener('click', () => deleteFolder(true));
+
+  // 一括タグ操作イベント登録
+  if (el.cancelBatchTagBtn) {
+    el.cancelBatchTagBtn.addEventListener('click', () => el.batchTagFolderModal.classList.remove('active'));
+  }
+  if (el.confirmBatchTagBtn) {
+    el.confirmBatchTagBtn.addEventListener('click', confirmBatchTagFolder);
+  }
+  if (el.batchTagActionSelect) {
+    el.batchTagActionSelect.addEventListener('change', (e) => {
+      const isAdd = e.target.value === 'add';
+      el.confirmBatchTagBtn.textContent = isAdd ? '追加' : '削除';
+      if (isAdd) {
+        el.confirmBatchTagBtn.style.backgroundColor = 'var(--accent)';
+        el.confirmBatchTagBtn.style.borderColor = 'var(--accent)';
+      } else {
+        el.confirmBatchTagBtn.style.backgroundColor = 'var(--danger)';
+        el.confirmBatchTagBtn.style.borderColor = 'var(--danger)';
+      }
+    });
+  }
+  if (el.batchTagInput) {
+    el.batchTagInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        confirmBatchTagFolder();
+      }
+    });
+  }
 
   el.cancelAxisBtn.addEventListener('click', () => el.axisModal.classList.remove('active'));
   el.saveAxisBtn.addEventListener('click', saveAxis);
@@ -1673,6 +1928,7 @@ function clearPaneEditor(paneId) {
   if (pel.toggleGridBtn) pel.toggleGridBtn.style.display = 'none';
   pel.memoFolderContainer.style.display = 'none';
   pel.memoTagContainer.style.display = 'none';
+  if (pel.imagePasteConfig) pel.imagePasteConfig.style.display = 'none';
   if (pel.ratingPanel) pel.ratingPanel.style.display = 'none';
   
   pel.emptyState.style.display = 'block';

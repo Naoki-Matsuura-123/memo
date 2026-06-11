@@ -58,6 +58,8 @@ function switchAdminTab(tabName) {
     loadAdminBackups();
   } else if (tabName === 'audit') {
     loadAdminAuditLogs();
+  } else if (tabName === 'tags') {
+    loadAdminTags();
   }
 }
 
@@ -1010,6 +1012,72 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// 2.9 タグ管理
+async function loadAdminTags() {
+  try {
+    const res = await fetch(`${API_URL}/admin/tags`, {
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
+    if (res.ok) {
+      const tags = await res.json();
+      el.adminTagTableBody.innerHTML = '';
+      if (tags.length === 0) {
+        el.adminTagTableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:1rem; color:var(--text-sub);">タグが登録されていません。</td></tr>`;
+        return;
+      }
+      tags.forEach(tag => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid var(--panel-border)';
+        tr.innerHTML = `
+          <td style="padding: 0.5rem 0.6rem; color: var(--text-sub);">${tag.id}</td>
+          <td style="padding: 0.5rem 0.6rem; font-weight: 500; color: var(--text-main);">${escape(tag.name)}</td>
+          <td style="padding: 0.5rem 0.6rem; color: var(--text-sub);">${tag.memo_count}</td>
+          <td style="padding: 0.5rem 0.6rem; text-align: center;">
+            <button class="btn-primary" onclick="deleteTagByAdmin(${tag.id}, '${escape(tag.name)}')" style="background-color: var(--danger); border-color: var(--danger); padding: 0.2rem 0.6rem; font-size: 0.75rem; height: auto; cursor: pointer;">削除</button>
+          </td>
+        `;
+        el.adminTagTableBody.appendChild(tr);
+      });
+    } else {
+      showToast("タグ一覧の取得に失敗しました", "shield-alert");
+    }
+  } catch (e) {
+    showToast("サーバー通信エラー", "shield-alert");
+  }
+}
+
+async function deleteTagByAdmin(tagId, tagName) {
+  if (!confirm(`本当にタグ「${tagName}」をシステム全体から強制削除しますか？\nこのタグが付けられているすべてのメモからタグが剥がされます。`)) return;
+  
+  try {
+    const res = await fetch(`${API_URL}/admin/tags/${tagId}`, {
+      method: 'DELETE',
+      headers: { 'ngrok-skip-browser-warning': 'true' }
+    });
+    if (res.ok) {
+      showToast(`タグ「${tagName}」を強制削除しました`, "check");
+      await loadAdminTags();
+      
+      // グローバル側の表示更新
+      if (typeof fetchTags === 'function') {
+        fetchTags();
+      }
+      if (typeof fetchMemos === 'function') {
+        fetchMemos();
+      }
+      if (typeof renderList === 'function') {
+        renderList();
+      }
+    } else {
+      const err = await res.json();
+      showToast(err.detail || "タグの削除に失敗しました", "shield-alert");
+    }
+  } catch (e) {
+    showToast("サーバー通信エラー", "shield-alert");
+  }
+}
+
+
 // グローバルスコープに公開
 window.openAdminModal = openAdminModal;
 window.switchAdminTab = switchAdminTab;
@@ -1024,3 +1092,5 @@ window.changeAdminPassword = changeAdminPassword;
 window.openTransferModal = openTransferModal;
 window.deleteMemoByAdmin = deleteMemoByAdmin;
 window.removeUserFromRole = removeUserFromRole;
+window.deleteTagByAdmin = deleteTagByAdmin;
+

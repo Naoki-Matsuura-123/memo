@@ -410,7 +410,7 @@
     .editor-viewport {
       flex: 1;
       padding: 1.5rem;
-      overflow-y: auto;
+      overflow-y: hidden;
       display: flex;
       flex-direction: column;
       gap: 1rem;
@@ -446,9 +446,9 @@
       resize: none;
       width: 100%;
       line-height: 1.6;
-      height: auto;
-      min-height: 300px;
-      overflow-y: hidden;
+      flex: 1;
+      min-height: 200px;
+      overflow-y: auto;
     }
 
     /* エディタ・プレビュー要素の最大幅制限（読みやすさ向上のため中央寄せ） */
@@ -469,8 +469,8 @@
       display: none;
       font-size: 0.95rem;
       line-height: 1.6;
-      height: auto;
-      overflow-y: visible;
+      flex: 1;
+      overflow-y: auto;
     }
     .preview-container.active {
       display: block;
@@ -1809,7 +1809,7 @@
     .editor-viewport {
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
+      overflow-y: hidden;
       flex: 1;
     }
 
@@ -2421,6 +2421,68 @@
 }
 .filter-chip .remove-btn:hover {
   opacity: 0.7;
+}
+
+/* --- メタ情報アコーディオン --- */
+.meta-accordion-content {
+  max-height: 800px;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin-bottom 0.3s ease;
+  opacity: 1;
+  margin-bottom: 0.5rem;
+}
+.meta-accordion-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.editor-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: var(--editor-max-width);
+  margin-left: auto !important;
+  margin-right: auto !important;
+  position: relative;
+}
+
+.meta-toggle-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-sub);
+  transition: background-color 0.2s, color 0.2s;
+  margin-left: -6px;
+  flex-shrink: 0;
+}
+.meta-toggle-btn:hover {
+  background-color: rgba(128, 128, 128, 0.1);
+  color: var(--text-main);
+}
+
+.meta-toggle-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.25s ease;
+}
+.meta-toggle-icon.collapsed {
+  transform: rotate(-90deg);
+}
+
+.editor-title-row .title-input {
+  flex: 1;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: none;
 }
 
 

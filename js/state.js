@@ -28,8 +28,8 @@ let state = {
   activePaneId: 'left', // 現在アクティブなペイン ('left' | 'right')
   isSplitView: false, // 画面分割が有効か
   panes: {
-    left: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: false },
-    right: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: false }
+    left: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: false, metaExpanded: false },
+    right: { activeMemoId: null, openMemoIds: [], isPreviewActive: true, isEditModeExplicit: false, ratingFilter: 'all', ratingExpanded: false, metaExpanded: false }
   },
 
   // 評価システム
@@ -54,6 +54,7 @@ let state = {
 // フォルダ操作用グローバル変数
 let editingFolderId = null;
 let deletingFolderId = null;
+let batchTaggingFolderId = null;
 let autosaveTimer = null;
 
 // DOM要素
@@ -92,8 +93,12 @@ const el = {
   // タブおよびフォルダ・タグ表示用
   folderTabBtn: document.getElementById('folderTabBtn'),
   tagTabBtn: document.getElementById('tagTabBtn'),
+  uploadsTabBtn: document.getElementById('uploadsTabBtn'),
   folderSection: document.getElementById('folderSection'),
   tagSection: document.getElementById('tagSection'),
+  uploadsSection: document.getElementById('uploadsSection'),
+  sidebarUploadsList: document.getElementById('sidebarUploadsList'),
+
   tagList: document.getElementById('tagList'),
   advancedTagSearchToggle: document.getElementById('advancedTagSearchToggle'),
   advancedTagSearchContainer: document.getElementById('advancedTagSearchContainer'),
@@ -113,6 +118,13 @@ const el = {
   deleteFolderOnlyBtn: document.getElementById('deleteFolderOnlyBtn'),
   deleteFolderAllBtn: document.getElementById('deleteFolderAllBtn'),
   cancelDeleteFolderBtn: document.getElementById('cancelDeleteFolderBtn'),
+  batchTagFolderModal: document.getElementById('batchTagFolderModal'),
+  batchTagFolderName: document.getElementById('batchTagFolderName'),
+  batchTagActionSelect: document.getElementById('batchTagActionSelect'),
+  batchTagInput: document.getElementById('batchTagInput'),
+  batchTagRecursive: document.getElementById('batchTagRecursive'),
+  cancelBatchTagBtn: document.getElementById('cancelBatchTagBtn'),
+  confirmBatchTagBtn: document.getElementById('confirmBatchTagBtn'),
   
   // ワークスペース内のフォルダ連携・リンク用
   memoFolderContainer: document.getElementById('memoFolderContainer'),
@@ -203,6 +215,7 @@ const el = {
   adminModal: document.getElementById('adminModal'),
   closeAdminBtn: document.getElementById('closeAdminBtn'),
   adminUserTableBody: document.getElementById('adminUserTableBody'),
+  adminTagTableBody: document.getElementById('adminTagTableBody'),
   
   // スプリットビュー
   splitViewBtn: document.getElementById('splitViewBtn'),
@@ -237,6 +250,8 @@ function getPaneEl(paneId) {
     memoTagInput: document.getElementById(`${paneId}-memoTagInput`),
     imagePasteConfig: document.getElementById(`${paneId}-imagePasteConfig`),
     imageQualitySelect: document.getElementById(`${paneId}-imageQualitySelect`),
+    imageUploadBtn: document.getElementById(`${paneId}-imageUploadBtn`),
+    imageUploadInput: document.getElementById(`${paneId}-imageUploadInput`),
     ratingPanel: document.getElementById(`${paneId}-ratingPanel`),
     ratingPanelContent: document.getElementById(`${paneId}-ratingPanelContent`),
     ratingToggleIcon: document.getElementById(`${paneId}-ratingToggleIcon`),

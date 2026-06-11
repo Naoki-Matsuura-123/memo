@@ -73,7 +73,12 @@
           <i data-lucide="tag" style="width: 14px; height: 14px;"></i>
           <span>タグ</span>
         </button>
+        <button class="sidebar-tab-btn" id="uploadsTabBtn" title="画像一覧を表示" style="display: none;">
+          <i data-lucide="image" style="width: 14px; height: 14px;"></i>
+          <span>画像</span>
+        </button>
       </div>
+
 
       <!-- フォルダ一覧セクション -->
       <div class="folder-section" id="folderSection">
@@ -119,6 +124,19 @@
           <!-- 動的にタグリストが生成されます -->
         </div>
       </div>
+
+      <!-- 画像一覧セクション -->
+      <div class="folder-section" id="uploadsSection" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub); display: flex; align-items: center; gap: 0.3rem;">
+            <i data-lucide="image" style="width: 14px; height: 14px;"></i> 画像一覧
+          </span>
+        </div>
+        <div id="sidebarUploadsList" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.25rem; max-height: 180px; overflow-y: auto; padding: 2px;">
+          <!-- アップロードされた画像が動的に生成されます -->
+        </div>
+      </div>
+
 
       <!-- メモカード一覧 -->
       <div class="memo-list" id="memoList">
@@ -240,74 +258,87 @@
 
             <!-- 入力 / プレビュー表示 -->
             <div class="editor-viewport">
-              <div class="rating-panel" id="left-ratingPanel" style="display:none;">
-                <div class="rating-panel-header" onclick="toggleRatingPanel('left')" style="display: flex; justify-content: space-between; align-items: center;">
-                  <div class="rating-panel-title" style="display: flex; align-items: center;">
-                    <span class="rating-toggle-icon" id="left-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
-                    <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
-                    <span>評価</span>
-                  </div>
-                  <div id="left-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
-                    <span>集計対象:</span>
-                    <select id="left-ratingFilterSelect" onchange="changeRatingFilter('left')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
-                      <option value="all">全員</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="rating-panel-content" id="left-ratingPanelContent">
-                  <div id="left-ratingAxesList"></div>
-                  <div class="rating-summary-row" id="left-ratingSummaryRow" style="display:none;"></div>
-                  <div id="left-adjustedRatingContainer" class="adjusted-rating-container" style="display: none; justify-content: space-between; align-items: center; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--panel-border); font-size: 0.75rem;">
-                    <div style="display: flex; align-items: center; gap: 0.25rem;">
-                      <i data-lucide="trending-up" style="width:13px; height:13px; color: var(--accent);"></i>
-                      <span style="font-weight: 600;">偏差補正平均:</span>
-                      <span id="left-adjustedRatingValue" style="color: var(--accent); font-weight: bold;">未計算</span>
+              <!-- メタデータアコーディオン -->
+              <div class="meta-accordion-content collapsed" id="left-metaAccordionContent">
+                <div class="rating-panel" id="left-ratingPanel" style="display:none;">
+                  <div class="rating-panel-header" onclick="toggleRatingPanel('left')" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="rating-panel-title" style="display: flex; align-items: center;">
+                      <span class="rating-toggle-icon" id="left-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
+                      <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
+                      <span>評価</span>
                     </div>
-                    <button type="button" class="btn-icon" id="left-btnOpenAdjustedRating" onclick="openAdjustedRatingModal('left')" title="偏差補正評価を計算" style="padding: 2px 6px; font-size: 0.7rem; border: 1px solid var(--panel-border); border-radius: 4px; display: flex; align-items: center; gap: 0.2rem;">
-                      <i data-lucide="settings" style="width:11px; height:11px;"></i>
-                      <span>補正計算</span>
+                    <div id="left-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
+                      <span>集計対象:</span>
+                      <select id="left-ratingFilterSelect" onchange="changeRatingFilter('left')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
+                        <option value="all">全員</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="rating-panel-content" id="left-ratingPanelContent">
+                    <div id="left-ratingAxesList"></div>
+                    <div class="rating-summary-row" id="left-ratingSummaryRow" style="display:none;"></div>
+                    <div id="left-adjustedRatingContainer" class="adjusted-rating-container" style="display: none; justify-content: space-between; align-items: center; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--panel-border); font-size: 0.75rem;">
+                      <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i data-lucide="trending-up" style="width:13px; height:13px; color: var(--accent);"></i>
+                        <span style="font-weight: 600;">偏差補正平均:</span>
+                        <span id="left-adjustedRatingValue" style="color: var(--accent); font-weight: bold;">未計算</span>
+                      </div>
+                      <button type="button" class="btn-icon" id="left-btnOpenAdjustedRating" onclick="openAdjustedRatingModal('left')" title="偏差補正評価を計算" style="padding: 2px 6px; font-size: 0.7rem; border: 1px solid var(--panel-border); border-radius: 4px; display: flex; align-items: center; gap: 0.2rem;">
+                        <i data-lucide="settings" style="width:11px; height:11px;"></i>
+                        <span>補正計算</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="left-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub); position:relative;">
+                  <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
+                  <span>所属フォルダ:</span>
+                  <select id="left-memoFolderSelect" style="display:none;"></select>
+                  <div class="custom-dropdown" id="left-folderDropdown">
+                    <button type="button" class="dropdown-trigger" id="left-folderDropdownTrigger">
+                      <span class="trigger-label">📁 (分類なし / ルート)</span>
+                      <i data-lucide="chevron-down" style="width:12px; height:12px; color:var(--text-muted);"></i>
                     </button>
+                    <div class="dropdown-panel" id="left-folderDropdownPanel">
+                      <input type="text" class="dropdown-search" id="left-folderDropdownSearch" placeholder="🔍 フォルダを検索...">
+                      <div class="dropdown-options" id="left-folderDropdownOptions"></div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div id="left-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub); position:relative;">
-                <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
-                <span>所属フォルダ:</span>
-                <select id="left-memoFolderSelect" style="display:none;"></select>
-                <div class="custom-dropdown" id="left-folderDropdown">
-                  <button type="button" class="dropdown-trigger" id="left-folderDropdownTrigger">
-                    <span class="trigger-label">📁 (分類なし / ルート)</span>
-                    <i data-lucide="chevron-down" style="width:12px; height:12px; color:var(--text-muted);"></i>
+                <div id="left-memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                  <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <i data-lucide="tag" style="width:14px; height:14px; color:var(--accent);"></i>
+                    <span>タグ:</span>
+                  </div>
+                  <div id="left-memoTagList" style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;"></div>
+                  <input type="text" id="left-memoTagInput" placeholder="+ タグを追加..." style="background:transparent; border:none; outline:none; color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; font-family:inherit; min-width:80px; border-bottom:1px dashed var(--panel-border);">
+                </div>
+
+                <div id="left-imagePasteConfig" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                  <i data-lucide="image" style="width:14px; height:14px; color:var(--accent);"></i>
+                  <span>画像貼り付け画質:</span>
+                  <select id="left-imageQualitySelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
+                    <option value="standard">軽量標準 (最大1000px / JPEG高圧縮)</option>
+                    <option value="high">高画質 (最大2000px / JPEG中圧縮)</option>
+                    <option value="original">オリジナル画質 (無圧縮・PNG等)</option>
+                  </select>
+                  <button type="button" id="left-imageUploadBtn" class="btn-secondary" style="padding:0.2rem 0.6rem; font-size:0.75rem; display:flex; align-items:center; gap:0.25rem; height:24px;">
+                    <i data-lucide="upload" style="width:12px; height:12px;"></i>
+                    <span>画像をアップロード</span>
                   </button>
-                  <div class="dropdown-panel" id="left-folderDropdownPanel">
-                    <input type="text" class="dropdown-search" id="left-folderDropdownSearch" placeholder="🔍 フォルダを検索...">
-                    <div class="dropdown-options" id="left-folderDropdownOptions"></div>
-                  </div>
+                  <input type="file" id="left-imageUploadInput" accept="image/*" style="display:none;">
                 </div>
               </div>
 
-              <div id="left-memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
-                <div style="display:flex; align-items:center; gap:0.4rem;">
-                  <i data-lucide="tag" style="width:14px; height:14px; color:var(--accent);"></i>
-                  <span>タグ:</span>
-                </div>
-                <div id="left-memoTagList" style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;"></div>
-                <input type="text" id="left-memoTagInput" placeholder="+ タグを追加..." style="background:transparent; border:none; outline:none; color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; font-family:inherit; min-width:80px; border-bottom:1px dashed var(--panel-border);">
+              <!-- タイトル行 (アコーディオントグル + タイトル) -->
+              <div class="editor-title-row">
+                <button type="button" class="btn-icon meta-toggle-btn" id="left-metaToggleBtn" title="メタ情報を折りたたむ/展開する">
+                  <i data-lucide="chevron-down" class="meta-toggle-icon collapsed" id="left-metaToggleIcon"></i>
+                </button>
+                <input type="text" class="title-input" id="left-memoTitle" placeholder="無題のメモ" disabled>
               </div>
-
-              <div id="left-imagePasteConfig" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
-                <i data-lucide="image" style="width:14px; height:14px; color:var(--accent);"></i>
-                <span>画像貼り付け画質:</span>
-                <select id="left-imageQualitySelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
-                  <option value="standard">軽量標準 (最大1000px / JPEG高圧縮)</option>
-                  <option value="high">高画質 (最大2000px / JPEG中圧縮)</option>
-                  <option value="original">オリジナル画質 (無圧縮・PNG等)</option>
-                </select>
-              </div>
-
-
-              <input type="text" class="title-input" id="left-memoTitle" placeholder="無題のメモ" disabled>
               <textarea class="content-textarea" id="left-memoContent" placeholder="内容を入力してください... (マークダウン対応)" disabled></textarea>
               <div class="preview-container" id="left-markdownPreview"></div>
 
@@ -379,74 +410,87 @@
 
             <!-- 入力 / プレビュー表示 -->
             <div class="editor-viewport">
-              <div class="rating-panel" id="right-ratingPanel" style="display:none;">
-                <div class="rating-panel-header" onclick="toggleRatingPanel('right')" style="display: flex; justify-content: space-between; align-items: center;">
-                  <div class="rating-panel-title" style="display: flex; align-items: center;">
-                    <span class="rating-toggle-icon" id="right-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
-                    <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
-                    <span>評価</span>
-                  </div>
-                  <div id="right-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
-                    <span>集計対象:</span>
-                    <select id="right-ratingFilterSelect" onchange="changeRatingFilter('right')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
-                      <option value="all">全員</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="rating-panel-content" id="right-ratingPanelContent">
-                  <div id="right-ratingAxesList"></div>
-                  <div class="rating-summary-row" id="right-ratingSummaryRow" style="display:none;"></div>
-                  <div id="right-adjustedRatingContainer" class="adjusted-rating-container" style="display: none; justify-content: space-between; align-items: center; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--panel-border); font-size: 0.75rem;">
-                    <div style="display: flex; align-items: center; gap: 0.25rem;">
-                      <i data-lucide="trending-up" style="width:13px; height:13px; color: var(--accent);"></i>
-                      <span style="font-weight: 600;">偏差補正平均:</span>
-                      <span id="right-adjustedRatingValue" style="color: var(--accent); font-weight: bold;">未計算</span>
+              <!-- メタデータアコーディオン -->
+              <div class="meta-accordion-content collapsed" id="right-metaAccordionContent">
+                <div class="rating-panel" id="right-ratingPanel" style="display:none;">
+                  <div class="rating-panel-header" onclick="toggleRatingPanel('right')" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="rating-panel-title" style="display: flex; align-items: center;">
+                      <span class="rating-toggle-icon" id="right-ratingToggleIcon"><i data-lucide="chevron-down" style="width:14px; height:14px;"></i></span>
+                      <i data-lucide="star" style="width:14px; height:14px; color:var(--warning); margin-right: 4px;"></i>
+                      <span>評価</span>
                     </div>
-                    <button type="button" class="btn-icon" id="right-btnOpenAdjustedRating" onclick="openAdjustedRatingModal('right')" title="偏差補正評価を計算" style="padding: 2px 6px; font-size: 0.7rem; border: 1px solid var(--panel-border); border-radius: 4px; display: flex; align-items: center; gap: 0.2rem;">
-                      <i data-lucide="settings" style="width:11px; height:11px;"></i>
-                      <span>補正計算</span>
+                    <div id="right-ratingFilterContainer" onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--text-sub);">
+                      <span>集計対象:</span>
+                      <select id="right-ratingFilterSelect" onchange="changeRatingFilter('right')" style="background: var(--bg); border: 1px solid var(--panel-border); color: var(--text-main); font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 4px; outline: none; cursor: pointer; font-family: inherit;">
+                        <option value="all">全員</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="rating-panel-content" id="right-ratingPanelContent">
+                    <div id="right-ratingAxesList"></div>
+                    <div class="rating-summary-row" id="right-ratingSummaryRow" style="display:none;"></div>
+                    <div id="right-adjustedRatingContainer" class="adjusted-rating-container" style="display: none; justify-content: space-between; align-items: center; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--panel-border); font-size: 0.75rem;">
+                      <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        <i data-lucide="trending-up" style="width:13px; height:13px; color: var(--accent);"></i>
+                        <span style="font-weight: 600;">偏差補正平均:</span>
+                        <span id="right-adjustedRatingValue" style="color: var(--accent); font-weight: bold;">未計算</span>
+                      </div>
+                      <button type="button" class="btn-icon" id="right-btnOpenAdjustedRating" onclick="openAdjustedRatingModal('right')" title="偏差補正評価を計算" style="padding: 2px 6px; font-size: 0.7rem; border: 1px solid var(--panel-border); border-radius: 4px; display: flex; align-items: center; gap: 0.2rem;">
+                        <i data-lucide="settings" style="width:11px; height:11px;"></i>
+                        <span>補正計算</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="right-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub); position:relative;">
+                  <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
+                  <span>所属フォルダ:</span>
+                  <select id="right-memoFolderSelect" style="display:none;"></select>
+                  <div class="custom-dropdown" id="right-folderDropdown">
+                    <button type="button" class="dropdown-trigger" id="right-folderDropdownTrigger">
+                      <span class="trigger-label">📁 (分類なし / ルート)</span>
+                      <i data-lucide="chevron-down" style="width:12px; height:12px; color:var(--text-muted);"></i>
                     </button>
+                    <div class="dropdown-panel" id="right-folderDropdownPanel">
+                      <input type="text" class="dropdown-search" id="right-folderDropdownSearch" placeholder="🔍 フォルダを検索...">
+                      <div class="dropdown-options" id="right-folderDropdownOptions"></div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div id="right-memoFolderContainer" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub); position:relative;">
-                <i data-lucide="folder" style="width:14px; height:14px; color:var(--accent);"></i>
-                <span>所属フォルダ:</span>
-                <select id="right-memoFolderSelect" style="display:none;"></select>
-                <div class="custom-dropdown" id="right-folderDropdown">
-                  <button type="button" class="dropdown-trigger" id="right-folderDropdownTrigger">
-                    <span class="trigger-label">📁 (分類なし / ルート)</span>
-                    <i data-lucide="chevron-down" style="width:12px; height:12px; color:var(--text-muted);"></i>
+                <div id="right-memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                  <div style="display:flex; align-items:center; gap:0.4rem;">
+                    <i data-lucide="tag" style="width:14px; height:14px; color:var(--accent);"></i>
+                    <span>タグ:</span>
+                  </div>
+                  <div id="right-memoTagList" style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;"></div>
+                  <input type="text" id="right-memoTagInput" placeholder="+ タグを追加..." style="background:transparent; border:none; outline:none; color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; font-family:inherit; min-width:80px; border-bottom:1px dashed var(--panel-border);">
+                </div>
+
+                <div id="right-imagePasteConfig" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
+                  <i data-lucide="image" style="width:14px; height:14px; color:var(--accent);"></i>
+                  <span>画像貼り付け画質:</span>
+                  <select id="right-imageQualitySelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
+                    <option value="standard">軽量標準 (最大1000px / JPEG高圧縮)</option>
+                    <option value="high">高画質 (最大2000px / JPEG中圧縮)</option>
+                    <option value="original">オリジナル画質 (無圧縮・PNG等)</option>
+                  </select>
+                  <button type="button" id="right-imageUploadBtn" class="btn-secondary" style="padding:0.2rem 0.6rem; font-size:0.75rem; display:flex; align-items:center; gap:0.25rem; height:24px;">
+                    <i data-lucide="upload" style="width:12px; height:12px;"></i>
+                    <span>画像をアップロード</span>
                   </button>
-                  <div class="dropdown-panel" id="right-folderDropdownPanel">
-                    <input type="text" class="dropdown-search" id="right-folderDropdownSearch" placeholder="🔍 フォルダを検索...">
-                    <div class="dropdown-options" id="right-folderDropdownOptions"></div>
-                  </div>
+                  <input type="file" id="right-imageUploadInput" accept="image/*" style="display:none;">
                 </div>
               </div>
 
-              <div id="right-memoTagContainer" style="display:none; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
-                <div style="display:flex; align-items:center; gap:0.4rem;">
-                  <i data-lucide="tag" style="width:14px; height:14px; color:var(--accent);"></i>
-                  <span>タグ:</span>
-                </div>
-                <div id="right-memoTagList" style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center;"></div>
-                <input type="text" id="right-memoTagInput" placeholder="+ タグを追加..." style="background:transparent; border:none; outline:none; color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; font-family:inherit; min-width:80px; border-bottom:1px dashed var(--panel-border);">
+              <!-- タイトル行 (アコーディオントグル + タイトル) -->
+              <div class="editor-title-row">
+                <button type="button" class="btn-icon meta-toggle-btn" id="right-metaToggleBtn" title="メタ情報を折りたたむ/展開する">
+                  <i data-lucide="chevron-down" class="meta-toggle-icon collapsed" id="right-metaToggleIcon"></i>
+                </button>
+                <input type="text" class="title-input" id="right-memoTitle" placeholder="無題のメモ" disabled>
               </div>
-
-              <div id="right-imagePasteConfig" style="display:none; align-items:center; gap:0.4rem; font-size:0.8rem; margin-bottom:0.75rem; color:var(--text-sub);">
-                <i data-lucide="image" style="width:14px; height:14px; color:var(--accent);"></i>
-                <span>画像貼り付け画質:</span>
-                <select id="right-imageQualitySelect" style="background:var(--bg); border:1px solid var(--panel-border); color:var(--text-main); font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:4px; outline:none; font-family:inherit; cursor:pointer;">
-                  <option value="standard">軽量標準 (最大1000px / JPEG高圧縮)</option>
-                  <option value="high">高画質 (最大2000px / JPEG中圧縮)</option>
-                  <option value="original">オリジナル画質 (無圧縮・PNG等)</option>
-                </select>
-              </div>
-
-
-              <input type="text" class="title-input" id="right-memoTitle" placeholder="無題のメモ" disabled>
               <textarea class="content-textarea" id="right-memoContent" placeholder="内容を入力してください... (マークダウン対応)" disabled></textarea>
               <div class="preview-container" id="right-markdownPreview"></div>
 
@@ -518,6 +562,43 @@
       </div>
       <div class="modal-actions" style="justify-content: flex-end;">
         <button class="btn-secondary" id="cancelDeleteFolderBtn">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- フォルダ一括タグ操作モーダル -->
+  <div class="modal" id="batchTagFolderModal">
+    <div class="modal-content" style="width: 460px;">
+      <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem; border-bottom:1px solid var(--panel-border); padding-bottom:0.75rem; margin-bottom:0.75rem;">
+        <i data-lucide="tag" style="color:var(--accent); width:20px; height:20px;"></i>
+        <span>フォルダ内メモの一括タグ操作</span>
+      </div>
+      <div class="modal-body" style="margin: 1rem 0; line-height: 1.5; font-size: 0.9rem; display: flex; flex-direction: column; gap: 1rem;">
+        <div style="color: var(--text-sub);">
+          フォルダ「<span id="batchTagFolderName" style="font-weight:600; color:var(--text-main);"></span>」内のすべてのメモに対して、タグを一括で操作します。
+        </div>
+        
+        <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+          <label class="form-label" style="font-size: 0.8rem; font-weight: 500;">操作内容</label>
+          <select id="batchTagActionSelect" class="form-input" style="height: 36px; padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid var(--panel-border); background: var(--bg-glass); color: var(--text-main); font-size: 0.85rem; width: 100%; box-sizing: border-box; outline: none;">
+            <option value="add">タグを一括追加する</option>
+            <option value="remove">タグを一括削除する</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 0.4rem;">
+          <label class="form-label" style="font-size: 0.8rem; font-weight: 500;">タグ名</label>
+          <input type="text" id="batchTagInput" class="form-input" placeholder="タグ名を入力..." style="font-size: 0.85rem; height: 36px; box-sizing: border-box; width: 100%;">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+          <input type="checkbox" id="batchTagRecursive" checked style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent);">
+          <label for="batchTagRecursive" style="font-size: 0.85rem; color: var(--text-sub); cursor: pointer; user-select: none;">サブフォルダ内のメモにも適用する</label>
+        </div>
+      </div>
+      <div class="modal-actions" style="justify-content: flex-end; gap: 0.5rem; border-top: 1px solid var(--panel-border); padding-top: 0.75rem; margin-top: 0.5rem;">
+        <button class="btn-secondary" id="cancelBatchTagBtn">キャンセル</button>
+        <button class="btn-primary" id="confirmBatchTagBtn" style="background-color: var(--accent); border-color: var(--accent);">追加</button>
       </div>
     </div>
   </div>
@@ -918,6 +999,10 @@
             <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i>
             <span>管理操作ログ</span>
           </button>
+          <button class="admin-menu-item" onclick="switchAdminTab('tags')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
+            <i data-lucide="tag" style="width: 14px; height: 14px;"></i>
+            <span>タグ管理</span>
+          </button>
           <button class="admin-menu-item" onclick="switchAdminTab('maintenance')" style="display: flex; align-items: center; gap: 0.5rem; width: 100%; border: none; background: transparent; padding: 0.5rem 0.75rem; border-radius: 6px; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; cursor: pointer; text-align: left; transition: background 0.2s;">
             <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
             <span>メンテナンス</span>
@@ -1165,6 +1250,28 @@
                   </tr>
                 </thead>
                 <tbody id="adminAuditTableBody">
+                  <!-- JavaScriptで動的に生成 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- タグ管理タブ -->
+          <div id="adminTab-tags" class="admin-tab-content" style="display: none;">
+            <div style="margin-bottom: 1.25rem; color:var(--text-sub); font-size: 0.85rem;">
+              システム全体のタグを一覧表示し、強制削除を行うことができます。タグを削除すると、そのタグが適用されているすべてのメモ（全ユーザー）から剥がされます。
+            </div>
+            <div style="border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden; max-height: 400px; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                <thead>
+                  <tr style="background: var(--sidebar-bg); border-bottom: 1px solid var(--panel-border); color: var(--text-main);">
+                    <th style="padding: 0.5rem 0.6rem; width: 60px;">ID</th>
+                    <th style="padding: 0.5rem 0.6rem;">タグ名</th>
+                    <th style="padding: 0.5rem 0.6rem; width: 100px;">使用メモ数</th>
+                    <th style="padding: 0.5rem 0.6rem; width: 100px; text-align: center;">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="adminTagTableBody">
                   <!-- JavaScriptで動的に生成 -->
                 </tbody>
               </table>
